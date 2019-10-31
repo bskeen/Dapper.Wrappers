@@ -14,8 +14,8 @@ namespace Dapper.Wrappers
         protected readonly IQueryResultsProcessorProvider _resultsProcessorProvider;
         protected readonly IQueryFormatter _queryFormatter;
 
-        public abstract string GetQueryString { get; }
-        public abstract IDictionary<string, IDictionary<FilterOperations, string>> FilterItemStrings { get; }
+        protected abstract string GetQueryString { get; }
+        protected abstract IDictionary<string, IDictionary<FilterOperations, string>> FilterItemStrings { get; }
 
         public BaseQueryGenerator(IQueryResultsProcessorProvider resultsProcessorProvider, IQueryFormatter queryFormatter)
         {
