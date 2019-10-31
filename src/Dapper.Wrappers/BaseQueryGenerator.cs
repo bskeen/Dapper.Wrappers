@@ -16,6 +16,7 @@ namespace Dapper.Wrappers
 
         protected abstract string GetQueryString { get; }
         protected abstract IDictionary<string, IDictionary<FilterOperations, string>> FilterItemStrings { get; }
+        protected abstract IDictionary<string, IDictionary<OrderDirections, string>> OrderItemStrings { get; }
 
         public BaseQueryGenerator(IQueryResultsProcessorProvider resultsProcessorProvider, IQueryFormatter queryFormatter)
         {
@@ -65,6 +66,23 @@ namespace Dapper.Wrappers
             }
 
             return _queryFormatter.FormatFilterItems(formattedFilterItems);
+        }
+
+        protected virtual string FormatOrderItems(IEnumerable<OrderItem> orderItems)
+        {
+            if (orderItems == null)
+            {
+                return string.Empty;
+            }
+
+            List<string> formattedOrderItems = new List<string>();
+
+            foreach (var orderItem in orderItems)
+            {
+                formattedOrderItems.Add(OrderItemStrings[orderItem.KeyName][orderItem.Direction]);
+            }
+
+            return _queryFormatter.FormatOrderItems(formattedOrderItems);
         }
     }
 }

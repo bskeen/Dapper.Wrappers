@@ -8,5 +8,6 @@ namespace Dapper.Wrappers
     {
         string FormatFilterItem(string filterItemString, string variableName);
         string FormatFilterItems(IEnumerable<string> filterItems);
+        string FormatOrderItems(IEnumerable<string> orderItems);
     }
 }
