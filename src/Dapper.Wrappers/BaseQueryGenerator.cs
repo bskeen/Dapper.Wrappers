@@ -15,8 +15,10 @@ namespace Dapper.Wrappers
         protected readonly IQueryFormatter _queryFormatter;
 
         protected abstract string GetQueryString { get; }
+        protected abstract string DeleteQueryString { get; }
         protected abstract IDictionary<string, IDictionary<FilterOperations, string>> FilterItemStrings { get; }
         protected abstract IDictionary<string, IDictionary<OrderDirections, string>> OrderItemStrings { get; }
+        protected abstract string DefaultOrderItem { get; }
 
         public BaseQueryGenerator(IQueryResultsProcessorProvider resultsProcessorProvider, IQueryFormatter queryFormatter)
         {
@@ -27,7 +29,26 @@ namespace Dapper.Wrappers
         public virtual IQueryResultsProcessor<M> AddGetQuery(IQueryContext context, IEnumerable<FilterItem> filterItems = null, IEnumerable<OrderItem> orderItems = null,
             Pagination pagination = null)
         {
-            throw new NotImplementedException();
+            string skipVariable = null;
+            string takeVariable = null;
+
+            if (pagination != null)
+            {
+                skipVariable = context.AddVariable("skip", pagination.Skip, System.Data.DbType.Int32);
+                takeVariable = context.AddVariable("take", pagination.Take, System.Data.DbType.Int32);
+            }
+
+            var formattedFilterItems = FormatFilterItems(context, filterItems);
+
+            var formattedOrderItems = FormatOrderItems(orderItems);
+
+            var query = _queryFormatter.FormatGetQuery(GetQueryString, formattedFilterItems, formattedOrderItems, pagination != null, skipVariable, takeVariable);
+
+            var resultsHandler = _resultsProcessorProvider.GetQueryResultsProcessor<M>();
+
+            context.AddQuery(query, resultsHandler);
+
+            return resultsHandler;
         }
 
         public virtual IQueryResultsProcessor<M> AddInsertQuery(IQueryContext context, IEnumerable<IEnumerable<QueryKeyValue>> entityValues)
@@ -35,14 +56,20 @@ namespace Dapper.Wrappers
             throw new NotImplementedException();
         }
 
-        public IQueryResultsProcessor<M> AddUpdateQuery(IQueryContext context, IEnumerable<QueryKeyValue> entityUpdates, IEnumerable<FilterItem> filterItems)
+        public virtual IQueryResultsProcessor<M> AddUpdateQuery(IQueryContext context, IEnumerable<QueryKeyValue> entityUpdates, IEnumerable<FilterItem> filterItems)
         {
             throw new NotImplementedException();
         }
 
-        public void AddDeleteQuery(IQueryContext context, IEnumerable<FilterItem> deleteCriteria)
+        public virtual void AddDeleteQuery(IQueryContext context, IEnumerable<FilterItem> deleteCriteria)
         {
-            throw new NotImplementedException();
+            var formattedDeleteCriteria = FormatFilterItems(context, deleteCriteria);
+
+            var query = _queryFormatter.FormatDeleteQuery(DeleteQueryString, formattedDeleteCriteria);
+
+            var resultsHandler = _resultsProcessorProvider.GetQueryResultsProcessor<M>();
+
+            context.AddQuery(query, resultsHandler);
         }
 
         protected virtual string FormatFilterItems(IQueryContext context, IEnumerable<FilterItem> filterItems, bool isUnique = true)
