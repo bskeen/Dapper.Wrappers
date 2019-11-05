@@ -56,9 +56,17 @@ namespace Dapper.Wrappers
             throw new NotImplementedException();
         }
 
-        public virtual IQueryResultsProcessor<M> AddUpdateQuery(IQueryContext context, IEnumerable<QueryKeyValue> entityUpdates, IEnumerable<FilterItem> filterItems)
+        public virtual IQueryResultsProcessor<M> AddUpdateQuery(IQueryContext context, IEnumerable<QueryKeyValue> entityUpdates, IEnumerable<FilterItem> updateCriteria)
         {
-            throw new NotImplementedException();
+            var formattedEntityUpdates = "";
+            var formattedUpdateCriteria = FormatFilterItems(context, updateCriteria);
+            var query = _queryFormatter.FormatUpdateQuery(formattedEntityUpdates, formattedUpdateCriteria);
+
+            var resultsHandler = _resultsProcessorProvider.GetQueryResultsProcessor<M>();
+
+            context.AddQuery(query, resultsHandler);
+
+            return resultsHandler;
         }
 
         public virtual void AddDeleteQuery(IQueryContext context, IEnumerable<FilterItem> deleteCriteria)
@@ -81,7 +89,7 @@ namespace Dapper.Wrappers
 
             List<string> formattedFilterItems = new List<string>();
 
-            foreach (var filterItem in filterItems)
+            foreach (var filterItem in filterItems.Where(fi => FilterItemStrings.ContainsKey(fi.KeyName)))
             {
                 var variableName = context.AddVariable(filterItem.KeyName, filterItem.Value, filterItem.ValueType, isUnique);
                 formattedFilterItems.Add(_queryFormatter.FormatFilterItem(FilterItemStrings[filterItem.KeyName][filterItem.Operation], variableName));
@@ -104,12 +112,23 @@ namespace Dapper.Wrappers
 
             List<string> formattedOrderItems = new List<string>();
 
-            foreach (var orderItem in orderItems)
+            foreach (var orderItem in orderItems.Where(oi => OrderItemStrings.ContainsKey(oi.KeyName)))
             {
                 formattedOrderItems.Add(OrderItemStrings[orderItem.KeyName][orderItem.Direction]);
             }
 
+            if (formattedOrderItems.Count == 0)
+            {
+                return string.Empty;
+            }
+
             return _queryFormatter.FormatOrderItems(formattedOrderItems);
+        }
+
+        protected enum QueryKeyValueTypes
+        {
+            Update,
+            Insert
         }
     }
 }

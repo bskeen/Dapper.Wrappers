@@ -5,13 +5,13 @@
 namespace Dapper.Wrappers
 {
     /// <summary>
-    /// Represents a filter specification for a query.
+    /// Represents a value associated with a query key.
     /// </summary>
-    public class FilterItem : QueryKeyValue
+    public class QueryKey
     {
         /// <summary>
-        /// The operation to be used with the filter specification.
+        /// The name of the key associated with the value.
         /// </summary>
-        public FilterOperations Operation { get; set; }
+        public string KeyName { get; set; }
     }
 }

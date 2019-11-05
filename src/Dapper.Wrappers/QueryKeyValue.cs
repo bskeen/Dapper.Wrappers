@@ -6,16 +6,8 @@ using System.Data;
 
 namespace Dapper.Wrappers
 {
-    /// <summary>
-    /// Represents a value associated with a query key.
-    /// </summary>
-    public class QueryKeyValue
+    public class QueryKeyValue : QueryKey
     {
-        /// <summary>
-        /// The name of the key associated with the value.
-        /// </summary>
-        public string KeyName { get; set; }
-
         /// <summary>
         /// The value associated with the key.
         /// </summary>

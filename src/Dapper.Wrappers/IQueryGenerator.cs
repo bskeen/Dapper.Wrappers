@@ -21,7 +21,7 @@ namespace Dapper.Wrappers
         /// <param name="pagination">Declares how to paginate the results</param>
         IQueryResultsProcessor<M> AddGetQuery(
             IQueryContext context,
-            IEnumerable<FilterItem> filterItems = null,
+            IEnumerable<IFilterItem> filterItems = null,
             IEnumerable<OrderItem> orderItems = null,
             Pagination pagination = null);
 
@@ -41,11 +41,11 @@ namespace Dapper.Wrappers
         /// </summary>
         /// <param name="context">The context to be updated.</param>
         /// <param name="entityUpdates">The values to update.</param>
-        /// <param name="filterItems">The filter describing which items should be updated.</param>
+        /// <param name="updateCriteria">The filter describing which items should be updated.</param>
         IQueryResultsProcessor<M> AddUpdateQuery(
             IQueryContext context,
             IEnumerable<QueryKeyValue> entityUpdates,
-            IEnumerable<FilterItem> filterItems);
+            IEnumerable<IFilterItem> updateCriteria);
 
         /// <summary>
         /// Adds a delete query to the context.
@@ -54,6 +54,6 @@ namespace Dapper.Wrappers
         /// <param name="deleteCriteria">The filter describing which items should be deleted.</param>
         void AddDeleteQuery(
             IQueryContext context,
-            IEnumerable<FilterItem> deleteCriteria);
+            IEnumerable<IFilterItem> deleteCriteria);
     }
 }

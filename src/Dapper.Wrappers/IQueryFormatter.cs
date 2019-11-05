@@ -11,5 +11,6 @@ namespace Dapper.Wrappers
         string FormatOrderItems(IEnumerable<string> orderItems);
         string FormatGetQuery(string baseQueryString, string filterItems, string orderItems, bool isPaginated, string skipVariableName, string takeVariableName);
         string FormatDeleteQuery(string baseQueryString, string deleteCriteria);
+        string FormatUpdateQuery(string entityUpdates, string updateCriteria);
     }
 }
