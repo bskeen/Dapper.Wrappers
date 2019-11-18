@@ -6,6 +6,6 @@ namespace Dapper.Wrappers
     public class QueryOperation
     {
         public string Name { get; set; }
-        public IEnumerable<QueryParameter> Parameters { get; set; }
+        public IDictionary<string, object> Parameters { get; set; }
     }
 }
