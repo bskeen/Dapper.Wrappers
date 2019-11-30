@@ -40,7 +40,7 @@ namespace Dapper.Wrappers
         /// Adds an update query to the context.
         /// </summary>
         /// <param name="context">The context to be updated.</param>
-        /// <param name="entityUpdates">The values to update.</param>
+        /// <param name="updateOperations">The values to update.</param>
         /// <param name="updateCriteria">The filter describing which items should be updated.</param>
         IQueryResultsProcessor<M> AddUpdateQuery(
             IQueryContext context,

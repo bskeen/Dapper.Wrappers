@@ -14,7 +14,7 @@ namespace Dapper.Wrappers
 
         public string FormatFilterOperations(IEnumerable<string> filterOperations)
         {
-            return string.Join(" AND ", filterOperations);
+            return $"WHERE {string.Join(" AND ", filterOperations)}";
         }
 
         public string FormatOrderOperation(string orderOperationString, IEnumerable<string> variableNames, OrderDirections? orderDirection)
@@ -28,7 +28,7 @@ namespace Dapper.Wrappers
 
         public string FormatOrderOperations(IEnumerable<string> orderOperations)
         {
-            return string.Join(", ", orderOperations);
+            return $"ORDER BY {string.Join(", ", orderOperations)}";
         }
 
         public string FormatUpdateOperation(string updateOperationString, IEnumerable<string> variableNames, OrderDirections? orderDirection)
@@ -38,7 +38,7 @@ namespace Dapper.Wrappers
 
         public string FormatUpdateOperations(IEnumerable<string> updateOperations)
         {
-            return string.Join(", ", updateOperations);
+            return $"SET {string.Join(", ", updateOperations)}";
         }
 
         public string FormatInsertOperation(string insertOperation, IEnumerable<string> variableNames, OrderDirections? orderDirection)

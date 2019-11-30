@@ -24,9 +24,8 @@ namespace Dapper.Wrappers
         protected abstract IDictionary<string, QueryOperationMetadata> UpdateOperationMetadata { get; }
         protected abstract IDictionary<string, QueryOperationMetadata> InsertOperationMetadata { get; }
         protected abstract IDictionary<string, MergeOperationMetadata> GetRequiredInsertOperationMetadata();
-        protected abstract string DefaultOrderItem { get; }
 
-        public BaseQueryGenerator(IQueryResultsProcessorProvider resultsProcessorProvider, IQueryFormatter queryFormatter)
+        protected BaseQueryGenerator(IQueryResultsProcessorProvider resultsProcessorProvider, IQueryFormatter queryFormatter)
         {
             _resultsProcessorProvider = resultsProcessorProvider;
             _queryFormatter = queryFormatter;
@@ -57,7 +56,7 @@ namespace Dapper.Wrappers
                 criteria = _queryFormatter.FormatFilterOperations(formattedFilterItems);
             }
 
-            var formattedOrderItems = FormatOperations(context, orderItems, OrderOperationMetadata, _queryFormatter.FormatOrderOperation, NoopOperationAction, checkOrdering: true);
+            var formattedOrderItems = FormatOperations(context, orderItems, OrderOperationMetadata, _queryFormatter.FormatOrderOperation, NoopOperationAction, true);
 
             string ordering;
 
