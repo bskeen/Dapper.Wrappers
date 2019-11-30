@@ -16,7 +16,8 @@ namespace Dapper.Wrappers
 
         protected abstract string GetQueryString { get; }
         protected abstract string DefaultOrdering { get; }
-        protected abstract  string InsertQueryString { get; }
+        protected abstract string InsertQueryString { get; }
+        protected abstract string UpdateQueryString { get; }
         protected abstract string DeleteQueryString { get; }
         protected abstract IDictionary<string, QueryOperationMetadata> FilterOperationMetadata { get; }
         protected abstract IDictionary<string, QueryOperationMetadata> OrderOperationMetadata { get; }
@@ -163,15 +164,12 @@ namespace Dapper.Wrappers
 
             var formattedOperations = FormatOperations(context, updateOperations, UpdateOperationMetadata, _queryFormatter.FormatUpdateOperation, UpdateOperationAction);
 
-            string operations;
             if (formattedOperations.Count == 0)
             {
                 throw new ArgumentException("No update operations specified.");
             }
-            else
-            {
-                operations = _queryFormatter.FormatUpdateOperations(formattedOperations);
-            }
+
+            string operations = _queryFormatter.FormatUpdateOperations(formattedOperations);
 
             var formattedUpdateCriteria = FormatOperations(context, updateCriteria, FilterOperationMetadata, _queryFormatter.FormatFilterOperation, NoopOperationAction);
 
@@ -186,7 +184,7 @@ namespace Dapper.Wrappers
                 criteria = _queryFormatter.FormatFilterOperations(formattedUpdateCriteria);
             }
 
-            var query = _queryFormatter.FormatUpdateQuery(operations, criteria);
+            var query = _queryFormatter.FormatUpdateQuery(UpdateQueryString, operations, criteria);
 
             var resultsHandler = _resultsProcessorProvider.GetQueryResultsProcessor<M>();
 

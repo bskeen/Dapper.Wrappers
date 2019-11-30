@@ -18,7 +18,7 @@ namespace Dapper.Wrappers
         string FormatInsertColumns(IEnumerable<string> insertColumns);
         string FormatGetQuery(string baseQueryString, string filterOperations, string orderOperations, bool isPaginated, string skipVariableName, string takeVariableName);
         string FormatDeleteQuery(string baseQueryString, string deleteCriteria);
-        string FormatUpdateQuery(string entityUpdates, string updateCriteria);
+        string FormatUpdateQuery(string baseQueryString, string entityUpdates, string updateCriteria);
         string FormatInsertQuery(string baseQueryString, string columnList, string insertOperations);
     }
 }
