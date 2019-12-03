@@ -42,5 +42,10 @@ namespace Dapper.Wrappers
         /// registered query handlers.
         /// </summary>
         Task ExecuteQueries();
+        
+        /// <summary>
+        /// Resets the context to its initial state.
+        /// </summary>
+        void Reset();
     }
 }

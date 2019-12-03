@@ -2,20 +2,21 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Dapper.Wrappers
+namespace Dapper.Wrappers.DependencyInjection
 {
     /// <summary>
-    /// Represents the different directions to order a result set.
+    /// Options for selecting the database to be used by the query builder.
     /// </summary>
-    public enum OrderDirections
+    public enum SupportedDatabases
     {
         /// <summary>
-        /// Declares that results should be ordered ascending.
+        /// Represents MS SQL Server.
         /// </summary>
-        Asc,
+        SqlServer,
+
         /// <summary>
-        /// Declares that results should be ordered descending.
+        /// Represents PostgreSQL.
         /// </summary>
-        Desc
+        PostgreSQL
     }
 }

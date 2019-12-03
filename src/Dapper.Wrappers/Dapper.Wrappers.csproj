@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageTags>orm sql micro-orm dapper</PackageTags>
-    <Version>0.1.1-beta</Version>
+    <Version>0.2.0-beta</Version>
     <Authors>Benjamin Skeen</Authors>
     <Description>A thin wrapper around Dapper.Net that helps with runtime customization of queries.</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.30" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
