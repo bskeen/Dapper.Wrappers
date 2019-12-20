@@ -85,7 +85,7 @@ namespace Dapper.Wrappers
 
                 foreach (var handler in _resultsHandlers)
                 {
-                    handler.ReadResults(resultsReader);
+                    await handler.ReadResults(resultsReader);
                 }
 
                 transaction.Commit();
