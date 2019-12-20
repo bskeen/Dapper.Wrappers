@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Dapper.Wrappers
 {
@@ -20,12 +19,12 @@ namespace Dapper.Wrappers
         /// <returns>
         /// A list of processed query results, along with the total number of results present in the database.
         /// </returns>
-        Task<(IEnumerable<M> Results, int TotalResultCount)> GetAllResultsAsync();
+        (IEnumerable<M> Results, int TotalResultCount) GetAllResults();
 
         /// <summary>
         /// Processes a single query result.
         /// </summary>
         /// <returns>A processed query result.</returns>
-        Task<M> GetOneResultAsync();
+        M GetOneResult();
     }
 }

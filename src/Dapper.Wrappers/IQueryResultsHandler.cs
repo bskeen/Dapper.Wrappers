@@ -2,6 +2,7 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
 using static Dapper.SqlMapper;
 
 namespace Dapper.Wrappers
@@ -15,6 +16,6 @@ namespace Dapper.Wrappers
         /// Retrieves as many results from the GridReader as needed by this handler.
         /// </summary>
         /// <param name="resultsReader">The GridReader containing the results.</param>
-        void ReadResults(GridReader resultsReader);
+        Task ReadResults(GridReader resultsReader);
     }
 }
