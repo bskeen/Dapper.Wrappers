@@ -2,8 +2,11 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dapper.Wrappers
@@ -78,6 +81,17 @@ namespace Dapper.Wrappers
         public async Task ExecuteQueries()
         {
             var query = string.Join(" ", _currentQuery);
+
+            // This solution is a slightly different version of similar code from Dapper .Net,
+            // Retrieved on 1/23/2020 from https://github.com/StackExchange/Dapper/blob/master/Dapper/SqlMapper.Async.cs
+            if (_connection is DbConnection dbConn)
+            {
+                await dbConn.OpenAsync(CancellationToken.None);
+            }
+            else
+            {
+                _connection.Open();
+            }
 
             using (var transaction = _connection.BeginTransaction())
             {
