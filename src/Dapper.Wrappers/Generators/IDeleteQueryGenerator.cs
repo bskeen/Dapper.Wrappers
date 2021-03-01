@@ -1,5 +1,5 @@
 ﻿using System;
-// © 2019 by Benjamin Skeen
+// © 2021 by Benjamin Skeen
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 

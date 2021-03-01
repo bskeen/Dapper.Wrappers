@@ -1,4 +1,4 @@
-﻿// © 2019 by Benjamin Skeen
+﻿// © 2021 by Benjamin Skeen
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -20,7 +20,7 @@ namespace Dapper.Wrappers.Generators
         /// <param name="orderItems">Declares how to order the results.</param>
         /// <param name="pagination">Declares how to paginate the results</param>
         /// <returns>The query results processor that will provide the results.</returns>
-        IQueryResultsProcessor<M> AddGetQuery(IQueryContext context,
+        void AddGetQuery(IQueryContext context,
             IEnumerable<QueryOperation> filterOperations = null, IEnumerable<QueryOperation> orderOperations = null,
             Pagination pagination = null);
     }
