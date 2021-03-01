@@ -19,11 +19,12 @@ namespace Dapper.Wrappers
     /// </summary>
     public class QueryContext : IQueryContext
     {
-        private readonly IDbConnection _connection;
+        private IDbConnection _connection;
         private IList<string> _currentQuery;
-        private IList<IQueryResultsHandler> _resultsHandlers;
-        private DynamicParameters _parameters;
+        private bool _disposed = false;
         private int _currentVariableCounter;
+        private DynamicParameters _parameters;
+        private IDbTransaction _currentTransaction;
 
         public QueryContext(IDbConnection connection)
         {
@@ -35,14 +36,12 @@ namespace Dapper.Wrappers
         /// Adds a given query to the context, along with its result handler.
         /// </summary>
         /// <param name="query">The query to be executed.</param>
-        /// <param name="resultsHandler">
         /// A class used to retrieve results from the GridReader resulting from
         /// the executed query.
         /// </param>
-        public void AddQuery(string query, IQueryResultsHandler resultsHandler)
+        public void AddQuery(string query)
         {
             _currentQuery.Add(query);
-            _resultsHandlers.Add(resultsHandler);
         }
 
         /// <summary>
@@ -78,7 +77,7 @@ namespace Dapper.Wrappers
         /// Executes the queries against the database, sending the results to the
         /// registered query handlers.
         /// </summary>
-        public async Task ExecuteQueries()
+        public async Task<IEnumerable<T>> ExecuteQuery<T>()
         {
             var query = string.Join(" ", _currentQuery);
 
@@ -108,15 +107,66 @@ namespace Dapper.Wrappers
             Reset();
         }
 
+        private async Task<IDbTransaction> GetTransaction()
+        {
+            if (!(_currentTransaction is null))
+            {
+                return _currentTransaction;
+            }
+
+            // This solution is a slightly different version of similar code from Dapper .Net,
+            // Retrieved on 1/23/2020 from https://github.com/StackExchange/Dapper/blob/master/Dapper/SqlMapper.Async.cs
+            if (_connection is DbConnection dbConn)
+            {
+                await dbConn.OpenAsync(CancellationToken.None);
+            }
+            else
+            {
+                _connection.Open();
+            }
+
+            _currentTransaction = _connection.BeginTransaction();
+
+            return _currentTransaction;
+        }
+
         /// <summary>
         /// Resets the context to its initial state.
         /// </summary>
         public void Reset()
         {
             _currentQuery = new List<string>();
-            _resultsHandlers = new List<IQueryResultsHandler>();
+            _currentTransaction?.Dispose();
+            _currentTransaction = null;
             _parameters = new DynamicParameters();
             _currentVariableCounter = 1;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                _connection?.Dispose();
+                _connection = null;
+
+                _currentTransaction?.Dispose();
+                _currentTransaction = null;
+            }
+
+            _disposed = true;
+        }
+
+        public void Dispose()
+        {
+            // Dispose of unmanaged resources.
+            Dispose(true);
+            // Suppress finalization.
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -29,17 +29,13 @@ namespace Dapper.Wrappers.Generators
         /// <param name="context">The context to be updated.</param>
         /// <param name="deleteCriteria">The filter describing which items should be deleted.</param>
         /// <returns>The query results processor that will provide the results.</returns>
-        public virtual IQueryResultsProcessor<M> AddDeleteQuery(IQueryContext context, IEnumerable<QueryOperation> deleteCriteria)
+        public virtual void AddDeleteQuery(IQueryContext context, IEnumerable<QueryOperation> deleteCriteria)
         {
             string criteria = FormatFilterOperations(context, deleteCriteria);
 
             var query = QueryFormatter.FormatDeleteQuery(DeleteQueryString, criteria);
 
-            var resultsHandler = ResultsProcessorProvider.GetQueryResultsProcessor<M>();
-
-            context.AddQuery(query, resultsHandler);
-
-            return resultsHandler;
+            context.AddQuery(query);
         }
     }
 }

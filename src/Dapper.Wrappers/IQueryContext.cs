@@ -2,6 +2,7 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Data;
 using System.Threading.Tasks;
 
@@ -13,7 +14,7 @@ namespace Dapper.Wrappers
     /// when the queries are executed, and allows for query execution.
     /// Results are populated into the provided IQueryResultsHandlers.
     /// </summary>
-    public interface IQueryContext
+    public interface IQueryContext : IDisposable
     {
         /// <summary>
         /// Adds a given query to the context, along with its result handler.
@@ -23,7 +24,7 @@ namespace Dapper.Wrappers
         /// A class used to retrieve results from the GridReader resulting from
         /// the executed query.
         /// </param>
-        void AddQuery(string query, IQueryResultsHandler resultsHandler);
+        void AddQuery(string query);
 
         /// <summary>
         /// Adds a variable, along with its value, to the query execution context.
