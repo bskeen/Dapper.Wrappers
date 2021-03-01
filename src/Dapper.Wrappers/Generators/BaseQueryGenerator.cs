@@ -19,15 +19,9 @@ namespace Dapper.Wrappers.Generators
         /// </summary>
         protected IQueryFormatter QueryFormatter { get; }
 
-        /// <summary>
-        /// Returns the IQueryResultsProcessorProvider that is passed to the constructor.
-        /// </summary>
-        protected IQueryResultsProcessorProvider ResultsProcessorProvider { get; }
-
-        protected BaseQueryGenerator(IQueryFormatter queryFormatter, IQueryResultsProcessorProvider resultsProcessorProvider)
+        protected BaseQueryGenerator(IQueryFormatter queryFormatter)
         {
             QueryFormatter = queryFormatter;
-            ResultsProcessorProvider = resultsProcessorProvider;
         }
 
         /// <summary>
