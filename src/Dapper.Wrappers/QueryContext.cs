@@ -21,24 +21,22 @@ namespace Dapper.Wrappers
     {
         private IDbConnection _connection;
         private IList<string> _currentQuery;
-        private bool _disposed = false;
+        private bool _disposed;
         private int _currentVariableCounter;
         private DynamicParameters _parameters;
         private IDbTransaction _currentTransaction;
+        private SqlMapper.GridReader _currentGridReader;
 
         public QueryContext(IDbConnection connection)
         {
             _connection = connection;
-            Reset();
+            ResetQuery();
         }
 
         /// <summary>
         /// Adds a given query to the context, along with its result handler.
         /// </summary>
         /// <param name="query">The query to be executed.</param>
-        /// A class used to retrieve results from the GridReader resulting from
-        /// the executed query.
-        /// </param>
         public void AddQuery(string query)
         {
             _currentQuery.Add(query);
@@ -77,41 +75,66 @@ namespace Dapper.Wrappers
         /// Executes the queries against the database, sending the results to the
         /// registered query handlers.
         /// </summary>
-        public async Task<IEnumerable<T>> ExecuteQuery<T>()
+        public async Task<IEnumerable<T>> ExecuteNextQuery<T>()
         {
-            var query = string.Join(" ", _currentQuery);
-
-            // This solution is a slightly different version of similar code from Dapper .Net,
-            // Retrieved on 1/23/2020 from https://github.com/StackExchange/Dapper/blob/master/Dapper/SqlMapper.Async.cs
-            if (_connection is DbConnection dbConn)
+            if (_currentGridReader is null)
             {
-                await dbConn.OpenAsync(CancellationToken.None);
+                if (_currentQuery.Count == 0)
+                {
+                    throw new InvalidOperationException("The context contains no queries to execute against the database.");
+                }
+
+                await InitTransaction();
+                var query = string.Join(" ", _currentQuery);
+                _currentGridReader = await _connection.QueryMultipleAsync(query, _parameters, _currentTransaction);
+                ResetQuery();
+            }
+            var results = await _currentGridReader.ReadAsync<T>();
+
+            if (_currentGridReader.IsConsumed)
+            {
+                _currentTransaction.Commit();
+                _currentTransaction.Dispose();
+                _currentTransaction = null;
+
+                _connection.Close();
+
+                _currentGridReader = null;
+            }
+
+            return results;
+        }
+
+        public async Task ExecuteCommands()
+        {
+            if (_currentGridReader is null)
+            {
+                if (_currentQuery.Count == 0)
+                {
+                    throw new InvalidOperationException("The context contains no commands to execute against the database.");
+                }
+
+                await InitTransaction();
+
+                var commands = string.Join(" ", _currentQuery);
+                await _connection.ExecuteAsync(commands, _parameters, _currentTransaction);
+
+                _currentTransaction.Commit();
             }
             else
             {
-                _connection.Open();
-            }
-
-            using (var transaction = _connection.BeginTransaction())
-            {
-                var resultsReader = await _connection.QueryMultipleAsync(query, _parameters);
-
-                foreach (var handler in _resultsHandlers)
+                while (!_currentGridReader.IsConsumed)
                 {
-                    await handler.ReadResults(resultsReader);
+                    var _ = await _currentGridReader.ReadAsync();
                 }
-
-                transaction.Commit();
             }
-
-            Reset();
         }
 
-        private async Task<IDbTransaction> GetTransaction()
+        private async Task InitTransaction()
         {
             if (!(_currentTransaction is null))
             {
-                return _currentTransaction;
+                return;
             }
 
             // This solution is a slightly different version of similar code from Dapper .Net,
@@ -126,18 +149,14 @@ namespace Dapper.Wrappers
             }
 
             _currentTransaction = _connection.BeginTransaction();
-
-            return _currentTransaction;
         }
 
         /// <summary>
         /// Resets the context to its initial state.
         /// </summary>
-        public void Reset()
+        private void ResetQuery()
         {
             _currentQuery = new List<string>();
-            _currentTransaction?.Dispose();
-            _currentTransaction = null;
             _parameters = new DynamicParameters();
             _currentVariableCounter = 1;
         }
@@ -151,11 +170,11 @@ namespace Dapper.Wrappers
 
             if (disposing)
             {
-                _connection?.Dispose();
-                _connection = null;
-
                 _currentTransaction?.Dispose();
                 _currentTransaction = null;
+
+                _connection?.Dispose();
+                _connection = null;
             }
 
             _disposed = true;
@@ -165,6 +184,7 @@ namespace Dapper.Wrappers
         {
             // Dispose of unmanaged resources.
             Dispose(true);
+
             // Suppress finalization.
             GC.SuppressFinalize(this);
         }
