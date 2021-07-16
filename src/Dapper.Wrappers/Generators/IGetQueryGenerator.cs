@@ -9,15 +9,14 @@ namespace Dapper.Wrappers.Generators
     /// <summary>
     /// Updates the context to add all the pieces to run a get query.
     /// </summary>
-    /// <typeparam name="M">The type of model being returned.</typeparam>
-    public interface IGetQueryGenerator<M>
+    public interface IGetQueryGenerator
     {
         /// <summary>
         /// Adds a get query to the context.
         /// </summary>
         /// <param name="context">The context to be updated.</param>
-        /// <param name="filterItems">Declares how to filter the results.</param>
-        /// <param name="orderItems">Declares how to order the results.</param>
+        /// <param name="filterOperations">Declares how to filter the results.</param>
+        /// <param name="orderOperations">Declares how to order the results.</param>
         /// <param name="pagination">Declares how to paginate the results</param>
         /// <returns>The query results processor that will provide the results.</returns>
         void AddGetQuery(IQueryContext context,

@@ -12,14 +12,14 @@ namespace Dapper.Wrappers.Generators
     /// <summary>
     /// Provides basic fo
     /// </summary>
-    public abstract class BaseQueryGenerator
+    public abstract class QueryGenerator
     {
         /// <summary>
         /// Returns the IQueryFormatter that is passed to the constructor.
         /// </summary>
         protected IQueryFormatter QueryFormatter { get; }
 
-        protected BaseQueryGenerator(IQueryFormatter queryFormatter)
+        protected QueryGenerator(IQueryFormatter queryFormatter)
         {
             QueryFormatter = queryFormatter;
         }

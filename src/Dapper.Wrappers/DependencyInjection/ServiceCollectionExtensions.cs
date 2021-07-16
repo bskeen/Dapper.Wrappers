@@ -19,7 +19,7 @@ namespace Dapper.Wrappers.DependencyInjection
         /// <summary>
         /// A map of supported databases to the type that should be used with that database.
         /// </summary>
-        private static readonly IDictionary<SupportedDatabases, Type> _queryFormatterTypes = new Dictionary<SupportedDatabases, Type>
+        private static readonly IDictionary<SupportedDatabases, Type> QueryFormatterTypes = new Dictionary<SupportedDatabases, Type>
         {
             { SupportedDatabases.SqlServer, typeof(SqlServerQueryFormatter) },
             { SupportedDatabases.PostgreSQL, typeof(PostgresQueryFormatter) }
@@ -61,13 +61,13 @@ namespace Dapper.Wrappers.DependencyInjection
         /// <param name="options">The options configuring how the IServiceCollection will be updated.</param>
         private static void SetupDependencyInjection(IServiceCollection services, DapperWrappersOptions options)
         {
-            if (_queryFormatterTypes.ContainsKey(options.DatabaseEngine))
+            if (QueryFormatterTypes.ContainsKey(options.DatabaseEngine))
             {
-                services.TryAddSingleton(typeof(IQueryFormatter), _queryFormatterTypes[options.DatabaseEngine]);
+                services.TryAddSingleton(typeof(IQueryFormatter), QueryFormatterTypes[options.DatabaseEngine]);
             }
 
             services.TryAddScoped(typeof(IQueryContext), options.QueryContextType);
-            services.TryAddSingleton(typeof(IQueryResultsProcessorProvider), options.QueryResultsProcessorProviderType);
+
             if (options.DbConnectionType != null)
             {
                 services.TryAddScoped(typeof(IDbConnection), options.DbConnectionType);

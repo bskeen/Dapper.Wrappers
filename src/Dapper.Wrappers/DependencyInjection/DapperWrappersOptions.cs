@@ -16,7 +16,6 @@ namespace Dapper.Wrappers.DependencyInjection
         {
             DatabaseEngine = SupportedDatabases.SqlServer;
             QueryContextType = typeof(QueryContext);
-            QueryResultsProcessorProviderType = typeof(DefaultQueryResultsProcessorProvider);
         }
 
         /// <summary>
@@ -28,11 +27,6 @@ namespace Dapper.Wrappers.DependencyInjection
         /// Configures which type to inject as an IQueryContext.
         /// </summary>
         public Type QueryContextType { get; set; }
-
-        /// <summary>
-        /// Configures which type to inject as an IQueryResultsProcessorProvider.
-        /// </summary>
-        public Type QueryResultsProcessorProviderType { get; set; }
 
         /// <summary>
         /// Configures which type to inject as an IDbConnection to the QueryContext.

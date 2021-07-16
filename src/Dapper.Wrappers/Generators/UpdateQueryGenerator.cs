@@ -12,7 +12,7 @@ namespace Dapper.Wrappers.Generators
     /// Updates the context to add all the pieces to run an update query.
     /// </summary>
     /// <typeparam name="M">The type of model being returned.</typeparam>
-    public abstract class BaseUpdateQueryGenerator<M> : BaseFilterableQueryGenerator, IUpdateQueryGenerator<M>
+    public abstract class UpdateQueryGenerator : FilterableQueryGenerator, IUpdateQueryGenerator
     {
         /// <summary>
         /// Returns the base update query string.
@@ -24,8 +24,8 @@ namespace Dapper.Wrappers.Generators
         /// </summary>
         protected abstract IDictionary<string, MergeOperationMetadata> UpdateOperationMetadata { get; }
 
-        protected BaseUpdateQueryGenerator(IQueryFormatter queryFormatter, IQueryResultsProcessorProvider resultsProcessorProvider)
-            : base(queryFormatter, resultsProcessorProvider)
+        protected UpdateQueryGenerator(IQueryFormatter queryFormatter)
+            : base(queryFormatter)
         {
         }
 
@@ -36,7 +36,7 @@ namespace Dapper.Wrappers.Generators
         /// <param name="updateOperations">The values to update.</param>
         /// <param name="updateCriteria">The filter describing which items should be updated.</param>
         /// <returns>The query results processor that will provide the results.</returns>
-        public virtual IQueryResultsProcessor<M> AddUpdateQuery(IQueryContext context,
+        public virtual void AddUpdateQuery(IQueryContext context,
             IEnumerable<QueryOperation> updateOperations, IEnumerable<QueryOperation> updateCriteria)
         {
             var currentColumns = new HashSet<string>();
@@ -55,11 +55,7 @@ namespace Dapper.Wrappers.Generators
 
             var query = QueryFormatter.FormatUpdateQuery(UpdateQueryString, operations, criteria);
 
-            var resultsHandler = ResultsProcessorProvider.GetQueryResultsProcessor<M>();
-
-            context.AddQuery(query, resultsHandler);
-
-            return resultsHandler;
+            context.AddQuery(query);
 
             void UpdateOperationAction(MergeOperationMetadata metadata)
             {

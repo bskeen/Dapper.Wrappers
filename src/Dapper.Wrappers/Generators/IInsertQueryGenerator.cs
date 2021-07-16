@@ -9,8 +9,7 @@ namespace Dapper.Wrappers.Generators
     /// <summary>
     /// Updates the context to add all the pieces to run an insert query.
     /// </summary>
-    /// <typeparam name="M">The type of model being returned.</typeparam>
-    public interface IInsertQueryGenerator<M>
+    public interface IInsertQueryGenerator
     {
         /// <summary>
         /// Adds an insert query to the context.
@@ -19,7 +18,6 @@ namespace Dapper.Wrappers.Generators
         /// <param name="insertOperations">
         /// The objects to be inserted into the database.
         /// </param>
-        /// <returns>The query results processor that will provide the results.</returns>
-        IQueryResultsProcessor<M> AddInsertQuery(IQueryContext context, IEnumerable<QueryOperation> insertOperations);
+        void AddInsertQuery(IQueryContext context, IEnumerable<QueryOperation> insertOperations);
     }
 }

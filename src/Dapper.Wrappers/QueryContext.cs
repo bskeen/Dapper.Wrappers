@@ -72,8 +72,7 @@ namespace Dapper.Wrappers
         }
 
         /// <summary>
-        /// Executes the queries against the database, sending the results to the
-        /// registered query handlers.
+        /// Executes the queries against the database.
         /// </summary>
         public async Task<IEnumerable<T>> ExecuteNextQuery<T>()
         {
@@ -85,22 +84,24 @@ namespace Dapper.Wrappers
                 }
 
                 await InitTransaction();
-                var query = string.Join(" ", _currentQuery);
+                var query = string.Join("\n", _currentQuery);
                 _currentGridReader = await _connection.QueryMultipleAsync(query, _parameters, _currentTransaction);
                 ResetQuery();
             }
             var results = await _currentGridReader.ReadAsync<T>();
 
-            if (_currentGridReader.IsConsumed)
+            if (!_currentGridReader.IsConsumed)
             {
-                _currentTransaction.Commit();
-                _currentTransaction.Dispose();
-                _currentTransaction = null;
-
-                _connection.Close();
-
-                _currentGridReader = null;
+                return results;
             }
+
+            _currentTransaction.Commit();
+            _currentTransaction.Dispose();
+            _currentTransaction = null;
+
+            _connection.Close();
+
+            _currentGridReader = null;
 
             return results;
         }
@@ -116,7 +117,7 @@ namespace Dapper.Wrappers
 
                 await InitTransaction();
 
-                var commands = string.Join(" ", _currentQuery);
+                var commands = string.Join("\n", _currentQuery);
                 await _connection.ExecuteAsync(commands, _parameters, _currentTransaction);
 
                 _currentTransaction.Commit();

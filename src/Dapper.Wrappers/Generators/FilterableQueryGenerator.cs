@@ -10,15 +10,15 @@ namespace Dapper.Wrappers.Generators
     /// <summary>
     /// Provides common functionality necessary for query builders that allow dynamic filtration of results.
     /// </summary>
-    public abstract class BaseFilterableQueryGenerator : BaseQueryGenerator
+    public abstract class FilterableQueryGenerator : QueryGenerator
     {
         /// <summary>
         /// Specifies the possible filter operations to be applied to the results.
         /// </summary>
         protected abstract IDictionary<string, QueryOperationMetadata> FilterOperationMetadata { get; }
 
-        protected BaseFilterableQueryGenerator(IQueryFormatter queryFormatter, IQueryResultsProcessorProvider resultsProcessorProvider)
-            : base(queryFormatter, resultsProcessorProvider)
+        protected FilterableQueryGenerator(IQueryFormatter queryFormatter)
+            : base(queryFormatter)
         {
         }
 

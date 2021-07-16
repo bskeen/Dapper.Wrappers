@@ -8,15 +8,15 @@ namespace Dapper.Wrappers.Tests.Generators
 {
     public class BaseQueryGeneratorTests
     {
-        private static BaseQueryGenerator GetDefaultTestInstance(IQueryFormatter queryFormatter)
+        private static QueryGenerator GetDefaultTestInstance(IQueryFormatter queryFormatter)
         {
-            return new TestBaseQueryGenerator(queryFormatter);
+            return new TestQueryGenerator(queryFormatter);
         }
     }
 
-    public class TestBaseQueryGenerator : BaseQueryGenerator
+    public class TestQueryGenerator : QueryGenerator
     {
-        public TestBaseQueryGenerator(IQueryFormatter queryFormatter) : base(queryFormatter)
+        public TestQueryGenerator(IQueryFormatter queryFormatter) : base(queryFormatter)
         {
         }
     }

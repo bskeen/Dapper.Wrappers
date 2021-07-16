@@ -11,15 +11,15 @@ namespace Dapper.Wrappers.Generators
     /// Updates the context to add all the pieces to run a get query.
     /// </summary>
     /// <typeparam name="M">The type of model being returned.</typeparam>
-    public abstract class BaseDeleteQueryGenerator<M> : BaseFilterableQueryGenerator, IDeleteQueryGenerator<M>
+    public abstract class DeleteQueryGenerator<M> : FilterableQueryGenerator, IDeleteQueryGenerator
     {
         /// <summary>
         /// Returns the base delete query string.
         /// </summary>
         protected abstract string DeleteQueryString { get; }
 
-        protected BaseDeleteQueryGenerator(IQueryFormatter queryFormatter, IQueryResultsProcessorProvider resultsProcessorProvider)
-            : base(queryFormatter, resultsProcessorProvider)
+        protected DeleteQueryGenerator(IQueryFormatter queryFormatter)
+            : base(queryFormatter)
         {
         }
 

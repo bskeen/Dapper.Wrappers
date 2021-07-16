@@ -10,8 +10,7 @@ namespace Dapper.Wrappers.Generators
     /// <summary>
     /// Updates the context to add all the pieces to run a get query.
     /// </summary>
-    /// <typeparam name="M">The type of model being returned.</typeparam>
-    public abstract class BaseGetQueryGenerator<M> : BaseFilterableQueryGenerator, IGetQueryGenerator<M>
+    public abstract class GetQueryGenerator : FilterableQueryGenerator, IGetQueryGenerator
     {
         /// <summary>
         /// Returns the base get query string.
@@ -30,8 +29,8 @@ namespace Dapper.Wrappers.Generators
         /// </summary>
         protected abstract IDictionary<string, QueryOperationMetadata> OrderOperationMetadata { get; }
 
-        protected BaseGetQueryGenerator(IQueryFormatter queryFormatter, IQueryResultsProcessorProvider resultsProcessorProvider)
-            : base(queryFormatter, resultsProcessorProvider)
+        protected GetQueryGenerator(IQueryFormatter queryFormatter)
+            : base(queryFormatter)
         {
         }
 
@@ -39,11 +38,11 @@ namespace Dapper.Wrappers.Generators
         /// Adds a get query to the context.
         /// </summary>
         /// <param name="context">The context to be updated.</param>
-        /// <param name="filterItems">Declares how to filter the results.</param>
-        /// <param name="orderItems">Declares how to order the results.</param>
+        /// <param name="filterOperations">Declares how to filter the results.</param>
+        /// <param name="orderOperations">Declares how to order the results.</param>
         /// <param name="pagination">Declares how to paginate the results</param>
         /// <returns>The query results processor that will provide the results.</returns>
-        public virtual IQueryResultsProcessor<M> AddGetQuery(IQueryContext context,
+        public virtual void AddGetQuery(IQueryContext context,
             IEnumerable<QueryOperation> filterOperations = null, IEnumerable<QueryOperation> orderOperations = null,
             Pagination pagination = null)
         {
@@ -65,7 +64,7 @@ namespace Dapper.Wrappers.Generators
 
             if (formattedOrderItems.Count == 0)
             {
-                ordering = pagination == null ? string.Empty : DefaultOrdering;
+                ordering = pagination is null ? string.Empty : DefaultOrdering;
             }
             else
             {
@@ -75,11 +74,7 @@ namespace Dapper.Wrappers.Generators
             var query = QueryFormatter.FormatGetQuery(GetQueryString, criteria, ordering, pagination != null,
                 skipVariable, takeVariable);
 
-            var resultsHandler = ResultsProcessorProvider.GetQueryResultsProcessor<M>();
-
-            context.AddQuery(query, resultsHandler);
-
-            return resultsHandler;
+            context.AddQuery(query);
         }
     }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Dapper.Wrappers
 {
@@ -10,8 +11,8 @@ namespace Dapper.Wrappers
     /// Used to process the results from a GridReader so they are in the
     /// correct form to be used by the consumer.
     /// </summary>
-    /// <typeparam name="M">The type of model to be processed.</typeparam>
-    public interface IQueryResultsProcessor<M> : IQueryResultsHandler
+    /// <typeparam name="TM">The type of model to be processed.</typeparam>
+    public interface IQueryResultsProcessor<TM>
     {
         /// <summary>
         /// Processes a collection of query results.
@@ -19,12 +20,12 @@ namespace Dapper.Wrappers
         /// <returns>
         /// A list of processed query results, along with the total number of results present in the database.
         /// </returns>
-        (IEnumerable<M> Results, int TotalResultCount) GetAllResults();
+        Task<(IEnumerable<TM> Results, int TotalResultCount)> GetAllResults(IQueryContext context);
 
         /// <summary>
         /// Processes a single query result.
         /// </summary>
         /// <returns>A processed query result.</returns>
-        M GetOneResult();
+        Task<TM> GetOneResult(IQueryContext context);
     }
 }

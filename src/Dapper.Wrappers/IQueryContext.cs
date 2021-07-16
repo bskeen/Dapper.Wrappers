@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 
@@ -20,10 +21,6 @@ namespace Dapper.Wrappers
         /// Adds a given query to the context, along with its result handler.
         /// </summary>
         /// <param name="query">The query to be executed.</param>
-        /// <param name="resultsHandler">
-        /// A class used to retrieve results from the GridReader resulting from
-        /// the executed query.
-        /// </param>
         void AddQuery(string query);
 
         /// <summary>
@@ -39,14 +36,10 @@ namespace Dapper.Wrappers
         string AddVariable(string name, object value, DbType type, bool isUnique = true);
 
         /// <summary>
-        /// Executes the queries against the database, sending the results to the
-        /// registered query handlers.
+        /// Executes the next query against the database, returning the results.
         /// </summary>
-        Task ExecuteQueries();
-        
-        /// <summary>
-        /// Resets the context to its initial state.
-        /// </summary>
-        void Reset();
+        Task<IEnumerable<T>> ExecuteNextQuery<T>();
+
+        Task ExecuteCommands();
     }
 }

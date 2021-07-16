@@ -12,7 +12,7 @@ namespace Dapper.Wrappers.Generators
     /// Updates the context to add all the pieces to run an insert query.
     /// </summary>
     /// <typeparam name="M">The type of model being returned.</typeparam>
-    public abstract class BaseInsertQueryGenerator<M> : BaseQueryGenerator, IInsertQueryGenerator<M>
+    public abstract class InsertQueryGenerator : QueryGenerator, IInsertQueryGenerator
     {
         /// <summary>
         /// Returns the base insert query string.
@@ -31,8 +31,8 @@ namespace Dapper.Wrappers.Generators
         /// <returns>A dictionary containing the required insert operations, indexed by the referenced column.</returns>
         protected abstract IDictionary<string, MergeOperationMetadata> GetRequiredInsertOperationMetadata();
 
-        protected BaseInsertQueryGenerator(IQueryFormatter queryFormatter, IQueryResultsProcessorProvider resultsProcessorProvider)
-            : base(queryFormatter, resultsProcessorProvider)
+        protected InsertQueryGenerator(IQueryFormatter queryFormatter)
+            : base(queryFormatter)
         {
         }
 
@@ -44,7 +44,7 @@ namespace Dapper.Wrappers.Generators
         /// The objects to be inserted into the database.
         /// </param>
         /// <returns>The query results processor that will provide the results.</returns>
-        public virtual IQueryResultsProcessor<M> AddInsertQuery(IQueryContext context, IEnumerable<QueryOperation> insertOperations)
+        public virtual void AddInsertQuery(IQueryContext context, IEnumerable<QueryOperation> insertOperations)
         {
             if (insertOperations == null)
             {
@@ -71,10 +71,7 @@ namespace Dapper.Wrappers.Generators
             var operationList = QueryFormatter.FormatInsertOperations(formattedOperations);
             var query = QueryFormatter.FormatInsertQuery(InsertQueryString, columnList, operationList);
 
-            var resultsHandler = ResultsProcessorProvider.GetQueryResultsProcessor<M>();
-            context.AddQuery(query, resultsHandler);
-
-            return resultsHandler;
+            context.AddQuery(query);
 
             void InsertOperationAction(MergeOperationMetadata metadata)
             {
