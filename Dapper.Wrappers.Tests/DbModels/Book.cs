@@ -16,7 +16,5 @@ namespace Dapper.Wrappers.Tests.DbModels
         public int? PageCount { get; set; }
 
         public IEnumerable<Genre> Genres { get; set; }
-
-        public Guid TestScope { get; set; }
     }
 }

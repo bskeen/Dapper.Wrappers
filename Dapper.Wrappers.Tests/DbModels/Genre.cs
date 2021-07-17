@@ -8,6 +8,5 @@ namespace Dapper.Wrappers.Tests.DbModels
     {
         public Guid GenreID { get; set; }
         public string Name { get; set; }
-        public Guid TestScope { get; set; }
     }
 }

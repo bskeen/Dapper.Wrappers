@@ -10,7 +10,5 @@ namespace Dapper.Wrappers.Tests.DbModels
 
         public string FirstName { get; set; }
         public string LastName { get; set; }
-
-        public string TestScope { get; set; }
     }
 }
