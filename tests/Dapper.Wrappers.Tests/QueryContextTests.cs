@@ -165,12 +165,8 @@ namespace Dapper.Wrappers.Tests
 
             var genres = results.ToList();
 
-            genres.Count.Should().Be(2);
-
-            foreach (var genre in genres)
-            {
-                testGenres.Any(g => g.GenreID == genre.GenreID).Should().BeTrue();
-            }
+            genres.Should().HaveSameCount(testGenres);
+            genres.Should().BeSubsetOf(testGenres);
         }
     }
 }
