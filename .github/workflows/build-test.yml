@@ -10,6 +10,24 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    environment: build_test
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: dappertest
+          POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: ${{secrets.SQL_SERVER_PASSWORD}}
 
     steps:
     - uses: actions/checkout@v2
@@ -21,5 +39,15 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
+    - name: Install npm dependencies
+      run: npm ci
+    - name: Create test Databases
+      env:
+        POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+        SQL_SERVER_PASSWORD: ${{secrets.SQL_SERVER_PASSWORD}}
+      run: node dbinit.js
     - name: Test
+      env:
+        ConnectionStrings__Postgres: ${{secrets.POSTGRES_CONNECTION_STRING}}
+        ConnectionStrings__SqlServer: ${{secrets.SQL_SERVER_CONNECTION_STRING}}
       run: dotnet test --no-build --verbosity normal

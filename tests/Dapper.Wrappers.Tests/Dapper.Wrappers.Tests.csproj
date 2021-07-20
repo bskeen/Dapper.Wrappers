@@ -28,6 +28,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Dapper.Wrappers\Dapper.Wrappers.csproj" />
+    <ProjectReference Include="..\..\src\Dapper.Wrappers\Dapper.Wrappers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

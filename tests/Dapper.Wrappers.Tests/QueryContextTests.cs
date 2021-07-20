@@ -90,14 +90,23 @@ namespace Dapper.Wrappers.Tests
                                                          ,{4}
                                                          ,{2});";
 
-        private const string VerifyTestCombineStatements = @"SELECT
-                                                                [GenreID]
-                                                               ,[Name]
-                                                             FROM
-                                                               [Genres]
-                                                             WHERE
-                                                               [TestScope] = @testscope
-                                                               AND [GenreID] IN @ids";
+        private const string VerifySqlTestCombineStatements = @"SELECT
+                                                                   [GenreID]
+                                                                  ,[Name]
+                                                                FROM
+                                                                  [Genres]
+                                                                WHERE
+                                                                  [TestScope] = @testscope
+                                                                  AND [GenreID] IN @ids";
+
+        private const string VerifyPostgresTestCombineStatements = @"SELECT
+                                                                      ""GenreID""
+                                                                     ,""Name""
+                                                                   FROM
+                                                                     ""Genres""
+                                                                   WHERE
+                                                                     ""TestScope"" = @testscope
+                                                                     AND ""GenreID"" = ANY(@ids)";
 
         [Theory]
         [InlineData(SupportedDatabases.SqlServer)]
@@ -149,24 +158,22 @@ namespace Dapper.Wrappers.Tests
             await context.ExecuteCommands();
 
             // Assert
-            var verifySql = VerifyTestCombineStatements;
-            if (dbType == SupportedDatabases.PostgreSQL)
-            {
-                verifySql = verifySql.Replace('[', '"');
-                verifySql = verifySql.Replace(']', '"');
-            }
+            var verifySql = dbType == SupportedDatabases.SqlServer
+                ? VerifySqlTestCombineStatements
+                : VerifyPostgresTestCombineStatements;
 
             var connection = dbType == SupportedDatabases.SqlServer
                 ? _dbFixture.SqlConnection
                 : _dbFixture.PostgresConnection;
 
             var results = await connection.QueryAsync<Genre>(verifySql,
-                new {testscope = _dbFixture.TestScope, ids = testGenres.Select(g => g.GenreID)});
+                new {testscope = _dbFixture.TestScope, ids = testGenres.Select(g => g.GenreID).ToList()});
 
             var genres = results.ToList();
 
             genres.Should().HaveSameCount(testGenres);
-            genres.Should().BeSubsetOf(testGenres);
+            genres.OrderBy(g => g.GenreID).Should().Equal(testGenres.OrderBy(g => g.GenreID),
+                (g1, g2) => g1.GenreID == g2.GenreID && g1.Name == g2.Name);
         }
     }
 }
