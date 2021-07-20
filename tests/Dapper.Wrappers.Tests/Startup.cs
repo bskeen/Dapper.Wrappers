@@ -19,6 +19,7 @@ namespace Dapper.Wrappers.Tests
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            Console.WriteLine("This is a test log.");
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Path.Combine(AppContext.BaseDirectory))
                 .AddJsonFile("appsettings.json", optional: true)
