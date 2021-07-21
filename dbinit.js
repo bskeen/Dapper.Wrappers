@@ -1,5 +1,5 @@
-import { Client } from 'pg';
-import * as sql from 'mssql';
+const { Client } = require('pg');
+const sql = require('mssql');
 
 const pgclient = new Client({
     host: 'localhost',
