@@ -19,8 +19,6 @@ const sqlConfig = {
     }
 };
 
-pgclient.connect();
-
 const pgDbCheck = 'SELECT COUNT(*) as dbCount FROM pg_database WHERE datname = \'dapperwrapperstest\'';
 const pgDatabase = 'CREATE DATABASE dapperwrapperstest WITH OWNER dappertest;';
 
