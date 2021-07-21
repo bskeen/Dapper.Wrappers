@@ -10,16 +10,52 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    environment: build_test
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: dappertest
+          POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+        ports:
+          - 5432:5432
+
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: ${{secrets.SQL_SERVER_PASSWORD}}
+        ports:
+          - 1433:1433
 
     steps:
     - uses: actions/checkout@v2
-    - name: Setup .NET
+    - name: Setup .NET 5
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
+    - name: Setup .NET 3.1
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
+    - name: Install npm dependencies
+      run: npm ci
+    - name: Create test Databases
+      env:
+        POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+        SQL_SERVER_PASSWORD: ${{secrets.SQL_SERVER_PASSWORD}}
+      run: node dbinit.js
     - name: Test
+      env:
+        ConnectionStrings__Postgres: ${{secrets.POSTGRES_CONNECTION_STRING}}
+        ConnectionStrings__SqlServer: ${{secrets.SQL_SERVER_CONNECTION_STRING}}
       run: dotnet test --no-build --verbosity normal

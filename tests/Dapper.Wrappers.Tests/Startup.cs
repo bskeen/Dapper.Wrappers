@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Dapper.Wrappers.DependencyInjection;
@@ -16,18 +17,15 @@ namespace Dapper.Wrappers.Tests
 {
     public class Startup
     {
-        public void ConfigureHost(IHostBuilder hostBuilder)
+        public void ConfigureServices(IServiceCollection services)
         {
-            hostBuilder.ConfigureHostConfiguration(builder =>
-            {
-                builder.AddJsonFile("appsettings.json", true);
-                builder.AddEnvironmentVariables();
-            });
-        }
+            Console.WriteLine("This is a test log.");
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Path.Combine(AppContext.BaseDirectory))
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddEnvironmentVariables();
 
-        public void ConfigureServices(IServiceCollection services, HostBuilderContext hostBuilderContext)
-        {
-            var config = hostBuilderContext.Configuration;
+            var config = builder.Build();
 
             var postgresConnectionString = config.GetConnectionString("Postgres");
 
