@@ -9,6 +9,14 @@ const pgclient = new Client({
     database: 'postgres'
 });
 
+const dtclient = new Client({
+    host: 'localhost',
+    port: 5432,
+    user: 'dappertest',
+    password: process.env.POSTGRES_PASSWORD,
+    database: 'dapperwrapperstest'
+});
+
 const sqlConfig = {
     server: 'localhost',
     user: 'sa',
@@ -21,6 +29,7 @@ const sqlConfig = {
 
 const pgDbCheck = 'SELECT COUNT(*) as dbCount FROM pg_database WHERE datname = \'dapperwrapperstest\'';
 const pgDatabase = 'CREATE DATABASE dapperwrapperstest WITH OWNER dappertest;';
+const uuidExtension = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";';
 
 (async function() {
     await pgclient.connect();
@@ -30,6 +39,10 @@ const pgDatabase = 'CREATE DATABASE dapperwrapperstest WITH OWNER dappertest;';
     }
 
     await pgclient.end();
+
+    await dtclient.connect();
+    await dtclient.query(uuidExtension);
+    await dtclient.end();
 })();
 
 const sqlDbCreate = 'IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = \'DapperWrappersTest\') CREATE DATABASE DapperWrappersTest;';
