@@ -2,7 +2,7 @@ const { Client } = require('pg');
 const sql = require('mssql');
 
 const pgclient = new Client({
-    host: 'postgres',
+    host: 'localhost',
     port: 5432,
     user: 'dappertest',
     password: process.env.POSTGRES_PASSWORD,
@@ -10,7 +10,7 @@ const pgclient = new Client({
 });
 
 const sqlConfig = {
-    server: 'sqlserver',
+    server: 'localhost',
     user: 'sa',
     password: process.env.SQL_SERVER_PASSWORD,
     database: 'master'
