@@ -1,5 +1,5 @@
-const { Client } = require('pg');
-const sql = require('mssql');
+import { Client } from 'pg';
+import * as sql from 'mssql';
 
 const pgclient = new Client({
     host: 'localhost',
@@ -25,10 +25,13 @@ const pgDbCheck = 'SELECT COUNT(*) as dbCount FROM pg_database WHERE datname = \
 const pgDatabase = 'CREATE DATABASE dapperwrapperstest WITH OWNER dappertest;';
 
 (async function() {
+    await pgclient.connect();
     const dbCount = await pgclient.query(pgDbCheck);
     if (+dbCount.rows[0].dbcount === 0) {
         await pgclient.query(pgDatabase);
     }
+
+    await pgclient.end();
 })();
 
 const sqlDbCreate = 'IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = \'DapperWrappersTest\') CREATE DATABASE DapperWrappersTest;';
@@ -37,11 +40,9 @@ const sqlDbCreate = 'IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = \'D
     try {
         let pool = await sql.connect(sqlConfig);
         await pool.request().query(sqlDbCreate);
+        await sql.close();
     } catch (err) {
+        await sql.close();
         throw err;
     }
 })();
-
-sql.on('error', err => {
-    throw err;
-});
