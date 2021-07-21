@@ -23,12 +23,12 @@ const pgDatabase = 'CREATE DATABASE dapperwrapperstest WITH OWNER dappertest;';
 
 (async function() {
     const dbCount = await pgclient.query(pgDbCheck);
-    if (dbCount.rows[0].dbCount === 0) {
+    if (+dbCount.rows[0].dbcount === 0) {
         await pgclient.query(pgDatabase);
     }
 })();
 
-const sqlDbCreate = 'IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = \'DapperWrappersTest\' CREATE DATABASE DapperWrappersTest;';
+const sqlDbCreate = 'IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = \'DapperWrappersTest\') CREATE DATABASE DapperWrappersTest;';
 
 (async function() {
     try {
