@@ -13,7 +13,10 @@ const sqlConfig = {
     server: 'localhost',
     user: 'sa',
     password: process.env.SQL_SERVER_PASSWORD,
-    database: 'master'
+    database: 'master',
+    options: {
+        trustServerCertificate: true
+    }
 };
 
 pgclient.connect();
