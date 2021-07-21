@@ -95,13 +95,7 @@ namespace Dapper.Wrappers
                 return results;
             }
 
-            _currentTransaction.Commit();
-            _currentTransaction.Dispose();
-            _currentTransaction = null;
-
-            _connection.Close();
-
-            _currentGridReader = null;
+            CommitTransaction();
 
             return results;
         }
@@ -112,15 +106,14 @@ namespace Dapper.Wrappers
             {
                 if (_currentQuery.Count == 0)
                 {
-                    throw new InvalidOperationException("The context contains no commands to execute against the database.");
+                    throw new InvalidOperationException(
+                        "The context contains no commands to execute against the database.");
                 }
 
                 await InitTransaction();
 
                 var commands = string.Join("\n", _currentQuery);
                 await _connection.ExecuteAsync(commands, _parameters, _currentTransaction);
-
-                _currentTransaction.Commit();
             }
             else
             {
@@ -129,6 +122,8 @@ namespace Dapper.Wrappers
                     var _ = await _currentGridReader.ReadAsync();
                 }
             }
+
+            CommitTransaction();
         }
 
         private async Task InitTransaction()
@@ -150,6 +145,17 @@ namespace Dapper.Wrappers
             }
 
             _currentTransaction = _connection.BeginTransaction();
+        }
+
+        private void CommitTransaction()
+        {
+            _currentTransaction.Commit();
+            _currentTransaction.Dispose();
+            _currentTransaction = null;
+
+            _connection.Close();
+            _currentGridReader = null;
+            ResetQuery();
         }
 
         /// <summary>

@@ -175,5 +175,80 @@ namespace Dapper.Wrappers.Tests
             genres.OrderBy(g => g.GenreID).Should().Equal(testGenres.OrderBy(g => g.GenreID),
                 (g1, g2) => g1.GenreID == g2.GenreID && g1.Name == g2.Name);
         }
+
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer)]
+        [InlineData(SupportedDatabases.PostgreSQL)]
+        public async void AddQuery_AfterExecutingOneBatch_ShouldRunAnotherBatch(SupportedDatabases dbType)
+        {
+            // Arrange
+            var context = GetDefaultQueryContext(dbType);
+            var commandsToAdd = TestCombineStatements;
+            if (dbType == SupportedDatabases.PostgreSQL)
+            {
+                commandsToAdd = commandsToAdd.Replace('[', '"');
+                commandsToAdd = commandsToAdd.Replace(']', '"');
+            }
+
+            var testGenres = new[]
+            {
+                new Genre
+                {
+                    GenreID = Guid.NewGuid(),
+                    Name = "TestGenre1",
+                },
+                new Genre
+                {
+                    GenreID = Guid.NewGuid(),
+                    Name = "TestGenre2",
+                }
+            };
+
+            object[] variables1 =
+            {
+                $"@{context.AddVariable("genreid", testGenres[0].GenreID, DbType.Guid)}",
+                $"@{context.AddVariable("genrename", testGenres[0].Name, DbType.String)}",
+                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}"
+            };
+
+            var splitCommands = commandsToAdd.Split('|');
+            var command1 = string.Format(splitCommands[0], variables1);
+
+            // Act
+            context.AddQuery(command1);
+
+            await context.ExecuteCommands();
+
+            object[] variables2 =
+            {
+                $"@{context.AddVariable("genreid", testGenres[1].GenreID, DbType.Guid)}",
+                $"@{context.AddVariable("genrename", testGenres[1].Name, DbType.String)}",
+                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}"
+            };
+
+            var command2 = string.Format(splitCommands[0], variables2);
+
+            context.AddQuery(command2);
+
+            await context.ExecuteCommands();
+
+            // Assert
+            var verifySql = dbType == SupportedDatabases.SqlServer
+                ? VerifySqlTestCombineStatements
+                : VerifyPostgresTestCombineStatements;
+
+            var connection = dbType == SupportedDatabases.SqlServer
+                ? _dbFixture.SqlConnection
+                : _dbFixture.PostgresConnection;
+
+            var results = await connection.QueryAsync<Genre>(verifySql,
+                new { testscope = _dbFixture.TestScope, ids = testGenres.Select(g => g.GenreID).ToList() });
+
+            var genres = results.ToList();
+
+            genres.Should().HaveSameCount(testGenres);
+            genres.OrderBy(g => g.GenreID).Should().Equal(testGenres.OrderBy(g => g.GenreID),
+                (g1, g2) => g1.GenreID == g2.GenreID && g1.Name == g2.Name);
+        }
     }
 }
