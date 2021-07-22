@@ -52,7 +52,7 @@ namespace Dapper.Wrappers
         /// Whether or not the variable should be made unique within the context.
         /// </param>
         /// <returns>The name of the added variable(possibly with a unique suffix).</returns>
-        public string AddVariable(string name, object value, DbType type, bool isUnique = true)
+        public string AddVariable(string name, object value, DbType? type = null, bool isUnique = true)
         {
             var variableName = isUnique ? GetUniqueVariableName(name) : name;
 
@@ -88,6 +88,7 @@ namespace Dapper.Wrappers
                 _currentGridReader = await _connection.QueryMultipleAsync(query, _parameters, _currentTransaction);
                 ResetQuery();
             }
+
             var results = await _currentGridReader.ReadAsync<T>();
 
             if (!_currentGridReader.IsConsumed)
@@ -114,6 +115,7 @@ namespace Dapper.Wrappers
 
                 var commands = string.Join("\n", _currentQuery);
                 await _connection.ExecuteAsync(commands, _parameters, _currentTransaction);
+                ResetQuery();
             }
             else
             {
@@ -155,7 +157,6 @@ namespace Dapper.Wrappers
 
             _connection.Close();
             _currentGridReader = null;
-            ResetQuery();
         }
 
         /// <summary>
@@ -179,9 +180,6 @@ namespace Dapper.Wrappers
             {
                 _currentTransaction?.Dispose();
                 _currentTransaction = null;
-
-                _connection?.Dispose();
-                _connection = null;
             }
 
             _disposed = true;
