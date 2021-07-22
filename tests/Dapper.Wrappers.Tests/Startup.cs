@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// © 2021 by Benjamin Skeen
+// Licensed to be used under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Data;
 using System.IO;
-using System.Linq;
-using System.Text;
 using Dapper.Wrappers.DependencyInjection;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Npgsql;
 using FluentMigrator.Runner;
-using FluentMigrator.Runner.Initialization;
 
 namespace Dapper.Wrappers.Tests
 {

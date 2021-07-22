@@ -19,7 +19,7 @@ namespace Dapper.Wrappers
     /// </summary>
     public class QueryContext : IQueryContext
     {
-        private IDbConnection _connection;
+        private readonly IDbConnection _connection;
         private IList<string> _currentQuery;
         private bool _disposed;
         private int _currentVariableCounter;
@@ -103,29 +103,31 @@ namespace Dapper.Wrappers
 
         public async Task ExecuteCommands()
         {
-            if (_currentGridReader is null)
-            {
-                if (_currentQuery.Count == 0)
-                {
-                    throw new InvalidOperationException(
-                        "The context contains no commands to execute against the database.");
-                }
-
-                await InitTransaction();
-
-                var commands = string.Join("\n", _currentQuery);
-                await _connection.ExecuteAsync(commands, _parameters, _currentTransaction);
-                ResetQuery();
-            }
-            else
+            var nullGridReader = _currentGridReader is null;
+            if (!nullGridReader)
             {
                 while (!_currentGridReader.IsConsumed)
                 {
                     var _ = await _currentGridReader.ReadAsync();
                 }
+
+                CommitTransaction();
             }
 
-            CommitTransaction();
+            if (_currentQuery.Count > 0)
+            {
+                await InitTransaction();
+
+                var commands = string.Join("\n", _currentQuery);
+                await _connection.ExecuteAsync(commands, _parameters, _currentTransaction);
+                ResetQuery();
+                CommitTransaction();
+            }
+            else if (nullGridReader)
+            {
+                throw new InvalidOperationException(
+                    "The context contains no commands to execute against the database.");
+            }
         }
 
         private async Task InitTransaction()

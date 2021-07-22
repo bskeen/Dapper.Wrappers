@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+// © 2021 by Benjamin Skeen
+// Licensed to be used under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Linq;
-using System.Text;
-using Castle.Components.DictionaryAdapter;
+using Dapper.Wrappers.DependencyInjection;
 using Microsoft.Data.SqlClient;
 using Npgsql;
 
@@ -22,6 +25,9 @@ namespace Dapper.Wrappers.Tests
             PostgresConnection = connectionList.FirstOrDefault(c => c is NpgsqlConnection);
             TestScope = Guid.NewGuid();
         }
+
+        public IDbConnection GetConnection(SupportedDatabases dbType) =>
+            dbType == SupportedDatabases.SqlServer ? SqlConnection : PostgresConnection;
 
         public void Dispose()
         {
