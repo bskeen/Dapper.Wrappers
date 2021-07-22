@@ -19,7 +19,7 @@ namespace Dapper.Wrappers
     /// </summary>
     public class QueryContext : IQueryContext
     {
-        private IDbConnection _connection;
+        private readonly IDbConnection _connection;
         private IList<string> _currentQuery;
         private bool _disposed;
         private int _currentVariableCounter;
@@ -52,7 +52,7 @@ namespace Dapper.Wrappers
         /// Whether or not the variable should be made unique within the context.
         /// </param>
         /// <returns>The name of the added variable(possibly with a unique suffix).</returns>
-        public string AddVariable(string name, object value, DbType type, bool isUnique = true)
+        public string AddVariable(string name, object value, DbType? type = null, bool isUnique = true)
         {
             var variableName = isUnique ? GetUniqueVariableName(name) : name;
 
@@ -88,6 +88,7 @@ namespace Dapper.Wrappers
                 _currentGridReader = await _connection.QueryMultipleAsync(query, _parameters, _currentTransaction);
                 ResetQuery();
             }
+
             var results = await _currentGridReader.ReadAsync<T>();
 
             if (!_currentGridReader.IsConsumed)
@@ -95,39 +96,37 @@ namespace Dapper.Wrappers
                 return results;
             }
 
-            _currentTransaction.Commit();
-            _currentTransaction.Dispose();
-            _currentTransaction = null;
-
-            _connection.Close();
-
-            _currentGridReader = null;
+            CommitTransaction();
 
             return results;
         }
 
         public async Task ExecuteCommands()
         {
-            if (_currentGridReader is null)
-            {
-                if (_currentQuery.Count == 0)
-                {
-                    throw new InvalidOperationException("The context contains no commands to execute against the database.");
-                }
-
-                await InitTransaction();
-
-                var commands = string.Join("\n", _currentQuery);
-                await _connection.ExecuteAsync(commands, _parameters, _currentTransaction);
-
-                _currentTransaction.Commit();
-            }
-            else
+            var nullGridReader = _currentGridReader is null;
+            if (!nullGridReader)
             {
                 while (!_currentGridReader.IsConsumed)
                 {
                     var _ = await _currentGridReader.ReadAsync();
                 }
+
+                CommitTransaction();
+            }
+
+            if (_currentQuery.Count > 0)
+            {
+                await InitTransaction();
+
+                var commands = string.Join("\n", _currentQuery);
+                await _connection.ExecuteAsync(commands, _parameters, _currentTransaction);
+                ResetQuery();
+                CommitTransaction();
+            }
+            else if (nullGridReader)
+            {
+                throw new InvalidOperationException(
+                    "The context contains no commands to execute against the database.");
             }
         }
 
@@ -152,6 +151,16 @@ namespace Dapper.Wrappers
             _currentTransaction = _connection.BeginTransaction();
         }
 
+        private void CommitTransaction()
+        {
+            _currentTransaction.Commit();
+            _currentTransaction.Dispose();
+            _currentTransaction = null;
+
+            _connection.Close();
+            _currentGridReader = null;
+        }
+
         /// <summary>
         /// Resets the context to its initial state.
         /// </summary>
@@ -173,9 +182,6 @@ namespace Dapper.Wrappers
             {
                 _currentTransaction?.Dispose();
                 _currentTransaction = null;
-
-                _connection?.Dispose();
-                _connection = null;
             }
 
             _disposed = true;

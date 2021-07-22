@@ -33,7 +33,7 @@ namespace Dapper.Wrappers
         /// Whether or not the variable should be made unique within the context.
         /// </param>
         /// <returns>The name of the added variable(possibly with a unique suffix).</returns>
-        string AddVariable(string name, object value, DbType type, bool isUnique = true);
+        string AddVariable(string name, object value, DbType? type = null, bool isUnique = true);
 
         /// <summary>
         /// Executes the next query against the database, returning the results.
