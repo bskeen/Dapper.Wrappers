@@ -110,5 +110,46 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Assert
             result.Should().Be(output);
         }
+
+        [Theory]
+        [InlineData(new [] {"this", "that"}, "WHERE this AND that")]
+        [InlineData(new[] { "[TestColumn1] = @TestValue1" }, "WHERE [TestColumn1] = @TestValue1")]
+        [InlineData(new [] {"[TestColumn1] = @TestValue1", "[TestColumn2] <> @TestValue2", "[TestColumn3] IN @TestValues3"}, "WHERE [TestColumn1] = @TestValue1 AND [TestColumn2] <> @TestValue2 AND [TestColumn3] IN @TestValues3")]
+        [InlineData(new string[] { null, null }, "WHERE  AND ")]
+        [InlineData(new [] { "", "" }, "WHERE  AND ")]
+        public void FormatFilterOperations_WithInputs_ShouldJoinCriteriaWithAndsAndAddWhere(string[] operations,
+            string output)
+        {
+            // Arrange
+            // Nothing to do here...
+
+            // Act
+            var result = _formatter.FormatFilterOperations(operations);
+
+            // Assert
+            result.Should().Be(output);
+        }
+
+        [Theory]
+        [InlineData("{0} {1} {2}", "filter", "order", false, null, null, "filter order ")]
+        [InlineData(FormatterTestConstants.SqlServer.BaseGetQuery, null, null, false, null, null, FormatterTestConstants.SqlServer.GetWithoutAnyAddonsQuery)]
+        [InlineData(FormatterTestConstants.SqlServer.BaseGetQuery, FormatterTestConstants.SqlServer.TestGetWhere, null, false, null, null, FormatterTestConstants.SqlServer.GetWithFilterQuery)]
+        [InlineData(FormatterTestConstants.SqlServer.BaseGetQuery, null, FormatterTestConstants.SqlServer.TestGetOrder, false, null, null, FormatterTestConstants.SqlServer.GetWithOrderingQuery)]
+        [InlineData(FormatterTestConstants.SqlServer.BaseGetQuery, null, FormatterTestConstants.SqlServer.TestGetOrder, true, "Skip", "Take", FormatterTestConstants.SqlServer.GetWithOrderingPaginationQuery)]
+        [InlineData(FormatterTestConstants.SqlServer.BaseGetQuery, FormatterTestConstants.SqlServer.TestGetWhere, FormatterTestConstants.SqlServer.TestGetOrder, false, null, null, FormatterTestConstants.SqlServer.GetWithFilterAndOrderingQuery)]
+        [InlineData(FormatterTestConstants.SqlServer.BaseGetQuery, FormatterTestConstants.SqlServer.TestGetWhere, FormatterTestConstants.SqlServer.TestGetOrder, true, "Skip", "Take", FormatterTestConstants.SqlServer.GetWithAllPieces)]
+        public void FormatGetQuery_WithInputs_AddsAllThePartsIntoQuery(string baseQuery, string filterOperations,
+            string orderOperations, bool pagination, string skipVariable, string takeVariable, string output)
+        {
+            // Arrange
+            // Nothing to do here...
+
+            // Act
+            var result = _formatter.FormatGetQuery(baseQuery, filterOperations, orderOperations, pagination,
+                skipVariable, takeVariable);
+
+            // Assert
+            result.Should().Be(output);
+        }
     }
 }
