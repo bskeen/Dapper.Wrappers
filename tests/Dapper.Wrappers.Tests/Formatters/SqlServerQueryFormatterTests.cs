@@ -151,5 +151,24 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Assert
             result.Should().Be(output);
         }
+
+        [Theory]
+        [InlineData("TestIdentifier1", "[TestIdentifier1]")]
+        [InlineData("TestIdentifier2", "[TestIdentifier2]")]
+        [InlineData("RidiculouslyLongIdentifierThatShouldNotBeThisLongForAnyReasonWhatsoever", "[RidiculouslyLongIdentifierThatShouldNotBeThisLongForAnyReasonWhatsoever]")]
+        [InlineData("數據庫", "[數據庫]")]
+        [InlineData("", "[]")]
+        [InlineData(null, "[]")]
+        public void FormatInsertColumn_WithInput_ShouldEncloseIdentifierInSquareBrackets(string input, string output)
+        {
+            // Arrange
+            // Nothing to do here...
+
+            // Act
+            var result = _formatter.FormatInsertColumn(input);
+
+            // Assert
+            result.Should().Be(output);
+        }
     }
 }
