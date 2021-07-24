@@ -170,5 +170,70 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Assert
             result.Should().Be(output);
         }
+
+        [Theory]
+        [InlineData(new [] {"This", "is", "a", "test"}, "This, is, a, test")]
+        [InlineData(new [] {"[Column1]", "[Column2]", "[Column3]"}, "[Column1], [Column2], [Column3]")]
+        [InlineData(new [] {"[Column1]"}, "[Column1]")]
+        [InlineData(new string[] {null}, "")]
+        [InlineData(new [] {"", ""}, ", ")]
+        public void FormatInsertColumns_WithInput_ShouldAddCommasBetweenInputs(string[] inputs, string output)
+        {
+            // Arrange
+            // Nothing to do here...
+
+            // Act
+            var result = _formatter.FormatInsertColumns(inputs);
+
+            // Assert
+            result.Should().Be(output);
+        }
+
+        [Theory]
+        [InlineData("{0}", new [] { "TestValue" }, "@TestValue")]
+        [InlineData("(SELECT GenreID FROM Genres WHERE Name = {0})", new [] {"GenreName"}, "(SELECT GenreID FROM Genres WHERE Name = @GenreName)")]
+        [InlineData("This {0} not {1} real {2}", new[] { "is", "a", "query" }, "This @is not @a real @query")]
+        [InlineData("[TestColumn] = {0}", new[] { "TestValue" }, "[TestColumn] = @TestValue")]
+        [InlineData("[TestDateColumn] = DATEFROMPARTS({0}, {1}, {2})", new[] { "Year", "Month", "Day" }, "[TestDateColumn] = DATEFROMPARTS(@Year, @Month, @Day)")]
+        [InlineData("This {0} not {1} real {2}", new[] { "", "", "" }, "This @ not @ real @")]
+        [InlineData("This {0} not {1} real {2}", new string[] { null, null, null }, "This @ not @ real @")]
+        public void FormatInsertOperation_WithInputs_ShouldAddVariablesToBase(string operation, string[] variableNames,
+            string output)
+        {
+            // Arrange
+            // Nothing to do here...
+
+            // Act
+            var result = _formatter.FormatInsertOperation(operation, variableNames);
+
+            // Assert
+            result.Should().Be(output);
+        }
+
+        [Theory]
+        [InlineData(new[] { "This", "is", "a", "test" }, "This, is, a, test")]
+        [InlineData(new[] { "@Value1", "@Value2", "@Value3" }, "@Value1, @Value2, @Value3")]
+        [InlineData(new[] { "@Value1" }, "@Value1")]
+        [InlineData(new string[] { null }, "")]
+        [InlineData(new[] { "", "" }, ", ")]
+        public void FormatInsertOperations_WithInputs_ShouldInsertCommasAndSpacesBetweenValues(string[] inputs,
+            string output)
+        {
+            // Arrange
+            // Nothing to do here...
+
+            // Act
+            var result = _formatter.FormatInsertOperations(inputs);
+
+            // Assert
+            result.Should().Be(output);
+        }
+
+
+        public void FormatInsertQuery_WithInputs_ShouldAddTheColumnListAndOperationsInTheCorrectPlaces(string baseQuery,
+            string columnList, string insertOperations, string output)
+        {
+
+        }
     }
 }
