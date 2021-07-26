@@ -284,6 +284,12 @@ namespace Dapper.Wrappers.Tests.Formatters
 
         [Theory]
         [InlineData("[Column1] = {0}", new [] {"Value1"}, "[Column1] = @Value1")]
+        [InlineData("[Column1] = (SELECT 1 FROM Genres WHERE Name = {0} OR GenreID = {1})", new [] {"Name", "GenreID"}, "[Column1] = (SELECT 1 FROM Genres WHERE Name = @Name OR GenreID = @GenreID)")]
+        [InlineData("This {0} not {1} real {2}", new[] { "is", "a", "query" }, "This @is not @a real @query")]
+        [InlineData("[TestColumn] = {0}", new[] { "TestValue" }, "[TestColumn] = @TestValue")]
+        [InlineData("[TestDateColumn] = DATEFROMPARTS({0}, {1}, {2})", new[] { "Year", "Month", "Day" }, "[TestDateColumn] = DATEFROMPARTS(@Year, @Month, @Day)")]
+        [InlineData("This {0} not {1} real {2}", new[] { "", "", "" }, "This @ not @ real @")]
+        [InlineData("This {0} not {1} real {2}", new string[] { null, null, null }, "This @ not @ real @")]
         public void FormatUpdateOperation_WithInputs_ShouldAddVariableNamesToBaseQueryPiece(string operation,
             string[] variables, string output)
         {
