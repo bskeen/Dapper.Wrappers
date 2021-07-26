@@ -51,5 +51,51 @@ namespace Dapper.Wrappers.Tests.Formatters
             public const string UpdateWithEverything =
                 "UPDATE Authors SET [FirstName] = @FirstName, [LastName] = @LastName WHERE [AuthorID] = @AuthorID";
         }
+
+        public static class Postgres
+        {
+            public const string BaseGetQuery = "SELECT * FROM genres {0} {1} {2}";
+
+            public const string TestGetWhere = "WHERE genreid ANY(@genreids)";
+
+            public const string TestGetOrder = "ORDER BY name ASC";
+
+            public const string GetWithoutAnyAddonsQuery = "SELECT * FROM genres   ";
+            public const string GetWithFilterQuery = "SELECT * FROM genres WHERE genreid ANY(@genreids)  ";
+            public const string GetWithOrderingQuery = "SELECT * FROM genres  ORDER BY name ASC ";
+
+            public const string GetWithOrderingPaginationQuery =
+                "SELECT * FROM genres  ORDER BY name ASC LIMIT @take OFFSET @skip";
+
+            public const string GetWithFilterAndOrderingQuery = "SELECT * FROM genres WHERE genreid ANY(@genreids) ORDER BY name ASC ";
+
+            public const string GetWithAllPieces =
+                "SELECT * FROM genres WHERE genreid ANY(@genreids) ORDER BY name ASC LIMIT @take OFFSET @skip";
+
+            public const string BaseInsertQuery = "INSERT INTO genres ({0}) VALUES ({1});";
+
+            public const string TestColumns = "\"Column1\", \"Column2\", \"Column3\"";
+            public const string TestValues = "@value1, @value2, @value3";
+
+            public const string TestSubqueries =
+                "(SELECT 1 FROM testtable), (SELECT 2 FROM testtable), (SELECT 3 FROM testtable)";
+
+            public const string InsertWithColumnsAndValues =
+                "INSERT INTO genres (\"Column1\", \"Column2\", \"Column3\") VALUES (@value1, @value2, @value3);";
+
+            public const string InsertWithColumnsAndSubqueries =
+                "INSERT INTO genres (\"Column1\", \"Column2\", \"Column3\") VALUES ((SELECT 1 FROM testtable), (SELECT 2 FROM testtable), (SELECT 3 FROM testtable));";
+
+            public const string TestUpdateOperations = "SET \"FirstName\" = @firstname, \"LastName\" = @lastname";
+            public const string TestUpdateWhere = "WHERE \"AuthorID\" = @authorid";
+
+            public const string BaseUpdateQuery = "UPDATE authors {0} {1}";
+
+            public const string UpdateWithoutWhere =
+                "UPDATE authors SET \"FirstName\" = @firstname, \"LastName\" = @lastname ";
+
+            public const string UpdateWithEverything =
+                "UPDATE authors SET \"FirstName\" = @firstname, \"LastName\" = @lastname WHERE \"AuthorID\" = @authorid";
+        }
     }
 }
