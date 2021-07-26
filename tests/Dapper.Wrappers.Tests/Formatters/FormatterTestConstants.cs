@@ -25,6 +25,20 @@ namespace Dapper.Wrappers.Tests.Formatters
 
             public const string GetWithAllPieces =
                 "SELECT * FROM Genres WHERE GenreID IN @GenreIDs ORDER BY Name ASC OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY";
+
+            public const string BaseInsertQuery = "INSERT INTO Genres ({0}) VALUES ({1});";
+
+            public const string TestColumns = "[Column1], [Column2], [Column3]";
+            public const string TestValues = "@Value1, @Value2, @Value3";
+
+            public const string TestSubqueries =
+                "(SELECT 1 FROM TestTable), (SELECT 2 FROM TestTable), (SELECT 3 FROM TestTable)";
+
+            public const string InsertWithColumnsAndValues =
+                "INSERT INTO Genres ([Column1], [Column2], [Column3]) VALUES (@Value1, @Value2, @Value3);";
+
+            public const string InsertWithColumnsAndSubqueries =
+                "INSERT INTO Genres ([Column1], [Column2], [Column3]) VALUES ((SELECT 1 FROM TestTable), (SELECT 2 FROM TestTable), (SELECT 3 FROM TestTable));";
         }
     }
 }

@@ -229,11 +229,72 @@ namespace Dapper.Wrappers.Tests.Formatters
             result.Should().Be(output);
         }
 
-
+        [Theory]
+        [InlineData("{0} {1}", "not a", "query", "not a query")]
+        [InlineData(FormatterTestConstants.SqlServer.BaseInsertQuery, FormatterTestConstants.SqlServer.TestColumns, FormatterTestConstants.SqlServer.TestValues, FormatterTestConstants.SqlServer.InsertWithColumnsAndValues)]
+        [InlineData(FormatterTestConstants.SqlServer.BaseInsertQuery, FormatterTestConstants.SqlServer.TestColumns, FormatterTestConstants.SqlServer.TestSubqueries, FormatterTestConstants.SqlServer.InsertWithColumnsAndSubqueries)]
         public void FormatInsertQuery_WithInputs_ShouldAddTheColumnListAndOperationsInTheCorrectPlaces(string baseQuery,
             string columnList, string insertOperations, string output)
         {
+            // Arrange
+            // Nothing to do here...
 
+            // Act
+            var result = _formatter.FormatInsertQuery(baseQuery, columnList, insertOperations);
+
+            // Assert
+            result.Should().Be(output);
+        }
+
+        [Theory]
+        [InlineData("{0} {1} {2} {3} {4}", new [] {"is", "not", "a", "query"}, OrderDirections.Asc, "ASC @is @not @a @query")]
+        [InlineData("{0} {1} {2} {3} {4}", new[] { "is", "not", "a", "query" }, OrderDirections.Desc, "DESC @is @not @a @query")]
+        [InlineData("[Column1] {0}", new string[] {}, OrderDirections.Asc, "[Column1] ASC")]
+        [InlineData("[Column1] {0}", new string[] { }, OrderDirections.Desc, "[Column1] DESC")]
+        [InlineData("(SELECT 1 FROM Genres WHERE Name = {1}) {0}", new [] {"Name"}, OrderDirections.Asc, "(SELECT 1 FROM Genres WHERE Name = @Name) ASC")]
+        [InlineData("(SELECT 1 FROM Genres WHERE Name = {1}) {0}", new[] { "Name" }, OrderDirections.Desc, "(SELECT 1 FROM Genres WHERE Name = @Name) DESC")]
+        public void FormatOrderOperation_WithInputs_ShouldAddCorrectDirectionAndVariables(string baseOperation,
+            string[] variables, OrderDirections direction, string output)
+        {
+            // Arrange
+            // Nothing to do here...
+            
+            // Act
+            var result = _formatter.FormatOrderOperation(baseOperation, variables, direction);
+
+            // Assert
+            result.Should().Be(output);
+        }
+
+        [Theory]
+        [InlineData(new [] {"[Column1] ASC"}, "ORDER BY [Column1] ASC")]
+        [InlineData(new[] { "[Column1] ASC", "[Column2] DESC" }, "ORDER BY [Column1] ASC, [Column2] DESC")]
+        [InlineData(new [] {"is", "not", "a", "query"}, "ORDER BY is, not, a, query")]
+        public void FormatOrderOperations_WithInputs_ShouldCommaDelimitWithOrderBy(string[] operations, string output)
+        {
+            // Arrange
+            // Nothing to do here...
+
+            // Act
+            var result = _formatter.FormatOrderOperations(operations);
+
+            // Assert
+            result.Should().Be(output);
+        }
+
+        [Theory]
+        [InlineData("[Column1] = {0}", new [] {"Value1"}, "[Column1] = @Value1")]
+        public void FormatUpdateOperation_WithInputs_ShouldAddVariableNamesToBaseQueryPiece(string operation,
+            string[] variables, string output)
+        {
+            // Arrange
+            // Nothing to do here...
+
+            // Act
+            var result = _formatter.FormatUpdateOperation(operation, variables);
+
+            // Assert
+            result.Should().Be(output);
         }
     }
 }
