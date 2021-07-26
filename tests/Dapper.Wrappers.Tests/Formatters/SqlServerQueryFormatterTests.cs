@@ -302,5 +302,38 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Assert
             result.Should().Be(output);
         }
+
+        [Theory]
+        [InlineData(new [] {"[Column1] = @Value1"}, "SET [Column1] = @Value1")]
+        [InlineData(new[] { "[Column1] = @Value1", "[Column2] = @Value2" }, "SET [Column1] = @Value1, [Column2] = @Value2")]
+        [InlineData(new [] {"is", "not", "a", "query"}, "SET is, not, a, query")]
+        public void FormatUpdateOperations_WithInputs_ShouldAddSetAndCommas(string[] operations, string output)
+        {
+            // Arrange
+            // Nothing to do here...
+
+            // Act
+            var result = _formatter.FormatUpdateOperations(operations);
+
+            // Assert
+            result.Should().Be(output);
+        }
+
+        [Theory]
+        [InlineData(FormatterTestConstants.SqlServer.BaseUpdateQuery, FormatterTestConstants.SqlServer.TestUpdateOperations, null, FormatterTestConstants.SqlServer.UpdateWithoutWhere)]
+        [InlineData(FormatterTestConstants.SqlServer.BaseUpdateQuery, FormatterTestConstants.SqlServer.TestUpdateOperations, "", FormatterTestConstants.SqlServer.UpdateWithoutWhere)]
+        [InlineData(FormatterTestConstants.SqlServer.BaseUpdateQuery, FormatterTestConstants.SqlServer.TestUpdateOperations, FormatterTestConstants.SqlServer.TestUpdateWhere, FormatterTestConstants.SqlServer.UpdateWithEverything)]
+        public void FormatUpdateQuery_WithInputs_ShouldReturnCorrectlyFormattedQuery(string baseQuery,
+            string operations, string criteria, string output)
+        {
+            // Arrange
+            // Nothing to do here...
+
+            // Act
+            var result = _formatter.FormatUpdateQuery(baseQuery, operations, criteria);
+
+            // Assert
+            result.Should().Be(output);
+        }
     }
 }

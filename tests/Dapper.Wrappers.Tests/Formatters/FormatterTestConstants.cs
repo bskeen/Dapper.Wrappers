@@ -39,6 +39,17 @@ namespace Dapper.Wrappers.Tests.Formatters
 
             public const string InsertWithColumnsAndSubqueries =
                 "INSERT INTO Genres ([Column1], [Column2], [Column3]) VALUES ((SELECT 1 FROM TestTable), (SELECT 2 FROM TestTable), (SELECT 3 FROM TestTable));";
+
+            public const string TestUpdateOperations = "SET [FirstName] = @FirstName, [LastName] = @LastName";
+            public const string TestUpdateWhere = "WHERE [AuthorID] = @AuthorID";
+
+            public const string BaseUpdateQuery = "UPDATE Authors {0} {1}";
+
+            public const string UpdateWithoutWhere =
+                "UPDATE Authors SET [FirstName] = @FirstName, [LastName] = @LastName ";
+
+            public const string UpdateWithEverything =
+                "UPDATE Authors SET [FirstName] = @FirstName, [LastName] = @LastName WHERE [AuthorID] = @AuthorID";
         }
     }
 }
