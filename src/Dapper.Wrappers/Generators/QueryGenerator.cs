@@ -27,7 +27,7 @@ namespace Dapper.Wrappers.Generators
         /// <summary>
         /// Formats the given operations using the given format function.
         /// </summary>
-        /// <typeparam name="OMT">The type of QueryOperationMetadata to use while formatting the operation.</typeparam>
+        /// <typeparam name="TOpMetadata">The type of QueryOperationMetadata to use while formatting the operation.</typeparam>
         /// <param name="context">The context to be updated.</param>
         /// <param name="operations">The operations to format.</param>
         /// <param name="operationMetadata">The metadata about allowed operations.</param>
@@ -36,11 +36,11 @@ namespace Dapper.Wrappers.Generators
         /// <param name="checkOrdering">Whether or not to check for an ordering parameter.</param>
         /// <param name="useUniqueVariables">Whether or not to add unique variables to the context.</param>
         /// <returns></returns>
-        protected virtual List<string> FormatOperations<OMT>(IQueryContext context, IEnumerable<QueryOperation> operations,
-            IDictionary<string, OMT> operationMetadata,
-            Func<string, IEnumerable<string>, OrderDirections?, string> formatOperation, Action<OMT> operationAction,
+        protected virtual List<string> FormatOperations<TOpMetadata>(IQueryContext context, IEnumerable<QueryOperation> operations,
+            IDictionary<string, TOpMetadata> operationMetadata,
+            Func<string, IEnumerable<string>, OrderDirections?, string> formatOperation, Action<TOpMetadata> operationAction,
             bool checkOrdering = false, bool useUniqueVariables = true)
-            where OMT : QueryOperationMetadata
+            where TOpMetadata : QueryOperationMetadata
         {
             List<string> formattedOperations = new List<string>();
 
@@ -80,7 +80,7 @@ namespace Dapper.Wrappers.Generators
                     }
                     else
                     {
-                        var variableName = context.AddVariable(parameter.Name, parameterValue, parameter.DbType);
+                        var variableName = context.AddVariable(parameter.Name, parameterValue, parameter.DbType, useUniqueVariables);
                         parameterNames.Add(variableName);
                     }
                 }
