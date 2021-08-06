@@ -6,6 +6,7 @@ using System;
 using System.Data;
 using System.IO;
 using Dapper.Wrappers.DependencyInjection;
+using Dapper.Wrappers.Generators;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,6 +44,8 @@ namespace Dapper.Wrappers.Tests
 
                 MigrateDatabase(SupportedDatabases.SqlServer, sqlConnectionString);
             }
+
+            services.AddSingleton<IMetadataGenerator, MetadataGenerator>();
         }
 
         private void MigrateDatabase(SupportedDatabases dbType, string connectionString)

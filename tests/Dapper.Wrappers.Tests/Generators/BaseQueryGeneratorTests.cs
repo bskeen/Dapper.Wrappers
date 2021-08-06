@@ -36,6 +36,13 @@ namespace Dapper.Wrappers.Tests.Generators
             return result;
         }
 
+        private readonly IMetadataGenerator _metadataGenerator;
+
+        public BaseQueryGeneratorTests(IMetadataGenerator metadataGenerator)
+        {
+            _metadataGenerator = metadataGenerator;
+        }
+
         [Theory]
         [InlineData(true, SupportedDatabases.SqlServer)]
         [InlineData(false, SupportedDatabases.SqlServer)]
@@ -94,24 +101,8 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var operationMetadata = new Dictionary<string, QueryOperationMetadata>
             {
-                {
-                    "Real1",
-                    new QueryOperationMetadata
-                    {
-                        Name = "Real1",
-                        BaseQueryString = "this is not a query",
-                        Parameters = new QueryParameterMetadata[] { }
-                    }
-                },
-                {
-                    "Real2",
-                    new QueryOperationMetadata
-                    {
-                        Name = "Real2",
-                        BaseQueryString = "this is not a query either",
-                        Parameters = new QueryParameterMetadata[] { }
-                    }
-                }
+                {"Real1", _metadataGenerator.GetDefaultOperation<string>("Real1", "this is not a query")},
+                {"Real2", _metadataGenerator.GetDefaultOperation<string>("Real2", "this is not a query either")}
             };
 
             // Act
@@ -170,50 +161,18 @@ namespace Dapper.Wrappers.Tests.Generators
             var operationMetadata = new Dictionary<string, QueryOperationMetadata>
             {
                 {
-                    "Valid1",
-                    new QueryOperationMetadata
+                    "Valid1", _metadataGenerator.GetOperation("Valid1", "Value1: {0}, Value2: {1}", new[]
                     {
-                        Name = "Valid1",
-                        BaseQueryString = "Value1: {0}, Value2: {1}",
-                        Parameters = new[]
-                        {
-                            new QueryParameterMetadata
-                            {
-                                Name = "Valid1Value1",
-                                DbType = DbType.Int32,
-                                HasDefault = false
-                            },
-                            new QueryParameterMetadata
-                            {
-                                Name = "Valid1Value2",
-                                DbType = DbType.Guid,
-                                HasDefault = false
-                            }
-                        }
-                    }
+                        _metadataGenerator.GetParameter<int>("Valid1Value1"),
+                        _metadataGenerator.GetParameter<Guid>("Valid1Value2")
+                    })
                 },
                 {
-                    "Valid2",
-                    new QueryOperationMetadata
+                    "Valid2", _metadataGenerator.GetOperation("Valid2", "Value1: {0}, Value2: {1}", new []
                     {
-                        Name = "Valid2",
-                        BaseQueryString = "Value1: {0}, Value2: {1}",
-                        Parameters = new[]
-                        {
-                            new QueryParameterMetadata
-                            {
-                                Name = "Valid2Value1",
-                                DbType = DbType.String,
-                                HasDefault = false
-                            },
-                            new QueryParameterMetadata
-                            {
-                                Name = "Valid2Value2",
-                                DbType = DbType.Decimal,
-                                HasDefault = false
-                            }
-                        }
-                    }
+                        _metadataGenerator.GetParameter<string>("Valid2Value1"),
+                        _metadataGenerator.GetParameter<decimal>("Valid2Value2")
+                    })
                 }
             };
 
@@ -283,54 +242,18 @@ namespace Dapper.Wrappers.Tests.Generators
             var operationMetadata = new Dictionary<string, QueryOperationMetadata>
             {
                 {
-                    "Valid1",
-                    new QueryOperationMetadata
+                    "Valid1", _metadataGenerator.GetOperation("Valid1", "Value1: {0}, Value2: {1}", new []
                     {
-                        Name = "Valid1",
-                        BaseQueryString = "Value1: {0}, Value2: {1}",
-                        Parameters = new[]
-                        {
-                            new QueryParameterMetadata
-                            {
-                                Name = "Valid1Value1",
-                                DbType = DbType.Int32,
-                                HasDefault = true,
-                                DefaultValue = 1
-                            },
-                            new QueryParameterMetadata
-                            {
-                                Name = "Valid1Value2",
-                                DbType = DbType.Guid,
-                                HasDefault = true,
-                                DefaultValue = Guid.NewGuid()
-                            }
-                        }
-                    }
+                        _metadataGenerator.GetParameter<int>("Valid1Value1", 1),
+                        _metadataGenerator.GetParameter<Guid>("Valid1Value2", Guid.NewGuid())
+                    })
                 },
                 {
-                    "Valid2",
-                    new QueryOperationMetadata
+                    "Valid2", _metadataGenerator.GetOperation("Valid2", "Value1: {0}, Value2: {1}", new []
                     {
-                        Name = "Valid2",
-                        BaseQueryString = "Value1: {0}, Value2: {1}",
-                        Parameters = new[]
-                        {
-                            new QueryParameterMetadata
-                            {
-                                Name = "Valid2Value1",
-                                DbType = DbType.String,
-                                HasDefault = true,
-                                DefaultValue = "Test String"
-                            },
-                            new QueryParameterMetadata
-                            {
-                                Name = "Valid2Value2",
-                                DbType = DbType.Decimal,
-                                HasDefault = true,
-                                DefaultValue = 233.4M
-                            }
-                        }
-                    }
+                        _metadataGenerator.GetParameter<string>("Valid2Value1", "Test String"),
+                        _metadataGenerator.GetParameter<decimal>("Valid2Value2", 233.4M)
+                    })
                 }
             };
 

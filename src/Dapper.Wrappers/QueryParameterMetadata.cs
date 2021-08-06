@@ -19,7 +19,7 @@ namespace Dapper.Wrappers
         /// <summary>
         /// The DbType of the parameter's value.
         /// </summary>
-        public DbType DbType { get; set; }
+        public DbType? DbType { get; set; }
 
         /// <summary>
         /// Whether or not the parameter has a default value, stored in the DefaultValue property.
