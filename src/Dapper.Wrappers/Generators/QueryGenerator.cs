@@ -74,9 +74,11 @@ namespace Dapper.Wrappers.Generators
                         throw new ArgumentException($"Parameter '{parameter.Name}' is required for the '{currentOperationMetadata.Name}' operation.");
                     }
 
-                    if (checkOrdering && parameter.Name == DapperWrappersConstants.OrderByDirectionParameter)
+                    if (checkOrdering &&
+                        parameter.Name.ToLowerInvariant() == DapperWrappersConstants.OrderByDirectionParameter &&
+                        Enum.TryParse(parameterValue.ToString(), true, out OrderDirections parsedDirection))
                     {
-                        orderDirection = (OrderDirections)parameterValue;
+                        orderDirection = parsedDirection;
                     }
                     else
                     {

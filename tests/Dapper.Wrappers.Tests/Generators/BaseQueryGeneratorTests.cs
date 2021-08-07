@@ -329,6 +329,76 @@ namespace Dapper.Wrappers.Tests.Generators
             act.Should().Throw<ArgumentException>()
                 .WithMessage("Parameter 'Valid2Value2' is required for the 'Valid2' operation.");
         }
+
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer)]
+        [InlineData(SupportedDatabases.PostgreSQL)]
+        public void FormatOperations_WithOrderByParameter_ShouldParseAndPassItToFormattingFunction(
+            SupportedDatabases dbType)
+        {
+
+            // Arrange
+            var generator = GetDefaultTestInstance(dbType);
+            var mockContext = GetMockQueryContext();
+
+            var operations = new[]
+            {
+                new QueryOperation
+                {
+                    Name = "Bogus1",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        { "BogusValue1", null },
+                        { "BogusValue2", true }
+                    }
+                },
+                new QueryOperation
+                {
+                    Name = "Column1",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        {DapperWrappersConstants.OrderByDirectionParameter, OrderDirections.Asc.ToString()}
+                    }
+                },
+                new QueryOperation
+                {
+                    Name = "Subquery1",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        {DapperWrappersConstants.OrderByDirectionParameter, OrderDirections.Desc.ToString()},
+                        {"Value1", 1}
+                    }
+                }
+            };
+
+            var operationMetadata = new Dictionary<string, QueryOperationMetadata>
+            {
+                {
+                    "Column1",
+                    _metadataGenerator.GetOperation("Column1", "Column1 {0}",
+                        new QueryParameterMetadata[]
+                        {
+                            _metadataGenerator.GetParameter<OrderDirections>(DapperWrappersConstants.OrderByDirectionParameter, OrderDirections.Asc)
+                        })
+                },
+                {
+                    "Subquery1", _metadataGenerator.GetOperation("Subquery1",
+                        "(SELECT 1 FROM TestTable WHERE Value1 = {1}) {0}", new[]
+                        {
+                            _metadataGenerator.GetParameter<OrderDirections>(DapperWrappersConstants.OrderByDirectionParameter, OrderDirections.Asc),
+                            _metadataGenerator.GetParameter<int>("Value1")
+                        })
+                }
+            };
+
+            // Act
+            var results = generator.TestFormatOperations(mockContext.Object, operations,
+                operationMetadata, generator.TestFormatter.FormatOrderOperation, generator.TestNoopOperationAction, true);
+
+            // Assert
+            results.Should().Contain(new[] {"Column1 ASC"});
+            results[1].Should().MatchRegex("\\(SELECT 1 FROM TestTable WHERE Value1 = @Value1[0-9]*\\) DESC");
+        }
     }
 
     public class TestQueryGenerator : QueryGenerator
