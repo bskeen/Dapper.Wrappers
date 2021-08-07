@@ -268,6 +268,67 @@ namespace Dapper.Wrappers.Tests.Generators
                 result.Should().MatchRegex("Value1: @Valid[12]Value1[0-9]*, Value2: @Valid[12]Value2[0-9]*");
             }
         }
+
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer)]
+        [InlineData(SupportedDatabases.PostgreSQL)]
+        public void FormatOperations_WithMissingParameters_ShouldThrowError(SupportedDatabases dbType)
+        {
+
+            // Arrange
+            var generator = GetDefaultTestInstance(dbType);
+            var mockContext = GetMockQueryContext();
+
+            var operations = new[]
+            {
+                new QueryOperation
+                {
+                    Name = "Bogus1",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        { "BogusValue1", null },
+                        { "BogusValue2", true }
+                    }
+                },
+                new QueryOperation
+                {
+                    Name = "Valid1",
+                    Parameters = new Dictionary<string, object>()
+                },
+                new QueryOperation
+                {
+                    Name = "Valid2",
+                    Parameters = new Dictionary<string, object>()
+                }
+            };
+
+            var operationMetadata = new Dictionary<string, QueryOperationMetadata>
+            {
+                {
+                    "Valid1", _metadataGenerator.GetOperation("Valid1", "Value1: {0}, Value2: {1}", new []
+                    {
+                        _metadataGenerator.GetParameter<int>("Valid1Value1", 1),
+                        _metadataGenerator.GetParameter<Guid>("Valid1Value2", Guid.NewGuid())
+                    })
+                },
+                {
+                    "Valid2", _metadataGenerator.GetOperation("Valid2", "Value1: {0}, Value2: {1}", new []
+                    {
+                        _metadataGenerator.GetParameter<string>("Valid2Value1", "Test String"),
+                        _metadataGenerator.GetParameter<decimal>("Valid2Value2")
+                    })
+                }
+            };
+
+            // Act
+            Func<List<string>> act = () => generator.TestFormatOperations(mockContext.Object, operations, operationMetadata,
+                generator.TestGetNonOrderingFormatOperation(generator.TestFormatter.FormatFilterOperation),
+                generator.TestNoopOperationAction);
+
+            // Assert
+            act.Should().Throw<ArgumentException>()
+                .WithMessage("Parameter 'Valid2Value2' is required for the 'Valid2' operation.");
+        }
     }
 
     public class TestQueryGenerator : QueryGenerator
