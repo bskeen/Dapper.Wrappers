@@ -6,80 +6,26 @@ namespace Dapper.Wrappers.Tests.DbModels
 {
     public static class SqlQueryFormatConstants
     {
-        public static class Genres
+        public static class SqlServer
         {
-            public const string SqlServerInsertQuery = @"
-INSERT INTO
-  [Genres]
-    ([GenreID]
-    ,[Name]
-    ,[TestScope])
-VALUES
-  ({0}
-  ,{1}
-  ,{2});";
-
-            public const string PostgresInsertQuery = @"
-INSERT INTO
-  ""Genres""
-    (""GenreID""
-    ,""Name""
-    ,""TestScope"")
-VALUES
-  ({0}
-  ,{1}
-  ,{2});";
-
-            public const string SqlServerSelectQuery = @"
-SELECT
-   [GenreID]
-  ,[Name]
-FROM
-  [Genres]
-WHERE
-  [TestScope] = {0}
-  AND [GenreID] IN {1};";
-
-            public const string PostgresSelectQuery = @"
-SELECT
-   ""GenreID""
-  ,""Name""
-FROM
-  ""Genres""
-WHERE
-  ""TestScope"" = {0}
-  AND ""GenreID"" = ANY({1});";
-        }
-
-        public static class Authors
-        {
-            public const string SqlServerInsertQuery = @"
+            public static class Authors
+            {
+                public const string InsertQuery = @"
 INSERT INTO
   [Authors]
     ([AuthorID]
     ,[FirstName]
     ,[LastName]
-    ,[TestScope])
+    ,[TestScope]
+    ,[TestID])
 VALUES
   ({0}
   ,{1}
   ,{2}
-  ,{3});";
-            
-            public const string PostgresInsertQuery = @"
-INSERT INTO
-  ""Authors""
-    (""AuthorID""
-    ,""FirstName""
-    ,""LastName""
-    ,""TestScope"")
-VALUES
-  ({0}
-  ,{1}
-  ,{2}
-  ,{3});";
+  ,{3}
+  ,{4});";
 
-            public const string SqlServerSelectQuery = @"
+                public const string SelectQuery = @"
 SELECT
    [AuthorID]
   ,[FirstName]
@@ -87,10 +33,111 @@ SELECT
 FROM
   [Authors]
 WHERE
-  [TestScope] = {0}
-  AND [AuthorID] IN {1};";
+  [TestID] = {0};";
+            }
 
-            public const string PostgresSelectQuery = @"
+            public static class BookGenres
+            {
+                public const string InsertQuery = @"
+INSERT INTO
+  [BookGenres]
+    ([BookID]
+    ,[GenreID]
+    ,[TestScope]
+    ,[TestID])
+VALUES
+  ({0}
+  ,{1}
+  ,{2}
+  ,{3});";
+
+                public const string SelectQuery = @"
+SELECT
+   [BookID]
+  ,[GenreID]
+FROM
+  [BookGenres]
+WHERE
+  [TestID] = {0};";
+            }
+
+            public static class Books
+            {
+                public const string InsertQuery = @"
+INSERT INTO
+  [Books]
+    ([BookID]
+    ,[Name]
+    ,[AuthorID]
+    ,[PageCount]
+    ,[TestScope]
+    ,[TestID])
+VALUES
+  ({0}
+  ,{1}
+  ,{2}
+  ,{3}
+  ,{4}
+  ,{5});";
+
+                public const string SelectQuery = @"
+SELECT
+   [BookID]
+  ,[Name]
+  ,[AuthorID]
+  ,[PageCount]
+FROM
+  [Books]
+WHERE
+  [TestID] = {0}";
+            }
+
+            public static class Genres
+            {
+                public const string InsertQuery = @"
+INSERT INTO
+  [Genres]
+    ([GenreID]
+    ,[Name]
+    ,[TestScope]
+    ,[TestID])
+VALUES
+  ({0}
+  ,{1}
+  ,{2}
+  ,{3});";
+
+                public const string SelectQuery = @"
+SELECT
+   [GenreID]
+  ,[Name]
+FROM
+  [Genres]
+WHERE
+  [TestID] = {0};";
+            }
+        }
+
+        public static class Postgres
+        {
+            public static class Authors
+            {
+                public const string InsertQuery = @"
+INSERT INTO
+  ""Authors""
+    (""AuthorID""
+    ,""FirstName""
+    ,""LastName""
+    ,""TestScope""
+    ,""TestID"")
+VALUES
+  ({0}
+  ,{1}
+  ,{2}
+  ,{3}
+  ,{4});";
+
+                public const string SelectQuery = @"
 SELECT
    ""AuthorID""
   ,""FirstName""
@@ -98,8 +145,89 @@ SELECT
 FROM
   ""Authors""
 WHERE
-  ""TestScope"" = {0}
-  AND ""AuthorID"" = ANY({1});";
+  ""TestID"" = {0};";
+            }
+
+            public static class BookGenres
+            {
+                public const string InsertQuery = @"
+INSERT INTO
+  ""BookGenres""
+    (""BookID""
+    ,""GenreID""
+    ,""TestScope""
+    ,""TestID"")
+VALUES
+  ({0}
+  ,{1}
+  ,{2}
+  ,{3});";
+
+                public const string SelectQuery = @"
+SELECT
+   ""BookID""
+  ,""GenreID""
+FROM
+  ""BookGenres""
+WHERE
+  ""TestID"" = {0};";
+            }
+
+            public static class Books
+            {
+                public const string InsertQuery = @"
+INSERT INTO
+  ""Books""
+    (""BookID""
+    ,""Name""
+    ,""AuthorID""
+    ,""PageCount""
+    ,""TestScope""
+    ,""TestID"")
+VALUES
+  ({0}
+  ,{1}
+  ,{2}
+  ,{3}
+  ,{4}
+  ,{5});";
+
+                public const string SelectQuery = @"
+SELECT
+   ""BookID""
+  ,""Name""
+  ,""AuthorID""
+  ,""PageCount""
+FROM
+  ""Books""
+WHERE
+  ""TestID"" = {0}";
+            }
+
+            public static class Genres
+            {
+                public const string InsertQuery = @"
+INSERT INTO
+  ""Genres""
+    (""GenreID""
+    ,""Name""
+    ,""TestScope""
+    ,""TestID"")
+VALUES
+  ({0}
+  ,{1}
+  ,{2}
+  ,{3});";
+
+                public const string SelectQuery = @"
+SELECT
+   ""GenreID""
+  ,""Name""
+FROM
+  ""Genres""
+WHERE
+  ""TestID"" = {0};";
+            }
         }
     }
 }

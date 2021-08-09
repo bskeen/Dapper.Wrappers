@@ -6,6 +6,7 @@ using System;
 using System.Data;
 using System.IO;
 using Dapper.Wrappers.DependencyInjection;
+using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Generators;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -32,6 +33,7 @@ namespace Dapper.Wrappers.Tests
             if (!string.IsNullOrWhiteSpace(postgresConnectionString))
             {
                 services.AddTransient<IDbConnection, NpgsqlConnection>(_ => new NpgsqlConnection(postgresConnectionString));
+                services.AddSingleton<IQueryFormatter, PostgresQueryFormatter>();
 
                 MigrateDatabase(SupportedDatabases.PostgreSQL, postgresConnectionString);
             }
@@ -41,6 +43,7 @@ namespace Dapper.Wrappers.Tests
             if (!string.IsNullOrWhiteSpace(sqlConnectionString))
             {
                 services.AddTransient<IDbConnection, SqlConnection>(_ => new SqlConnection(sqlConnectionString));
+                services.AddSingleton<IQueryFormatter, SqlServerQueryFormatter>();
 
                 MigrateDatabase(SupportedDatabases.SqlServer, sqlConnectionString);
             }

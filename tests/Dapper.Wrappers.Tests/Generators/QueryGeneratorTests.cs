@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Dapper.Wrappers.Tests.Generators
 {
-    public class BaseQueryGeneratorTests
+    public class QueryGeneratorTests
     {
         private static TestQueryGenerator GetDefaultTestInstance(SupportedDatabases dbType)
         {
@@ -38,7 +38,7 @@ namespace Dapper.Wrappers.Tests.Generators
 
         private readonly IMetadataGenerator _metadataGenerator;
 
-        public BaseQueryGeneratorTests(IMetadataGenerator metadataGenerator)
+        public QueryGeneratorTests(IMetadataGenerator metadataGenerator)
         {
             _metadataGenerator = metadataGenerator;
         }
