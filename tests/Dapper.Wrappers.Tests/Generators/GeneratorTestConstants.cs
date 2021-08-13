@@ -1,7 +1,10 @@
-﻿using System;
+﻿// © 2021 by Benjamin Skeen
+// Licensed to be used under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.Tests.DbModels;
 

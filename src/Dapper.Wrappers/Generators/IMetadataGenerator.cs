@@ -1,7 +1,9 @@
-﻿using System;
+﻿// © 2021 by Benjamin Skeen
+// Licensed to be used under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
 
 namespace Dapper.Wrappers.Generators
 {

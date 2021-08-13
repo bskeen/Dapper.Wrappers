@@ -1,4 +1,7 @@
-﻿
+﻿// © 2021 by Benjamin Skeen
+// Licensed to be used under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using FluentMigrator;
 
 namespace Dapper.Wrappers.Tests.DbMigrations
