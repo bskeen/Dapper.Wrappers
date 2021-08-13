@@ -7,7 +7,7 @@ namespace Dapper.Wrappers.Generators
 {
     public interface IMetadataGenerator
     {
-        QueryOperationMetadata GetDefaultOperation<T>(string name, string baseQueryString);
+        QueryOperationMetadata GetDefaultOperation<T>(string name, string baseQueryString, string paramName);
 
         QueryOperationMetadata GetOperation(string name, string baseQueryString,
             IEnumerable<QueryParameterMetadata> parameters);

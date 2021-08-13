@@ -90,6 +90,28 @@ FROM
   [Books]
 WHERE
   [TestID] = {0}";
+
+                public const string DeleteQuery = @"
+SELECT
+  [BookID]
+INTO
+  #BooksToDelete
+FROM
+  [Books]
+{0};
+
+DELETE FROM
+  [BookGenres]
+WHERE
+  [BookID] IN (SELECT [BookID] FROM #BooksToDelete);
+
+DELETE FROM
+  [Books]
+WHERE
+  [BookID] IN (SELECT [BookID] FROM #BooksToDelete);
+
+DROP TABLE
+  #BooksToDelete;";
             }
 
             public static class Genres
@@ -115,6 +137,11 @@ FROM
   [Genres]
 WHERE
   [TestID] = {0};";
+
+                public const string DeleteQuery = @"
+DELETE FROM
+  [Genres]
+{0}";
             }
         }
 
@@ -146,6 +173,11 @@ FROM
   ""Authors""
 WHERE
   ""TestID"" = {0};";
+
+                public const string DeleteQuery = @"
+DELETE FROM
+  ""Authors""
+{0}";
             }
 
             public static class BookGenres
@@ -202,6 +234,30 @@ FROM
   ""Books""
 WHERE
   ""TestID"" = {0}";
+
+                public const string DeleteQuery = @"
+CREATE TEMPORARY TABLE
+  books_to_delete
+    (""BookID"" UUID NOT NULL);
+
+INSERT INTO
+  books_to_delete
+    (""BookID"")
+SELECT
+  ""BookID""
+FROM
+  ""Books""
+{0};
+
+DELETE FROM
+  ""BookGenres""
+WHERE
+  ""BookID"" IN (SELECT ""BookID"" FROM books_to_delete);
+
+DELETE FROM
+  ""Books""
+WHERE
+  ""BookID"" IN (SELECT ""BookID"" FROM books_to_delete);";
             }
 
             public static class Genres
@@ -227,6 +283,11 @@ FROM
   ""Genres""
 WHERE
   ""TestID"" = {0};";
+
+                public const string DeleteQuery = @"
+DELETE FROM
+  ""Genres""
+{0}";
             }
         }
     }

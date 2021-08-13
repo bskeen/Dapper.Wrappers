@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Generators;
@@ -53,8 +51,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Arrange
             var metadata = new Dictionary<string, QueryOperationMetadata>
             {
-                {"Column1", _metadataGenerator.GetDefaultOperation<int>("Column1", "Column1 = {0}")},
-                {"Column2", _metadataGenerator.GetDefaultOperation<Guid>("Column2", "Column2 = {0}")}
+                {"Column1", _metadataGenerator.GetDefaultOperation<int>("Column1", "Column1 = {0}", "Column1")},
+                {"Column2", _metadataGenerator.GetDefaultOperation<Guid>("Column2", "Column2 = {0}", "Column2")}
             };
 
             var generator = GetDefaultTestInstance(dbType, metadata);
@@ -77,7 +75,7 @@ namespace Dapper.Wrappers.Tests.Generators
             // Arrange
             var metadata = new Dictionary<string, QueryOperationMetadata>
             {
-                {"Column1", _metadataGenerator.GetDefaultOperation<int>("Column1", "Column1 = {0}")},
+                {"Column1", _metadataGenerator.GetDefaultOperation<int>("Column1", "Column1 = {0}", "Column1")},
                 {
                     "Subquery1", _metadataGenerator.GetOperation("Subquery1",
                         "EXISTS (SELECT Column2 FROM Values WHERE TestValue = {0})", new[]

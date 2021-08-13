@@ -9,7 +9,7 @@ namespace Dapper.Wrappers.Tests.DbModels
 {
     public class Book
     {
-        public Guid BookID { get; set; }
+        public Guid BookID { get; set; } = Guid.NewGuid();
 
         public string Name { get; set; }
 

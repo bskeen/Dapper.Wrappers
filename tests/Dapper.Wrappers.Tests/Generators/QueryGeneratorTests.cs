@@ -101,8 +101,8 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var operationMetadata = new Dictionary<string, QueryOperationMetadata>
             {
-                {"Real1", _metadataGenerator.GetDefaultOperation<string>("Real1", "this is not a query")},
-                {"Real2", _metadataGenerator.GetDefaultOperation<string>("Real2", "this is not a query either")}
+                {"Real1", _metadataGenerator.GetDefaultOperation<string>("Real1", "this is not a query", "Real1")},
+                {"Real2", _metadataGenerator.GetDefaultOperation<string>("Real2", "this is not a query either", "Real2")}
             };
 
             // Act

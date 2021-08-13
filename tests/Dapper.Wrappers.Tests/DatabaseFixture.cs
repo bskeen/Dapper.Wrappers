@@ -68,7 +68,7 @@ namespace Dapper.Wrappers.Tests
                 ? SqlQueryFormatConstants.SqlServer.Authors.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Authors.InsertQuery;
 
-            string query = string.Format(rawQuery, "@AuthorID", "@FirstName", "@LastName", "@TestScope", @"TestID");
+            string query = string.Format(rawQuery, "@AuthorID", "@FirstName", "@LastName", "@TestScope", "@TestID");
 
             await connection.ExecuteAsync(query, queryParams);
         }
@@ -81,7 +81,7 @@ namespace Dapper.Wrappers.Tests
                 ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 
-            string query = string.Format(rawQuery, @"TestID");
+            string query = string.Format(rawQuery, "@TestID");
 
             return await connection.QueryAsync<Author>(query, new {TestID = testId});
         }
@@ -104,8 +104,8 @@ namespace Dapper.Wrappers.Tests
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            string query = string.Format(rawQuery, "@BookID", "@Name", "@AuthorID", @"PageCount", @"TestScope",
-                @"TestID");
+            string query = string.Format(rawQuery, "@BookID", "@Name", "@AuthorID", "@PageCount", "@TestScope",
+                "@TestID");
 
             await connection.ExecuteAsync(query, queryParams);
         }
@@ -118,7 +118,7 @@ namespace Dapper.Wrappers.Tests
                 ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
 
-            string query = string.Format(rawQuery, @"TestID");
+            string query = string.Format(rawQuery, "@TestID");
 
             return await connection.QueryAsync<Book>(query, new { TestID = testId });
         }
@@ -139,7 +139,7 @@ namespace Dapper.Wrappers.Tests
                 ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Genres.InsertQuery;
 
-            string query = string.Format(rawQuery, "@GenreID", "Name", "TestScope", "TestID");
+            string query = string.Format(rawQuery, "@GenreID", "@Name", "@TestScope", "@TestID");
 
             await connection.ExecuteAsync(query, queryParams);
         }
@@ -152,12 +152,12 @@ namespace Dapper.Wrappers.Tests
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
-            string query = string.Format(rawQuery, @"TestID");
+            string query = string.Format(rawQuery, "@TestID");
 
             return await connection.QueryAsync<Genre>(query, new { TestID = testId });
         }
 
-        public async Task AddBookGenres(SupportedDatabases dbType, Guid testId, IEnumerable<(Guid BookID, Guid GenreID)> ids)
+        public async Task AddBookGenres(SupportedDatabases dbType, Guid testId, IEnumerable<BookGenre> ids)
         {
             var connection = GetConnection(dbType);
 
@@ -170,8 +170,8 @@ namespace Dapper.Wrappers.Tests
             });
 
             string rawQuery = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
-                : SqlQueryFormatConstants.Postgres.Genres.InsertQuery;
+                ? SqlQueryFormatConstants.SqlServer.BookGenres.InsertQuery
+                : SqlQueryFormatConstants.Postgres.BookGenres.InsertQuery;
 
             string query = string.Format(rawQuery, "@BookID", "@GenreID", "@TestScope", "@TestID");
 
@@ -186,7 +186,7 @@ namespace Dapper.Wrappers.Tests
                 ? SqlQueryFormatConstants.SqlServer.BookGenres.SelectQuery
                 : SqlQueryFormatConstants.Postgres.BookGenres.SelectQuery;
 
-            string query = string.Format(rawQuery, @"TestID");
+            string query = string.Format(rawQuery, "@TestID");
 
             return await connection.QueryAsync<BookGenre>(query, new { TestID = testId });
         }

@@ -8,10 +8,10 @@ namespace Dapper.Wrappers.Generators
 {
     public class MetadataGenerator: IMetadataGenerator
     {
-        public QueryOperationMetadata GetDefaultOperation<T>(string name, string baseQueryString) => GetOperation(name,
+        public QueryOperationMetadata GetDefaultOperation<T>(string name, string baseQueryString, string paramName) => GetOperation(name,
             baseQueryString, new[]
             {
-                GetParameter<T>(name)
+                GetParameter<T>(paramName)
             });
 
         public QueryOperationMetadata GetOperation(string name, string baseQueryString,
