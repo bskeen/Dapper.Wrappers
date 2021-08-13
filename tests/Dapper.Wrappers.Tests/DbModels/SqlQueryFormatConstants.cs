@@ -97,7 +97,7 @@ SELECT
 INTO
   #BooksToDelete
 FROM
-  [Books]
+  [Books] b
 {0};
 
 DELETE FROM
@@ -246,7 +246,7 @@ INSERT INTO
 SELECT
   ""BookID""
 FROM
-  ""Books""
+  ""Books"" b
 {0};
 
 DELETE FROM

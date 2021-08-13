@@ -10,21 +10,31 @@ using System.Threading.Tasks;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
+using Microsoft.Data.SqlClient;
+using Npgsql;
 using Xunit;
 
 namespace Dapper.Wrappers.Tests
 {
-    public class QueryContextTests : IClassFixture<DatabaseFixture>
+    public class QueryContextTests : IClassFixture<DatabaseFixture>, IDisposable
     {
         private readonly DatabaseFixture _dbFixture;
+        private readonly IDbConnection _sqlConnection;
+        private readonly IDbConnection _postgresConnection;
 
-        public QueryContextTests(DatabaseFixture dbFixture)
+        public QueryContextTests(DatabaseFixture dbFixture, IEnumerable<IDbConnection> connections)
         {
             _dbFixture = dbFixture;
+            var dbConnections = connections.ToArray();
+            _sqlConnection = dbConnections.FirstOrDefault(c => c is SqlConnection);
+            _postgresConnection = dbConnections.FirstOrDefault(c => c is NpgsqlConnection);
         }
 
+        private IDbConnection GetConnection(SupportedDatabases dbType) =>
+            dbType == SupportedDatabases.SqlServer ? _sqlConnection : _postgresConnection;
+
         private IQueryContext GetDefaultQueryContext(SupportedDatabases dbType) =>
-            new QueryContext(_dbFixture.GetConnection(dbType));
+            new QueryContext(GetConnection(dbType));
 
         [Theory]
         [InlineData(SupportedDatabases.SqlServer)]
@@ -80,6 +90,7 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
             var testId = Guid.NewGuid();
 
             var testGenres = new[]
@@ -131,7 +142,7 @@ namespace Dapper.Wrappers.Tests
             await context.ExecuteCommands();
 
             // Assert
-            var results = await _dbFixture.GetGenres(dbType, testId);
+            var results = await _dbFixture.GetGenres(connection, dbType, testId);
 
             var genres = results.ToList();
 
@@ -147,6 +158,7 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
             var testId = Guid.NewGuid();
 
             var testGenres = new[]
@@ -197,7 +209,7 @@ namespace Dapper.Wrappers.Tests
             await context.ExecuteCommands();
 
             // Assert
-            var results = await _dbFixture.GetGenres(dbType, testId);
+            var results = await _dbFixture.GetGenres(connection, dbType, testId);
 
             var genres = results.ToList();
 
@@ -255,6 +267,7 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
             var testId = Guid.NewGuid();
 
             var testGenre = new Genre
@@ -270,9 +283,9 @@ namespace Dapper.Wrappers.Tests
                 LastName = "Author"
             };
 
-            await _dbFixture.AddGenres(dbType, testId, new[] {testGenre});
+            await _dbFixture.AddGenres(connection, dbType, testId, new[] {testGenre});
 
-            await _dbFixture.AddAuthors(dbType, testId, new[] {testAuthor});
+            await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
             var selectGenreFormat = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
@@ -320,6 +333,7 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
             var testId = Guid.NewGuid();
 
             var testGenre = new Genre
@@ -335,9 +349,9 @@ namespace Dapper.Wrappers.Tests
                 LastName = "Author"
             };
 
-            await _dbFixture.AddGenres(dbType, testId, new[] {testGenre});
+            await _dbFixture.AddGenres(connection, dbType, testId, new[] {testGenre});
 
-            await _dbFixture.AddAuthors(dbType, testId, new[] {testAuthor});
+            await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
             var selectGenreFormat = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
@@ -381,6 +395,7 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
             var testId = Guid.NewGuid();
 
             var testGenre = new Genre
@@ -396,9 +411,9 @@ namespace Dapper.Wrappers.Tests
                 LastName = "Author"
             };
 
-            await _dbFixture.AddGenres(dbType, testId, new[] {testGenre});
+            await _dbFixture.AddGenres(connection, dbType, testId, new[] {testGenre});
 
-            await _dbFixture.AddAuthors(dbType, testId, new[] {testAuthor});
+            await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
             var selectGenreFormat = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
@@ -447,6 +462,7 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
             var testId = Guid.NewGuid();
 
             var testGenres = new[]
@@ -470,9 +486,9 @@ namespace Dapper.Wrappers.Tests
                 LastName = "Author"
             };
 
-            await _dbFixture.AddGenres(dbType, testId, new[] {testGenres[0]});
+            await _dbFixture.AddGenres(connection, dbType, testId, new[] {testGenres[0]});
 
-            await _dbFixture.AddAuthors(dbType, testId, new[] {testAuthor});
+            await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
             var insertGenreFormat = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
@@ -520,7 +536,7 @@ namespace Dapper.Wrappers.Tests
             await context.ExecuteCommands();
 
             // Assert
-            var results = await _dbFixture.GetGenres(dbType, testId);
+            var results = await _dbFixture.GetGenres(connection, dbType, testId);
 
             var firstGenreResults = genres.ToArray();
             firstGenreResults.Should().HaveCount(1);
@@ -540,6 +556,7 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
             var testId = Guid.NewGuid();
 
             var testGenre = new Genre
@@ -555,9 +572,9 @@ namespace Dapper.Wrappers.Tests
                 LastName = "Author"
             };
 
-            await _dbFixture.AddGenres(dbType, testId, new[] {testGenre});
+            await _dbFixture.AddGenres(connection, dbType, testId, new[] {testGenre});
 
-            await _dbFixture.AddAuthors(dbType, testId, new[] {testAuthor});
+            await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
             var selectGenreFormat = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
@@ -609,6 +626,13 @@ namespace Dapper.Wrappers.Tests
             var genres2List = genres2.ToList();
             genres2List.Should().HaveCount(1);
             genres2List[0].Should().BeEquivalentTo(testGenre);
+        }
+
+        public void Dispose()
+        {
+            _dbFixture?.Dispose();
+            _sqlConnection?.Dispose();
+            _postgresConnection?.Dispose();
         }
     }
 }

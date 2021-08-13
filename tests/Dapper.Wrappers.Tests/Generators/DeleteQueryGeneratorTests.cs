@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper.Wrappers.DependencyInjection;
@@ -7,17 +8,24 @@ using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
+using Microsoft.Data.SqlClient;
+using Npgsql;
 using Xunit;
 
 namespace Dapper.Wrappers.Tests.Generators
 {
-    public class DeleteQueryGeneratorTests : IClassFixture<DatabaseFixture>
+    public class DeleteQueryGeneratorTests : IClassFixture<DatabaseFixture>, IDisposable
     {
         private readonly DatabaseFixture _databaseFixture;
+        private readonly IDbConnection _sqlConnection;
+        private readonly IDbConnection _postgresConnection;
 
-        public DeleteQueryGeneratorTests(DatabaseFixture databaseFixture)
+        public DeleteQueryGeneratorTests(DatabaseFixture databaseFixture, IEnumerable<IDbConnection> connections)
         {
             _databaseFixture = databaseFixture;
+            var dbConnections = connections.ToList();
+            _sqlConnection = dbConnections.FirstOrDefault(c => c is SqlConnection);
+            _postgresConnection = dbConnections.FirstOrDefault(c => c is NpgsqlConnection);
         }
 
         private TestDeleteQueryGenerator GetTestInstance(SupportedDatabases dbType, string deleteQueryString,
@@ -28,9 +36,12 @@ namespace Dapper.Wrappers.Tests.Generators
             return new TestDeleteQueryGenerator(formatter, deleteQueryString, filterOperationMetadata);
         }
 
+        private IDbConnection GetConnection(SupportedDatabases dbType) =>
+            dbType == SupportedDatabases.SqlServer ? _sqlConnection : _postgresConnection;
+
         private IQueryContext GetQueryContext(SupportedDatabases dbType)
         {
-            var connection = _databaseFixture.GetConnection(dbType);
+            var connection = GetConnection(dbType);
 
             return new QueryContext(connection);
         }
@@ -50,7 +61,9 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var genres = testData.Genres.ToList();
 
-            await _databaseFixture.AddGenres(dbType, testId, genres);
+            var connection = GetConnection(dbType);
+
+            await _databaseFixture.AddGenres(connection, dbType, testId, genres);
 
             var query = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Genres.DeleteQuery
@@ -91,7 +104,7 @@ namespace Dapper.Wrappers.Tests.Generators
             await context.ExecuteCommands();
 
             // Assert
-            var genresLeft = (await _databaseFixture.GetGenres(dbType, testId)).ToList();
+            var genresLeft = (await _databaseFixture.GetGenres(connection, dbType, testId)).ToList();
 
             if (operationName == "GenreIDEquals")
             {
@@ -128,7 +141,9 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var genres = testData.Genres.ToList();
 
-            await _databaseFixture.AddGenres(dbType, testId, genres);
+            var connection = GetConnection(dbType);
+
+            await _databaseFixture.AddGenres(connection, dbType, testId, genres);
 
             var query = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Genres.DeleteQuery
@@ -167,7 +182,7 @@ namespace Dapper.Wrappers.Tests.Generators
             await context.ExecuteCommands();
 
             // Assert
-            var genresLeft = (await _databaseFixture.GetGenres(dbType, testId)).ToList();
+            var genresLeft = (await _databaseFixture.GetGenres(connection, dbType, testId)).ToList();
 
             var expectedCount = genres.Count - (endIndex - startIndex);
 
@@ -215,7 +230,6 @@ namespace Dapper.Wrappers.Tests.Generators
         public async Task AddDeleteQuery_WithGenreNameOperations_ShouldDeleteTheExpectedRows(SupportedDatabases dbType,
             string operationName, string operationValue, int expectedCount)
         {
-
             // Arrange
             var testId = Guid.NewGuid();
 
@@ -223,7 +237,9 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var genres = testData.Genres.ToList();
 
-            await _databaseFixture.AddGenres(dbType, testId, genres);
+            var connection = GetConnection(dbType);
+
+            await _databaseFixture.AddGenres(connection, dbType, testId, genres);
 
             var query = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Genres.DeleteQuery
@@ -261,7 +277,7 @@ namespace Dapper.Wrappers.Tests.Generators
             await context.ExecuteCommands();
 
             // Assert
-            var genresLeft = (await _databaseFixture.GetGenres(dbType, testId)).ToList();
+            var genresLeft = (await _databaseFixture.GetGenres(connection, dbType, testId)).ToList();
 
             genresLeft.Should().HaveCount(expectedCount);
         }
@@ -290,7 +306,9 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var genres = testData.Genres.ToList();
 
-            await _databaseFixture.AddGenres(dbType, testId, genres);
+            var connection = GetConnection(dbType);
+
+            await _databaseFixture.AddGenres(connection, dbType, testId, genres);
 
             var query = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Genres.DeleteQuery
@@ -329,7 +347,7 @@ namespace Dapper.Wrappers.Tests.Generators
             await context.ExecuteCommands();
 
             // Assert
-            var genresLeft = (await _databaseFixture.GetGenres(dbType, testId)).ToList();
+            var genresLeft = (await _databaseFixture.GetGenres(connection, dbType, testId)).ToList();
 
             var expectedCount = genres.Count - (endIndex - startIndex);
 
@@ -352,10 +370,12 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var books = testData.Books.ToList();
 
-            await _databaseFixture.AddAuthors(dbType, testId, testData.Authors);
-            await _databaseFixture.AddBooks(dbType, testId, books);
-            await _databaseFixture.AddGenres(dbType, testId, testData.Genres);
-            await _databaseFixture.AddBookGenres(dbType, testId, testData.BookGenres);
+            var connection = GetConnection(dbType);
+
+            await _databaseFixture.AddAuthors(connection, dbType, testId, testData.Authors);
+            await _databaseFixture.AddBooks(connection, dbType, testId, books);
+            await _databaseFixture.AddGenres(connection, dbType, testId, testData.Genres);
+            await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
             var query = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Books.DeleteQuery
@@ -396,7 +416,7 @@ namespace Dapper.Wrappers.Tests.Generators
             await context.ExecuteCommands();
 
             // Assert
-            var booksLeft = (await _databaseFixture.GetBooks(dbType, testId)).ToList();
+            var booksLeft = (await _databaseFixture.GetBooks(connection, dbType, testId)).ToList();
 
             if (operationName == "BookIDEquals")
             {
@@ -433,10 +453,12 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var books = testData.Books.ToList();
 
-            await _databaseFixture.AddAuthors(dbType, testId, testData.Authors);
-            await _databaseFixture.AddBooks(dbType, testId, books);
-            await _databaseFixture.AddGenres(dbType, testId, testData.Genres);
-            await _databaseFixture.AddBookGenres(dbType, testId, testData.BookGenres);
+            var connection = GetConnection(dbType);
+
+            await _databaseFixture.AddAuthors(connection, dbType, testId, testData.Authors);
+            await _databaseFixture.AddBooks(connection, dbType, testId, books);
+            await _databaseFixture.AddGenres(connection, dbType, testId, testData.Genres);
+            await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
             var query = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Books.DeleteQuery
@@ -474,7 +496,7 @@ namespace Dapper.Wrappers.Tests.Generators
             await context.ExecuteCommands();
 
             // Assert
-            var booksLeft = (await _databaseFixture.GetBooks(dbType, testId)).ToList();
+            var booksLeft = (await _databaseFixture.GetBooks(connection, dbType, testId)).ToList();
 
             booksLeft.Should().HaveCount(expectedCount);
         }
@@ -493,10 +515,12 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var books = testData.Books.ToList();
 
-            await _databaseFixture.AddAuthors(dbType, testId, testData.Authors);
-            await _databaseFixture.AddBooks(dbType, testId, books);
-            await _databaseFixture.AddGenres(dbType, testId, testData.Genres);
-            await _databaseFixture.AddBookGenres(dbType, testId, testData.BookGenres);
+            var connection = GetConnection(dbType);
+
+            await _databaseFixture.AddAuthors(connection, dbType, testId, testData.Authors);
+            await _databaseFixture.AddBooks(connection, dbType, testId, books);
+            await _databaseFixture.AddGenres(connection, dbType, testId, testData.Genres);
+            await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
             var query = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Books.DeleteQuery
@@ -533,7 +557,7 @@ namespace Dapper.Wrappers.Tests.Generators
             await context.ExecuteCommands();
 
             // Assert
-            var booksLeft = (await _databaseFixture.GetBooks(dbType, testId)).ToList();
+            var booksLeft = (await _databaseFixture.GetBooks(connection, dbType, testId)).ToList();
 
             booksLeft.Should().HaveCount(expectedCount);
 
@@ -545,6 +569,156 @@ namespace Dapper.Wrappers.Tests.Generators
             {
                 booksLeft[0].BookID.Should().Be(nullPageCountId);
             }
+        }
+
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer, 0, 0, 10)]
+        [InlineData(SupportedDatabases.SqlServer, 1, 2000, 1)]
+        [InlineData(SupportedDatabases.SqlServer, 1, 100, 8)]
+        [InlineData(SupportedDatabases.SqlServer, 200, 500, 6)]
+        [InlineData(SupportedDatabases.PostgreSQL, 0, 0, 10)]
+        [InlineData(SupportedDatabases.PostgreSQL, 1, 2000, 1)]
+        [InlineData(SupportedDatabases.PostgreSQL, 1, 100, 8)]
+        [InlineData(SupportedDatabases.PostgreSQL, 200, 500, 6)]
+        public async Task AddDeleteQuery_WithPageCountBetweenOperator_ShouldDeleteExpectedRows(
+            SupportedDatabases dbType, int start, int end, int expectedCount)
+        {
+            // Arrange
+            var testId = Guid.NewGuid();
+
+            var testData = GeneratorTestConstants.TestData.GetTestData();
+
+            var books = testData.Books.ToList();
+
+            var connection = GetConnection(dbType);
+
+            await _databaseFixture.AddAuthors(connection, dbType, testId, testData.Authors);
+            await _databaseFixture.AddBooks(connection, dbType, testId, books);
+            await _databaseFixture.AddGenres(connection, dbType, testId, testData.Genres);
+            await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
+
+            var query = dbType == SupportedDatabases.SqlServer
+                ? SqlQueryFormatConstants.SqlServer.Books.DeleteQuery
+                : SqlQueryFormatConstants.Postgres.Books.DeleteQuery;
+
+            var metadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
+                : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
+
+            var generator = GetTestInstance(dbType, query, metadata);
+            var context = GetQueryContext(dbType);
+
+            // Act
+            var operations = new[]
+            {
+                new QueryOperation
+                {
+                    Name = "PageCountBetween",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        {"PageCountStart", start},
+                        {"PageCountEnd", end}
+                    }
+                },
+                new QueryOperation
+                {
+                    Name = "TestIDEquals",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        {"TestID", testId}
+                    }
+                }
+            };
+
+            generator.AddDeleteQuery(context, operations);
+            await context.ExecuteCommands();
+
+            // Assert
+            var booksLeft = (await _databaseFixture.GetBooks(connection, dbType, testId)).ToList();
+
+            booksLeft.Should().HaveCount(expectedCount);
+            booksLeft.Should().NotContain(book =>
+                book.PageCount.HasValue && book.PageCount.Value >= start && book.PageCount.Value <= end);
+        }
+
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer, "Romance", 10)]
+        [InlineData(SupportedDatabases.SqlServer, "Fantasy Fiction", 7)]
+        [InlineData(SupportedDatabases.SqlServer, "Novel", 6)]
+        [InlineData(SupportedDatabases.PostgreSQL, "Romance", 10)]
+        [InlineData(SupportedDatabases.PostgreSQL, "Fantasy Fiction", 7)]
+        [InlineData(SupportedDatabases.PostgreSQL, "Novel", 6)]
+        public async Task AddDeleteQuery_WithHasGenreOperation_DeletesExpectedRows(SupportedDatabases dbType,
+            string genreName, int expectedCount)
+        {
+            // Arrange
+            var testId = Guid.NewGuid();
+
+            var testData = GeneratorTestConstants.TestData.GetTestData();
+
+            var books = testData.Books.ToList();
+            var genres = testData.Genres.ToList();
+
+            var connection = GetConnection(dbType);
+
+            await _databaseFixture.AddAuthors(connection, dbType, testId, testData.Authors);
+            await _databaseFixture.AddBooks(connection, dbType, testId, books);
+            await _databaseFixture.AddGenres(connection, dbType, testId, genres);
+            await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
+
+            var query = dbType == SupportedDatabases.SqlServer
+                ? SqlQueryFormatConstants.SqlServer.Books.DeleteQuery
+                : SqlQueryFormatConstants.Postgres.Books.DeleteQuery;
+
+            var metadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
+                : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
+
+            var generator = GetTestInstance(dbType, query, metadata);
+            var context = GetQueryContext(dbType);
+
+            var removedGenreId = genres.FirstOrDefault(g => g.Name == genreName)?.GenreID;
+
+            // Act
+            var operations = new[]
+            {
+                new QueryOperation
+                {
+                    Name = "HasGenre",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        {"GenreName", genreName}
+                    }
+                },
+                new QueryOperation
+                {
+                    Name = "TestIDEquals",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        {"TestID", testId}
+                    }
+                }
+            };
+
+            generator.AddDeleteQuery(context, operations);
+            await context.ExecuteCommands();
+
+            // Assert
+            var booksLeft = (await _databaseFixture.GetBooks(connection, dbType, testId)).ToList();
+            var bookGenresLeft = (await _databaseFixture.GetBookGenres(connection, dbType, testId)).ToList();
+
+            booksLeft.Should().HaveCount(expectedCount);
+            if (removedGenreId.HasValue)
+            {
+                bookGenresLeft.Should().NotContain(bg => bg.GenreID == removedGenreId.Value);
+            }
+        }
+
+        public void Dispose()
+        {
+            _databaseFixture?.Dispose();
+            _sqlConnection?.Dispose();
+            _postgresConnection?.Dispose();
         }
     }
 

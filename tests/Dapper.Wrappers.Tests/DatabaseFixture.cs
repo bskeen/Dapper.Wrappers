@@ -18,10 +18,10 @@ namespace Dapper.Wrappers.Tests
     public class DatabaseFixture : IDisposable
     {
         private IDbConnection _sqlConnection;
-        private IQueryFormatter _sqlQueryFormatter;
+        private readonly IQueryFormatter _sqlQueryFormatter;
 
         private IDbConnection _postgresConnection;
-        private IQueryFormatter _postgresQueryFormatter;
+        private readonly IQueryFormatter _postgresQueryFormatter;
 
         public Guid TestScope { get; }
 
@@ -38,9 +38,6 @@ namespace Dapper.Wrappers.Tests
             TestScope = Guid.NewGuid();
         }
 
-        public IDbConnection GetConnection(SupportedDatabases dbType) =>
-            dbType == SupportedDatabases.SqlServer ? _sqlConnection : _postgresConnection;
-
         public IQueryFormatter GetFormatter(SupportedDatabases dbType) => dbType == SupportedDatabases.SqlServer
             ? _sqlQueryFormatter
             : _postgresQueryFormatter;
@@ -51,10 +48,17 @@ namespace Dapper.Wrappers.Tests
             RemovePostgresEntities();
         }
 
-        public async Task AddAuthors(SupportedDatabases dbType, Guid testId, IEnumerable<Author> authors)
+        private void EnsureConnectionOpen(IDbConnection connection)
         {
-            var connection = GetConnection(dbType);
+            if ((connection?.State ?? ConnectionState.Open) == ConnectionState.Closed)
+            {
+                connection?.Open();
+            }
+        }
 
+        public async Task AddAuthors(IDbConnection connection, SupportedDatabases dbType, Guid testId, IEnumerable<Author> authors)
+        {
+            EnsureConnectionOpen(connection);
             var queryParams = authors.Select(a => new
             {
                 a.AuthorID,
@@ -70,13 +74,14 @@ namespace Dapper.Wrappers.Tests
 
             string query = string.Format(rawQuery, "@AuthorID", "@FirstName", "@LastName", "@TestScope", "@TestID");
 
-            await connection.ExecuteAsync(query, queryParams);
+            using var transaction = connection.BeginTransaction();
+            await connection.ExecuteAsync(query, queryParams, transaction);
+            transaction.Commit();
         }
 
-        public async Task<IEnumerable<Author>> GetAuthors(SupportedDatabases dbType, Guid testId)
+        public async Task<IEnumerable<Author>> GetAuthors(IDbConnection connection, SupportedDatabases dbType, Guid testId)
         {
-            var connection = GetConnection(dbType);
-
+            EnsureConnectionOpen(connection);
             string rawQuery = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
@@ -86,10 +91,9 @@ namespace Dapper.Wrappers.Tests
             return await connection.QueryAsync<Author>(query, new {TestID = testId});
         }
 
-        public async Task AddBooks(SupportedDatabases dbType, Guid testId, IEnumerable<Book> books)
+        public async Task AddBooks(IDbConnection connection, SupportedDatabases dbType, Guid testId, IEnumerable<Book> books)
         {
-            var connection = GetConnection(dbType);
-
+            EnsureConnectionOpen(connection);
             var queryParams = books.Select(b => new
             {
                 b.BookID,
@@ -107,13 +111,14 @@ namespace Dapper.Wrappers.Tests
             string query = string.Format(rawQuery, "@BookID", "@Name", "@AuthorID", "@PageCount", "@TestScope",
                 "@TestID");
 
-            await connection.ExecuteAsync(query, queryParams);
+            using var transaction = connection.BeginTransaction();
+            await connection.ExecuteAsync(query, queryParams, transaction);
+            transaction.Commit();
         }
 
-        public async Task<IEnumerable<Book>> GetBooks(SupportedDatabases dbType, Guid testId)
+        public async Task<IEnumerable<Book>> GetBooks(IDbConnection connection, SupportedDatabases dbType, Guid testId)
         {
-            var connection = GetConnection(dbType);
-
+            EnsureConnectionOpen(connection);
             string rawQuery = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
@@ -123,10 +128,9 @@ namespace Dapper.Wrappers.Tests
             return await connection.QueryAsync<Book>(query, new { TestID = testId });
         }
 
-        public async Task AddGenres(SupportedDatabases dbType, Guid testId, IEnumerable<Genre> genres)
+        public async Task AddGenres(IDbConnection connection, SupportedDatabases dbType, Guid testId, IEnumerable<Genre> genres)
         {
-            var connection = GetConnection(dbType);
-
+            EnsureConnectionOpen(connection);
             var queryParams = genres.Select(g => new
             {
                 g.GenreID,
@@ -141,13 +145,14 @@ namespace Dapper.Wrappers.Tests
 
             string query = string.Format(rawQuery, "@GenreID", "@Name", "@TestScope", "@TestID");
 
-            await connection.ExecuteAsync(query, queryParams);
+            using var transaction = connection.BeginTransaction();
+            await connection.ExecuteAsync(query, queryParams, transaction);
+            transaction.Commit();
         }
 
-        public async Task<IEnumerable<Genre>> GetGenres(SupportedDatabases dbType, Guid testId)
+        public async Task<IEnumerable<Genre>> GetGenres(IDbConnection connection, SupportedDatabases dbType, Guid testId)
         {
-            var connection = GetConnection(dbType);
-
+            EnsureConnectionOpen(connection);
             string rawQuery = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
@@ -157,10 +162,9 @@ namespace Dapper.Wrappers.Tests
             return await connection.QueryAsync<Genre>(query, new { TestID = testId });
         }
 
-        public async Task AddBookGenres(SupportedDatabases dbType, Guid testId, IEnumerable<BookGenre> ids)
+        public async Task AddBookGenres(IDbConnection connection, SupportedDatabases dbType, Guid testId, IEnumerable<BookGenre> ids)
         {
-            var connection = GetConnection(dbType);
-
+            EnsureConnectionOpen(connection);
             var queryParams = ids.Select(id => new
             {
                 id.BookID,
@@ -175,13 +179,14 @@ namespace Dapper.Wrappers.Tests
 
             string query = string.Format(rawQuery, "@BookID", "@GenreID", "@TestScope", "@TestID");
 
-            await connection.ExecuteAsync(query, queryParams);
+            using var transaction = connection.BeginTransaction();
+            await connection.ExecuteAsync(query, queryParams, transaction);
+            transaction.Commit();
         }
 
-        public async Task<IEnumerable<BookGenre>> GetBookGenres(SupportedDatabases dbType, Guid testId)
+        public async Task<IEnumerable<BookGenre>> GetBookGenres(IDbConnection connection, SupportedDatabases dbType, Guid testId)
         {
-            var connection = GetConnection(dbType);
-
+            EnsureConnectionOpen(connection);
             string rawQuery = dbType == SupportedDatabases.SqlServer
                 ? SqlQueryFormatConstants.SqlServer.BookGenres.SelectQuery
                 : SqlQueryFormatConstants.Postgres.BookGenres.SelectQuery;
@@ -195,12 +200,18 @@ namespace Dapper.Wrappers.Tests
         {
             if (!(_sqlConnection is null))
             {
+                EnsureConnectionOpen(_sqlConnection);
+
                 var deleteQuery = @"DELETE FROM [BookGenres] WHERE [TestScope] = @TestScope;
                                     DELETE FROM [Genres] WHERE [TestScope] = @TestScope;
                                     DELETE FROM [Books] WHERE [TestScope] = @TestScope;
-                                    DELETE FROM [BookGenres] WHERE [TestScope] = @TestScope;";
+                                    DELETE FROM [BookGenres] WHERE [TestScope] = @TestScope;
+                                    DELETE FROM [Authors] WHERE [TestScope] = @TestScope";
+
+                using var transaction = _sqlConnection.BeginTransaction();
                     
-                _sqlConnection.Execute(deleteQuery, new {TestScope});
+                _sqlConnection.Execute(deleteQuery, new {TestScope}, transaction);
+                transaction.Commit();
                 _sqlConnection = null;
             }
         }
@@ -209,13 +220,18 @@ namespace Dapper.Wrappers.Tests
         {
             if (!(_postgresConnection is null))
             {
+                EnsureConnectionOpen(_postgresConnection);
+
                 var deleteQuery = @"DELETE FROM ""BookGenres"" WHERE ""TestScope"" = @TestScope;
                                     DELETE FROM ""Genres"" WHERE ""TestScope"" = @TestScope;
                                     DELETE FROM ""Books"" WHERE ""TestScope"" = @TestScope;
                                     DELETE FROM ""BookGenres"" WHERE ""TestScope"" = @TestScope;
                                     DELETE FROM ""Authors"" WHERE ""TestScope"" = @TestScope";
 
-                _postgresConnection.Execute(deleteQuery, new {TestScope});
+                using var transaction = _postgresConnection.BeginTransaction();
+                
+                _postgresConnection.Execute(deleteQuery, new {TestScope}, transaction);
+                transaction.Commit();
                 _postgresConnection = null;
             }
         }
