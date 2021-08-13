@@ -12,6 +12,8 @@ using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Tests.DbModels;
 using Microsoft.Data.SqlClient;
 using Npgsql;
+using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Dapper.Wrappers.Tests
 {
@@ -23,9 +25,12 @@ namespace Dapper.Wrappers.Tests
         private IDbConnection _postgresConnection;
         private readonly IQueryFormatter _postgresQueryFormatter;
 
+        private readonly IMessageSink _diagnosticMessageSink;
+
         public Guid TestScope { get; }
 
-        public DatabaseFixture(IEnumerable<IDbConnection> connections, IEnumerable<IQueryFormatter> formatters)
+        public DatabaseFixture(IEnumerable<IDbConnection> connections, IEnumerable<IQueryFormatter> formatters,
+            IMessageSink diagnosticMessageSink)
         {
             var connectionList = connections.ToList();
             _sqlConnection = connectionList.FirstOrDefault(c => c is SqlConnection);
@@ -34,6 +39,8 @@ namespace Dapper.Wrappers.Tests
             var formatterList = formatters.ToList();
             _sqlQueryFormatter = formatterList.FirstOrDefault(f => f is SqlServerQueryFormatter);
             _postgresQueryFormatter = formatterList.FirstOrDefault(f => f is PostgresQueryFormatter);
+
+            _diagnosticMessageSink = diagnosticMessageSink;
 
             TestScope = Guid.NewGuid();
         }
@@ -198,22 +205,52 @@ namespace Dapper.Wrappers.Tests
 
         private void RemoveSqlServerEntities()
         {
-            if (!(_sqlConnection is null))
+            int retryCount = 3;
+            bool success = false;
+            while (retryCount > 0 && !success)
             {
-                EnsureConnectionOpen(_sqlConnection);
+                try
+                {
+                    if (!(_sqlConnection is null))
+                    {
+                        EnsureConnectionOpen(_sqlConnection);
 
-                var deleteQuery = @"DELETE FROM [BookGenres] WHERE [TestScope] = @TestScope;
+                        var deleteQuery = @"DELETE FROM [BookGenres] WHERE [TestScope] = @TestScope;
                                     DELETE FROM [Genres] WHERE [TestScope] = @TestScope;
                                     DELETE FROM [Books] WHERE [TestScope] = @TestScope;
-                                    DELETE FROM [BookGenres] WHERE [TestScope] = @TestScope;
                                     DELETE FROM [Authors] WHERE [TestScope] = @TestScope";
 
-                using var transaction = _sqlConnection.BeginTransaction();
-                    
-                _sqlConnection.Execute(deleteQuery, new {TestScope}, transaction);
-                transaction.Commit();
-                _sqlConnection = null;
+                        using var transaction = _sqlConnection.BeginTransaction();
+
+                        _sqlConnection.Execute(deleteQuery, new {TestScope}, transaction);
+                        transaction.Commit();
+                        var message = new DiagnosticMessage("SQL Server Test data cleaned up for TestScope: {0}", TestScope);
+                        _diagnosticMessageSink.OnMessage(message);
+                        _sqlConnection = null;
+                    }
+
+                    success = true;
+                }
+                catch (SqlException exception)
+                {
+                    if (exception.Number != 1205)
+                    {
+                        throw;
+                    }
+
+                    var message = new DiagnosticMessage(
+                        "SQL Server deadlock detected during cleanup for TestScope: {0}, attempt: {1}", TestScope,
+                        4 - retryCount);
+                    _diagnosticMessageSink.OnMessage(message);
+
+                    retryCount--;
+                    if (retryCount == 0)
+                    {
+                        throw;
+                    }
+                }
             }
+            
         }
 
         private void RemovePostgresEntities()
@@ -225,13 +262,14 @@ namespace Dapper.Wrappers.Tests
                 var deleteQuery = @"DELETE FROM ""BookGenres"" WHERE ""TestScope"" = @TestScope;
                                     DELETE FROM ""Genres"" WHERE ""TestScope"" = @TestScope;
                                     DELETE FROM ""Books"" WHERE ""TestScope"" = @TestScope;
-                                    DELETE FROM ""BookGenres"" WHERE ""TestScope"" = @TestScope;
                                     DELETE FROM ""Authors"" WHERE ""TestScope"" = @TestScope";
 
                 using var transaction = _postgresConnection.BeginTransaction();
                 
                 _postgresConnection.Execute(deleteQuery, new {TestScope}, transaction);
                 transaction.Commit();
+                var message = new DiagnosticMessage("Postgres Test data cleaned up for TestScope: {0}", TestScope);
+                _diagnosticMessageSink.OnMessage(message);
                 _postgresConnection = null;
             }
         }

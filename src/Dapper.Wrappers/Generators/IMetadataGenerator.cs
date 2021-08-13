@@ -14,7 +14,7 @@ namespace Dapper.Wrappers.Generators
         QueryOperationMetadata GetOperation(string name, string baseQueryString,
             IEnumerable<QueryParameterMetadata> parameters);
 
-        MergeOperationMetadata GetDefaultMergeOperation<T>(string name, string baseQueryString, string referencedColumn);
+        MergeOperationMetadata GetDefaultMergeOperation<T>(string columnName, string baseQueryString);
 
         MergeOperationMetadata GetMergeOperation(string name, string baseQueryString, string referencedColumn,
             IEnumerable<QueryParameterMetadata> parameters);

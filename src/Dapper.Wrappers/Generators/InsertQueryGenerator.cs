@@ -11,7 +11,6 @@ namespace Dapper.Wrappers.Generators
     /// <summary>
     /// Updates the context to add all the pieces to run an insert query.
     /// </summary>
-    /// <typeparam name="M">The type of model being returned.</typeparam>
     public abstract class InsertQueryGenerator : QueryGenerator, IInsertQueryGenerator
     {
         /// <summary>

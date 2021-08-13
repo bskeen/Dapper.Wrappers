@@ -112,6 +112,12 @@ WHERE
 
 DROP TABLE
   #BooksToDelete;";
+
+                public const string UpdateQuery = @"
+UPDATE
+  [Books]
+{0}
+{1}";
             }
 
             public static class Genres
@@ -258,6 +264,12 @@ DELETE FROM
   ""Books""
 WHERE
   ""BookID"" IN (SELECT ""BookID"" FROM books_to_delete);";
+
+                public const string UpdateQuery = @"
+UPDATE
+  ""Books""
+{0}
+{1}";
             }
 
             public static class Genres

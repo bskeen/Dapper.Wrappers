@@ -5,13 +5,13 @@
 using Dapper.Wrappers.Formatters;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Dapper.Wrappers.Generators
 {
     /// <summary>
     /// Updates the context to add all the pieces to run an update query.
     /// </summary>
-    /// <typeparam name="M">The type of model being returned.</typeparam>
     public abstract class UpdateQueryGenerator : FilterableQueryGenerator, IUpdateQueryGenerator
     {
         /// <summary>
@@ -51,7 +51,7 @@ namespace Dapper.Wrappers.Generators
 
             string operations = QueryFormatter.FormatUpdateOperations(formattedOperations);
 
-            string criteria = FormatFilterOperations(context, updateOperations);
+            string criteria = FormatFilterOperations(context, updateCriteria);
 
             var query = QueryFormatter.FormatUpdateQuery(UpdateQueryString, operations, criteria);
 

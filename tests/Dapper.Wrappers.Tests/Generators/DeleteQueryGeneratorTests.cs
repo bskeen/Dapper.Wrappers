@@ -720,7 +720,6 @@ namespace Dapper.Wrappers.Tests.Generators
 
         public void Dispose()
         {
-            _databaseFixture?.Dispose();
             _sqlConnection?.Dispose();
             _postgresConnection?.Dispose();
         }

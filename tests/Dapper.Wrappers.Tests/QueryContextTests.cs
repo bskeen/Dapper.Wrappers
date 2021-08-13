@@ -630,7 +630,6 @@ namespace Dapper.Wrappers.Tests
 
         public void Dispose()
         {
-            _dbFixture?.Dispose();
             _sqlConnection?.Dispose();
             _postgresConnection?.Dispose();
         }

@@ -24,18 +24,19 @@ namespace Dapper.Wrappers.Generators
             Parameters = parameters
         };
 
-        public MergeOperationMetadata GetDefaultMergeOperation<T>(string name, string baseQueryString,
-            string referencedColumn) => GetMergeOperation(name, baseQueryString, referencedColumn, new[]
-        {
-            GetParameter<T>(name)
-        });
+        public MergeOperationMetadata GetDefaultMergeOperation<T>(string columnName, string baseQueryString) =>
+            GetMergeOperation(columnName, baseQueryString, columnName, new[]
+            {
+                GetParameter<T>(columnName)
+            });
 
         public MergeOperationMetadata GetMergeOperation(string name, string baseQueryString, string referencedColumn,
             IEnumerable<QueryParameterMetadata> parameters) => new MergeOperationMetadata
         {
             Name = name,
             BaseQueryString = baseQueryString,
-            Parameters = parameters
+            Parameters = parameters,
+            ReferencedColumn = referencedColumn
         };
 
         // This list was generated from the list shown here (retrieved 8/6/2021):
