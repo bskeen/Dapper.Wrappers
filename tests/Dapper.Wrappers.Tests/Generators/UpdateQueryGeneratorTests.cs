@@ -146,6 +146,38 @@ namespace Dapper.Wrappers.Tests.Generators
                 book.Name != nameValue || book.AuthorID != authorIdValue || book.PageCount != pageCountValue);
         }
 
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer, true)]
+        [InlineData(SupportedDatabases.SqlServer, false)]
+        [InlineData(SupportedDatabases.PostgreSQL, true)]
+        [InlineData(SupportedDatabases.PostgreSQL, false)]
+        public void AddUpdateQuery_WithNoUpdateOperations_ShouldThrowException(SupportedDatabases dbType, bool isEmpty)
+        {
+            // Arrange
+            var query = dbType == SupportedDatabases.SqlServer
+                ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
+                : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
+
+            var operationMetadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
+                : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
+
+            var filterMetadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
+                : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
+
+            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var context = GetQueryContext(dbType);
+
+            // Act
+            var operations = isEmpty ? new QueryOperation[] { } : null;
+
+            Action act = () => generator.AddUpdateQuery(context, operations, operations);
+
+            // Assert
+            act.Should().Throw<ArgumentException>().WithMessage("No update operations specified.");
+        }
+
         public void Dispose()
         {
             _sqlConnection?.Dispose();
