@@ -115,9 +115,11 @@ DROP TABLE
 
                 public const string UpdateQuery = @"
 UPDATE
-  [Books]
+  b
 {0}
-{1}";
+FROM
+  [Books] b
+{1};";
             }
 
             public static class Genres
@@ -267,7 +269,7 @@ WHERE
 
                 public const string UpdateQuery = @"
 UPDATE
-  ""Books""
+  ""Books"" b
 {0}
 {1}";
             }

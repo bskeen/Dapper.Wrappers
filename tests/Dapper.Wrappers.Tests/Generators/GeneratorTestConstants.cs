@@ -107,6 +107,15 @@ namespace Dapper.Wrappers.Tests.Generators
                     }
                 };
 
+            public static readonly IDictionary<string, QueryOperationMetadata> DefaultBookGetMetadata =
+                new Dictionary<string, QueryOperationMetadata>
+                {
+                    {"BookID", MetadataGenerator.GetDefaultOrderOperation("BookID", "[BookID] {0}")},
+                    {"Name", MetadataGenerator.GetDefaultOrderOperation("Name", "[Name] {0}")},
+                    {"AuthorID", MetadataGenerator.GetDefaultOrderOperation("AuthorID", "[AuthorID] {0}")},
+                    {"PageCount", MetadataGenerator.GetDefaultOrderOperation("PageCount", "[PageCount] {0}")},
+                };
+
             public static readonly IDictionary<string, MergeOperationMetadata> DefaultBookUpdateMetadata =
                 new Dictionary<string, MergeOperationMetadata>
                 {
@@ -344,6 +353,15 @@ namespace Dapper.Wrappers.Tests.Generators
                         "TestIDEquals",
                         MetadataGenerator.GetDefaultOperation<Guid>("TestIDEquals", "\"TestID\" = {0}", "TestID")
                     }
+                };
+
+            public static readonly IDictionary<string, QueryOperationMetadata> DefaultBookGetMetadata =
+                new Dictionary<string, QueryOperationMetadata>
+                {
+                    {"BookID", MetadataGenerator.GetDefaultOrderOperation("BookID", "\"BookID\" {0}")},
+                    {"Name", MetadataGenerator.GetDefaultOrderOperation("Name", "\"Name\" {0}")},
+                    {"AuthorID", MetadataGenerator.GetDefaultOrderOperation("AuthorID", "\"AuthorID\" {0}")},
+                    {"PageCount", MetadataGenerator.GetDefaultOrderOperation("PageCount", "\"PageCount\" {0}")},
                 };
 
             public static readonly IDictionary<string, MergeOperationMetadata> DefaultBookUpdateMetadata =

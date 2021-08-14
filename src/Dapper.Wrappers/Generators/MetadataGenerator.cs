@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 
 namespace Dapper.Wrappers.Generators
 {
@@ -22,6 +23,21 @@ namespace Dapper.Wrappers.Generators
             Name = name,
             BaseQueryString = baseQueryString,
             Parameters = parameters
+        };
+
+        public QueryOperationMetadata GetDefaultOrderOperation(string name, string baseQueryString) =>
+            GetOrderOperation(name, baseQueryString, new[]
+            {
+                GetParameter<string>(DapperWrappersConstants.OrderByDirectionParameter)
+            });
+
+        public QueryOperationMetadata GetOrderOperation(string name, string baseQueryString,
+            IEnumerable<QueryParameterMetadata> parameters) => new QueryOperationMetadata
+        {
+            Name = name,
+            BaseQueryString = baseQueryString,
+            Parameters = parameters.Concat(new[]
+                {GetParameter<string>(DapperWrappersConstants.OrderByDirectionParameter)})
         };
 
         public MergeOperationMetadata GetDefaultMergeOperation<T>(string columnName, string baseQueryString) =>
