@@ -106,8 +106,10 @@ namespace Dapper.Wrappers.Tests.Generators
                         MetadataGenerator.GetDefaultOperation<Guid>("TestIDEquals", "[TestID] = {0}", "TestID")
                     }
                 };
+            
+            public static readonly string DefaultBookOrdering = "ORDER BY [Name] ASC";
 
-            public static readonly IDictionary<string, QueryOperationMetadata> DefaultBookGetMetadata =
+            public static readonly IDictionary<string, QueryOperationMetadata> DefaultBookOrderMetadata =
                 new Dictionary<string, QueryOperationMetadata>
                 {
                     {"BookID", MetadataGenerator.GetDefaultOrderOperation("BookID", "[BookID] {0}")},
@@ -355,7 +357,9 @@ namespace Dapper.Wrappers.Tests.Generators
                     }
                 };
 
-            public static readonly IDictionary<string, QueryOperationMetadata> DefaultBookGetMetadata =
+            public static readonly string DefaultBookOrdering = "ORDER BY \"Name\" ASC";
+
+            public static readonly IDictionary<string, QueryOperationMetadata> DefaultBookOrderMetadata =
                 new Dictionary<string, QueryOperationMetadata>
                 {
                     {"BookID", MetadataGenerator.GetDefaultOrderOperation("BookID", "\"BookID\" {0}")},

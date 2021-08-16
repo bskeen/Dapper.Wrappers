@@ -8,12 +8,14 @@ using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.Tests.DbModels;
+using FluentAssertions;
 using Microsoft.Data.SqlClient;
 using Npgsql;
+using Xunit;
 
 namespace Dapper.Wrappers.Tests.Generators
 {
-    public class GetQueryGeneratorTests
+    public class GetQueryGeneratorTests : IClassFixture<DatabaseFixture>
     {
         private readonly DatabaseFixture _databaseFixture;
         private readonly IDbConnection _sqlConnection;
@@ -46,7 +48,10 @@ namespace Dapper.Wrappers.Tests.Generators
             return new QueryContext(connection);
         }
 
-        public async Task AddGetQuery_WithoutFiltersOrderingOrPagination_ShouldReturnExpectedResults(
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer)]
+        [InlineData(SupportedDatabases.PostgreSQL)]
+        public async Task AddGetQuery_WithoutFiltersOrderingOrPagination_ShouldReturnAllResults(
             SupportedDatabases dbType)
         {
             // Arrange
@@ -56,27 +61,171 @@ namespace Dapper.Wrappers.Tests.Generators
             var testData = GeneratorTestConstants.TestData.GetTestData();
 
             var books = testData.Books.ToList();
-            var authors = testData.Authors.ToList();
 
             await _databaseFixture.AddGenres(connection, dbType, testId, testData.Genres);
-            await _databaseFixture.AddAuthors(connection, dbType, testId, authors);
+            await _databaseFixture.AddAuthors(connection, dbType, testId, testData.Authors);
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
             var query = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.SqlServer.Books.Selec
-                : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
+                ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
-                ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
-                : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
+            var defaultOrdering = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookOrdering
+                : GeneratorTestConstants.Postgres.DefaultBookOrdering;
+
+            var orderMetadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookOrderMetadata
+                : GeneratorTestConstants.Postgres.DefaultBookOrderMetadata;
 
             var filterMetadata = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var generator = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
             var context = GetQueryContext(dbType);
+
+            // Act
+            var orderOperations = new QueryOperation[] { };
+
+            var filterOperations = new[]
+            {
+                new QueryOperation
+                {
+                    Name = "TestIDEquals",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        {"TestID", testId}
+                    }
+                }
+            };
+
+            generator.AddGetQuery(context, filterOperations, orderOperations);
+
+            var results = (await context.ExecuteNextQuery<Book>()).ToList();
+
+            // Assert
+            results.Should().HaveCount(books.Count);
+            results.OrderBy(b => b.BookID).Should().BeEquivalentTo(books.OrderBy(b => b.BookID));
+        }
+
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer, "BookID", OrderDirections.Asc)]
+        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Asc)]
+        [InlineData(SupportedDatabases.SqlServer, "AuthorID", OrderDirections.Asc)]
+        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Asc)]
+        [InlineData(SupportedDatabases.SqlServer, "BookID", OrderDirections.Desc)]
+        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Desc)]
+        [InlineData(SupportedDatabases.SqlServer, "AuthorID", OrderDirections.Desc)]
+        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Desc)]
+        [InlineData(SupportedDatabases.PostgreSQL, "BookID", OrderDirections.Asc)]
+        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Asc)]
+        [InlineData(SupportedDatabases.PostgreSQL, "AuthorID", OrderDirections.Asc)]
+        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Asc)]
+        [InlineData(SupportedDatabases.PostgreSQL, "BookID", OrderDirections.Desc)]
+        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Desc)]
+        [InlineData(SupportedDatabases.PostgreSQL, "AuthorID", OrderDirections.Desc)]
+        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Desc)]
+        public async Task AddGetQuery_WithOrderingSpecified_CorrectlySortsTheOutput(SupportedDatabases dbType,
+            string operationName, OrderDirections direction)
+        {
+            // Arrange
+            var testId = Guid.NewGuid();
+            var connection = GetConnection(dbType);
+
+            var testData = GeneratorTestConstants.TestData.GetTestData();
+
+            var books = testData.Books.ToList();
+
+            await _databaseFixture.AddGenres(connection, dbType, testId, testData.Genres);
+            await _databaseFixture.AddAuthors(connection, dbType, testId, testData.Authors);
+            await _databaseFixture.AddBooks(connection, dbType, testId, books);
+            await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
+
+            var query = dbType == SupportedDatabases.SqlServer
+                ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
+
+            var defaultOrdering = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookOrdering
+                : GeneratorTestConstants.Postgres.DefaultBookOrdering;
+
+            var orderMetadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookOrderMetadata
+                : GeneratorTestConstants.Postgres.DefaultBookOrderMetadata;
+
+            var filterMetadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
+                : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
+
+            var generator = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
+            var context = GetQueryContext(dbType);
+
+            // Act
+            var orderOperations = new []
+            {
+                new QueryOperation
+                {
+                    Name = operationName,
+                    Parameters = new Dictionary<string, object>
+                    {
+                        {DapperWrappersConstants.OrderByDirectionParameter, direction.ToString()}
+                    }
+                }
+            };
+
+            var filterOperations = new[]
+            {
+                new QueryOperation
+                {
+                    Name = "TestIDEquals",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        {"TestID", testId}
+                    }
+                }
+            };
+
+            generator.AddGetQuery(context, filterOperations, orderOperations);
+
+            var results = (await context.ExecuteNextQuery<Book>()).ToList();
+
+            // Assert
+            results.Should().HaveCount(books.Count);
+
+            List<Book> orderedBooks;
+            switch (operationName)
+            {
+                case "BookID":
+                    orderedBooks = direction == OrderDirections.Asc
+                        ? books.OrderBy(b => b.BookID.ToString()).ToList()
+                        : books.OrderByDescending(b => b.BookID.ToString()).ToList();
+                    break;
+                case "Name":
+                    orderedBooks = direction == OrderDirections.Asc
+                        ? books.OrderBy(b => b.Name).ToList()
+                        : books.OrderByDescending(b => b.Name).ToList();
+                    break;
+                case "AuthorID":
+                    orderedBooks = direction == OrderDirections.Asc
+                        ? books.OrderBy(b => b.AuthorID).ToList()
+                        : books.OrderByDescending(b => b.AuthorID).ToList();
+                    break;
+                case "PageCount":
+                    orderedBooks = direction == OrderDirections.Asc
+                        ? books.OrderBy(b => b.PageCount).ToList()
+                        : books.OrderByDescending(b => b.PageCount).ToList();
+                    break;
+                default:
+                    orderedBooks = books;
+                    break;
+            }
+
+            for (var i = 0; i < books.Count; i++)
+            {
+                results[i].Should().BeEquivalentTo(orderedBooks[i]);
+            }
         }
     }
 

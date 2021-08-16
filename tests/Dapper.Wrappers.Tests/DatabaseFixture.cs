@@ -122,8 +122,8 @@ namespace Dapper.Wrappers.Tests
         {
             EnsureConnectionOpen(connection);
             string rawQuery = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
-                : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
+                ? SqlQueryFormatConstants.SqlServer.Books.BasicSelectQuery
+                : SqlQueryFormatConstants.Postgres.Books.BasicSelectQuery;
 
             string query = string.Format(rawQuery, "@TestID");
 

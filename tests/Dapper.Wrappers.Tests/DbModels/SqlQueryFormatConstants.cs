@@ -80,7 +80,7 @@ VALUES
   ,{4}
   ,{5});";
 
-                public const string SelectQuery = @"
+                public const string BasicSelectQuery = @"
 SELECT
    [BookID]
   ,[Name]
@@ -90,6 +90,18 @@ FROM
   [Books]
 WHERE
   [TestID] = {0}";
+
+                public const string SelectQuery = @"
+SELECT
+   [BookID]
+  ,[Name]
+  ,[AuthorID]
+  ,[PageCount]
+FROM
+  [Books]
+{0}
+{1}
+{2};";
 
                 public const string DeleteQuery = @"
 SELECT
@@ -232,7 +244,7 @@ VALUES
   ,{4}
   ,{5});";
 
-                public const string SelectQuery = @"
+                public const string BasicSelectQuery = @"
 SELECT
    ""BookID""
   ,""Name""
@@ -242,6 +254,18 @@ FROM
   ""Books""
 WHERE
   ""TestID"" = {0}";
+
+                public const string SelectQuery = @"
+SELECT
+   ""BookID""
+  ,""Name""
+  ,""AuthorID""
+  ,""PageCount""
+FROM
+  ""Books""
+{0}
+{1}
+{2};";
 
                 public const string DeleteQuery = @"
 CREATE TEMPORARY TABLE
