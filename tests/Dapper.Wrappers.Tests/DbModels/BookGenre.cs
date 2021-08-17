@@ -6,9 +6,9 @@ using System;
 
 namespace Dapper.Wrappers.Tests.DbModels
 {
-    public class Genre
+    public class BookGenre
     {
-        public Guid GenreID { get; set; } = Guid.NewGuid();
-        public string Name { get; set; }
+        public Guid BookID { get; set; }
+        public Guid GenreID { get; set; }
     }
 }

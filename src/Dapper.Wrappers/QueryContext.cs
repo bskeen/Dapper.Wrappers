@@ -137,15 +137,18 @@ namespace Dapper.Wrappers
                 return;
             }
 
-            // This solution is a slightly different version of similar code from Dapper .Net,
-            // Retrieved on 1/23/2020 from https://github.com/StackExchange/Dapper/blob/master/Dapper/SqlMapper.Async.cs
-            if (_connection is DbConnection dbConn)
+            if (_connection.State != ConnectionState.Open)
             {
-                await dbConn.OpenAsync(CancellationToken.None);
-            }
-            else
-            {
-                _connection.Open();
+                // This solution is a slightly different version of similar code from Dapper .Net,
+                // Retrieved on 1/23/2020 from https://github.com/StackExchange/Dapper/blob/master/Dapper/SqlMapper.Async.cs
+                if (_connection is DbConnection dbConn)
+                {
+                    await dbConn.OpenAsync(CancellationToken.None);
+                }
+                else
+                {
+                    _connection.Open();
+                }
             }
 
             _currentTransaction = _connection.BeginTransaction();

@@ -10,8 +10,7 @@ namespace Dapper.Wrappers.Generators
     /// <summary>
     /// Updates the context to add all the pieces to run a get query.
     /// </summary>
-    /// <typeparam name="M">The type of model being returned.</typeparam>
-    public abstract class DeleteQueryGenerator<M> : FilterableQueryGenerator, IDeleteQueryGenerator
+    public abstract class DeleteQueryGenerator : FilterableQueryGenerator, IDeleteQueryGenerator
     {
         /// <summary>
         /// Returns the base delete query string.

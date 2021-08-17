@@ -10,21 +10,31 @@ using System.Threading.Tasks;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
+using Microsoft.Data.SqlClient;
+using Npgsql;
 using Xunit;
 
 namespace Dapper.Wrappers.Tests
 {
-    public class QueryContextTests : IClassFixture<DatabaseFixture>
+    public class QueryContextTests : IClassFixture<DatabaseFixture>, IDisposable
     {
         private readonly DatabaseFixture _dbFixture;
+        private readonly IDbConnection _sqlConnection;
+        private readonly IDbConnection _postgresConnection;
 
-        public QueryContextTests(DatabaseFixture dbFixture)
+        public QueryContextTests(DatabaseFixture dbFixture, IEnumerable<IDbConnection> connections)
         {
             _dbFixture = dbFixture;
+            var dbConnections = connections.ToArray();
+            _sqlConnection = dbConnections.FirstOrDefault(c => c is SqlConnection);
+            _postgresConnection = dbConnections.FirstOrDefault(c => c is NpgsqlConnection);
         }
 
+        private IDbConnection GetConnection(SupportedDatabases dbType) =>
+            dbType == SupportedDatabases.SqlServer ? _sqlConnection : _postgresConnection;
+
         private IQueryContext GetDefaultQueryContext(SupportedDatabases dbType) =>
-            new QueryContext(_dbFixture.GetConnection(dbType));
+            new QueryContext(GetConnection(dbType));
 
         [Theory]
         [InlineData(SupportedDatabases.SqlServer)]
@@ -80,6 +90,8 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
+            var testId = Guid.NewGuid();
 
             var testGenres = new[]
             {
@@ -99,19 +111,21 @@ namespace Dapper.Wrappers.Tests
             {
                 $"@{context.AddVariable("genreid", testGenres[0].GenreID, DbType.Guid)}",
                 $"@{context.AddVariable("genrename", testGenres[0].Name, DbType.String)}",
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}"
+                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             object[] variables2 =
             {
                 $"@{context.AddVariable("genreid", testGenres[1].GenreID, DbType.Guid)}",
                 $"@{context.AddVariable("genrename", testGenres[1].Name, DbType.String)}",
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}"
+                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var insertFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Genres.PostgresInsertQuery;
+                ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
+                : SqlQueryFormatConstants.Postgres.Genres.InsertQuery;
 
             string[] commands =
             {
@@ -128,14 +142,7 @@ namespace Dapper.Wrappers.Tests
             await context.ExecuteCommands();
 
             // Assert
-            var verifySql = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Genres.PostgresSelectQuery;
-
-            var connection = _dbFixture.GetConnection(dbType);
-
-            var results = await connection.QueryAsync<Genre>(string.Format(verifySql, "@testscope", "@ids"),
-                new {testscope = _dbFixture.TestScope, ids = testGenres.Select(g => g.GenreID).ToList()});
+            var results = await _dbFixture.GetGenres(connection, dbType, testId);
 
             var genres = results.ToList();
 
@@ -151,6 +158,8 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
+            var testId = Guid.NewGuid();
 
             var testGenres = new[]
             {
@@ -170,12 +179,13 @@ namespace Dapper.Wrappers.Tests
             {
                 $"@{context.AddVariable("genreid", testGenres[0].GenreID, DbType.Guid)}",
                 $"@{context.AddVariable("genrename", testGenres[0].Name, DbType.String)}",
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}"
+                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var insertFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Genres.PostgresInsertQuery;
+                ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
+                : SqlQueryFormatConstants.Postgres.Genres.InsertQuery;
 
             var command1 = string.Format(insertFormat, variables1);
 
@@ -188,7 +198,8 @@ namespace Dapper.Wrappers.Tests
             {
                 $"@{context.AddVariable("genreid", testGenres[1].GenreID, DbType.Guid)}",
                 $"@{context.AddVariable("genrename", testGenres[1].Name, DbType.String)}",
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}"
+                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var command2 = string.Format(insertFormat, variables2);
@@ -198,14 +209,7 @@ namespace Dapper.Wrappers.Tests
             await context.ExecuteCommands();
 
             // Assert
-            var verifySql = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Genres.PostgresSelectQuery;
-
-            var connection = _dbFixture.GetConnection(dbType);
-
-            var results = await connection.QueryAsync<Genre>(string.Format(verifySql, "@testscope", "@ids"),
-                new { testscope = _dbFixture.TestScope, ids = testGenres.Select(g => g.GenreID).ToList() });
+            var results = await _dbFixture.GetGenres(connection, dbType, testId);
 
             var genres = results.ToList();
 
@@ -221,6 +225,7 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var testId = Guid.NewGuid();
 
             var testGenre = new Genre
             {
@@ -229,17 +234,18 @@ namespace Dapper.Wrappers.Tests
 
             };
 
+            var insertFormat = dbType == SupportedDatabases.SqlServer
+                ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
+                : SqlQueryFormatConstants.Postgres.Genres.InsertQuery;
+
             // Act
             object[] variables =
             {
                 $"@{context.AddVariable("genreid", testGenre.GenreID, DbType.Guid)}",
                 $"@{context.AddVariable("genrename", testGenre.Name, DbType.String)}",
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}"
+                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
-
-            var insertFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Genres.PostgresInsertQuery;
 
             var command = string.Format(insertFormat, variables);
 
@@ -261,6 +267,8 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
+            var testId = Guid.NewGuid();
 
             var testGenre = new Genre
             {
@@ -275,43 +283,22 @@ namespace Dapper.Wrappers.Tests
                 LastName = "Author"
             };
 
-            var connection = _dbFixture.GetConnection(dbType);
+            await _dbFixture.AddGenres(connection, dbType, testId, new[] {testGenre});
 
-            var insertGenreFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Genres.PostgresInsertQuery;
-
-            var insertGenre = string.Format(insertGenreFormat, "@genreid", "@name", "@testscope");
-
-            await connection.ExecuteAsync(insertGenre,
-                new {genreid = testGenre.GenreID, name = testGenre.Name, testscope = _dbFixture.TestScope});
-
-            var insertAuthorFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Authors.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Authors.PostgresInsertQuery;
-
-            var insertAuthor = string.Format(insertAuthorFormat, "@authorid", "@firstname", "@lastname", "@testscope");
-
-            await connection.ExecuteAsync(insertAuthor,
-                new
-                {
-                    authorid = testAuthor.AuthorID, firstname = testAuthor.FirstName, lastname = testAuthor.LastName,
-                    testscope = _dbFixture.TestScope
-                });
+            await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
             var selectGenreFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Genres.PostgresSelectQuery;
+                ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
             var selectAuthorFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Authors.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Authors.PostgresSelectQuery;
+                ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 
             // Act
             object[] selectGenreVariables =
             {
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
-                $"@{context.AddVariable("ids", new List<Guid> {testGenre.GenreID})}"
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var selectGenreQuery = string.Format(selectGenreFormat, selectGenreVariables); 
@@ -319,8 +306,7 @@ namespace Dapper.Wrappers.Tests
 
             object[] selectAuthorVariables =
             {
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
-                $"@{context.AddVariable("ids", new List<Guid> {testAuthor.AuthorID})}"
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var selectAuthorQuery = string.Format(selectAuthorFormat, selectAuthorVariables);
@@ -347,6 +333,8 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
+            var testId = Guid.NewGuid();
 
             var testGenre = new Genre
             {
@@ -361,45 +349,22 @@ namespace Dapper.Wrappers.Tests
                 LastName = "Author"
             };
 
-            var connection = _dbFixture.GetConnection(dbType);
+            await _dbFixture.AddGenres(connection, dbType, testId, new[] {testGenre});
 
-            var insertGenreFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Genres.PostgresInsertQuery;
-
-            var insertGenre = string.Format(insertGenreFormat, "@genreid", "@name", "@testscope");
-
-            await connection.ExecuteAsync(insertGenre,
-                new { genreid = testGenre.GenreID, name = testGenre.Name, testscope = _dbFixture.TestScope });
-
-            var insertAuthorFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Authors.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Authors.PostgresInsertQuery;
-
-            var insertAuthor = string.Format(insertAuthorFormat, "@authorid", "@firstname", "@lastname", "@testscope");
-
-            await connection.ExecuteAsync(insertAuthor,
-                new
-                {
-                    authorid = testAuthor.AuthorID,
-                    firstname = testAuthor.FirstName,
-                    lastname = testAuthor.LastName,
-                    testscope = _dbFixture.TestScope
-                });
+            await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
             var selectGenreFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Genres.PostgresSelectQuery;
+                ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
             var selectAuthorFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Authors.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Authors.PostgresSelectQuery;
+                ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 
             // Act
             object[] selectGenreVariables =
             {
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
-                $"@{context.AddVariable("ids", new List<Guid> {testGenre.GenreID})}"
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var selectGenreQuery = string.Format(selectGenreFormat, selectGenreVariables);
@@ -407,8 +372,7 @@ namespace Dapper.Wrappers.Tests
 
             object[] selectAuthorVariables =
             {
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
-                $"@{context.AddVariable("ids", new List<Guid> {testAuthor.AuthorID})}"
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var selectAuthorQuery = string.Format(selectAuthorFormat, selectAuthorVariables);
@@ -431,6 +395,8 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
+            var testId = Guid.NewGuid();
 
             var testGenre = new Genre
             {
@@ -445,45 +411,22 @@ namespace Dapper.Wrappers.Tests
                 LastName = "Author"
             };
 
-            var connection = _dbFixture.GetConnection(dbType);
+            await _dbFixture.AddGenres(connection, dbType, testId, new[] {testGenre});
 
-            var insertGenreFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Genres.PostgresInsertQuery;
-
-            var insertGenre = string.Format(insertGenreFormat, "@genreid", "@name", "@testscope");
-
-            await connection.ExecuteAsync(insertGenre,
-                new { genreid = testGenre.GenreID, name = testGenre.Name, testscope = _dbFixture.TestScope });
-
-            var insertAuthorFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Authors.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Authors.PostgresInsertQuery;
-
-            var insertAuthor = string.Format(insertAuthorFormat, "@authorid", "@firstname", "@lastname", "@testscope");
-
-            await connection.ExecuteAsync(insertAuthor,
-                new
-                {
-                    authorid = testAuthor.AuthorID,
-                    firstname = testAuthor.FirstName,
-                    lastname = testAuthor.LastName,
-                    testscope = _dbFixture.TestScope
-                });
+            await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
             var selectGenreFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Genres.PostgresSelectQuery;
+                ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
             var selectAuthorFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Authors.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Authors.PostgresSelectQuery;
+                ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 
             // Act
             object[] selectGenreVariables =
             {
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
-                $"@{context.AddVariable("ids", new List<Guid> {testGenre.GenreID})}"
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var selectGenreQuery = string.Format(selectGenreFormat, selectGenreVariables);
@@ -491,8 +434,7 @@ namespace Dapper.Wrappers.Tests
 
             object[] selectAuthorVariables =
             {
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
-                $"@{context.AddVariable("ids", new List<Guid> {testAuthor.AuthorID})}"
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var selectAuthorQuery = string.Format(selectAuthorFormat, selectAuthorVariables);
@@ -520,6 +462,8 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
+            var testId = Guid.NewGuid();
 
             var testGenres = new[]
             {
@@ -542,45 +486,26 @@ namespace Dapper.Wrappers.Tests
                 LastName = "Author"
             };
 
-            var connection = _dbFixture.GetConnection(dbType);
+            await _dbFixture.AddGenres(connection, dbType, testId, new[] {testGenres[0]});
+
+            await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
             var insertGenreFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Genres.PostgresInsertQuery;
-
-            var insertGenre = string.Format(insertGenreFormat, "@genreid", "@name", "@testscope");
-
-            await connection.ExecuteAsync(insertGenre,
-                new { genreid = testGenres[0].GenreID, name = testGenres[0].Name, testscope = _dbFixture.TestScope });
-
-            var insertAuthorFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Authors.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Authors.PostgresInsertQuery;
-
-            var insertAuthor = string.Format(insertAuthorFormat, "@authorid", "@firstname", "@lastname", "@testscope");
-
-            await connection.ExecuteAsync(insertAuthor,
-                new
-                {
-                    authorid = testAuthor.AuthorID,
-                    firstname = testAuthor.FirstName,
-                    lastname = testAuthor.LastName,
-                    testscope = _dbFixture.TestScope
-                });
+                ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
+                : SqlQueryFormatConstants.Postgres.Genres.InsertQuery;
 
             var selectGenreFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Genres.PostgresSelectQuery;
+                ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
             var selectAuthorFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Authors.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Authors.PostgresSelectQuery;
+                ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 
             // Act
             object[] selectGenreVariables =
             {
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
-                $"@{context.AddVariable("ids", new List<Guid> {testGenres[0].GenreID})}"
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var selectGenreQuery = string.Format(selectGenreFormat, selectGenreVariables);
@@ -588,8 +513,7 @@ namespace Dapper.Wrappers.Tests
 
             object[] selectAuthorVariables =
             {
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
-                $"@{context.AddVariable("ids", new List<Guid> {testAuthor.AuthorID})}"
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var selectAuthorQuery = string.Format(selectAuthorFormat, selectAuthorVariables);
@@ -601,7 +525,8 @@ namespace Dapper.Wrappers.Tests
             {
                 $"@{context.AddVariable("genreid", testGenres[1].GenreID, DbType.Guid)}",
                 $"@{context.AddVariable("genrename", testGenres[1].Name, DbType.String)}",
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}"
+                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var insertNewGenre = string.Format(insertGenreFormat, insertNewGenreVariables);
@@ -611,8 +536,7 @@ namespace Dapper.Wrappers.Tests
             await context.ExecuteCommands();
 
             // Assert
-            var results = await connection.QueryAsync<Genre>(string.Format(selectGenreFormat, "@testscope", "@ids"),
-                new { testscope = _dbFixture.TestScope, ids = testGenres.Select(g => g.GenreID).ToList() });
+            var results = await _dbFixture.GetGenres(connection, dbType, testId);
 
             var firstGenreResults = genres.ToArray();
             firstGenreResults.Should().HaveCount(1);
@@ -632,6 +556,8 @@ namespace Dapper.Wrappers.Tests
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
+            var connection = GetConnection(dbType);
+            var testId = Guid.NewGuid();
 
             var testGenre = new Genre
             {
@@ -646,45 +572,22 @@ namespace Dapper.Wrappers.Tests
                 LastName = "Author"
             };
 
-            var connection = _dbFixture.GetConnection(dbType);
+            await _dbFixture.AddGenres(connection, dbType, testId, new[] {testGenre});
 
-            var insertGenreFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Genres.PostgresInsertQuery;
-
-            var insertGenre = string.Format(insertGenreFormat, "@genreid", "@name", "@testscope");
-
-            await connection.ExecuteAsync(insertGenre,
-                new { genreid = testGenre.GenreID, name = testGenre.Name, testscope = _dbFixture.TestScope });
-
-            var insertAuthorFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Authors.SqlServerInsertQuery
-                : SqlQueryFormatConstants.Authors.PostgresInsertQuery;
-
-            var insertAuthor = string.Format(insertAuthorFormat, "@authorid", "@firstname", "@lastname", "@testscope");
-
-            await connection.ExecuteAsync(insertAuthor,
-                new
-                {
-                    authorid = testAuthor.AuthorID,
-                    firstname = testAuthor.FirstName,
-                    lastname = testAuthor.LastName,
-                    testscope = _dbFixture.TestScope
-                });
+            await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
             var selectGenreFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Genres.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Genres.PostgresSelectQuery;
+                ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
             var selectAuthorFormat = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.Authors.SqlServerSelectQuery
-                : SqlQueryFormatConstants.Authors.PostgresSelectQuery;
+                ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
+                : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 
             // Act
             object[] selectGenreVariables =
             {
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
-                $"@{context.AddVariable("ids", new List<Guid> {testGenre.GenreID})}"
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var selectGenreQuery = string.Format(selectGenreFormat, selectGenreVariables);
@@ -692,8 +595,7 @@ namespace Dapper.Wrappers.Tests
 
             object[] selectAuthorVariables =
             {
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
-                $"@{context.AddVariable("ids", new List<Guid> {testAuthor.AuthorID})}"
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var selectAuthorQuery = string.Format(selectAuthorFormat, selectAuthorVariables);
@@ -703,8 +605,7 @@ namespace Dapper.Wrappers.Tests
 
             object[] selectGenre2Variables =
             {
-                $"@{context.AddVariable("testscope", _dbFixture.TestScope, DbType.Guid)}",
-                $"@{context.AddVariable("ids", new List<Guid> {testGenre.GenreID})}"
+                $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
             var selectGenre2Query = string.Format(selectGenreFormat, selectGenre2Variables);
@@ -725,6 +626,12 @@ namespace Dapper.Wrappers.Tests
             var genres2List = genres2.ToList();
             genres2List.Should().HaveCount(1);
             genres2List[0].Should().BeEquivalentTo(testGenre);
+        }
+
+        public void Dispose()
+        {
+            _sqlConnection?.Dispose();
+            _postgresConnection?.Dispose();
         }
     }
 }

@@ -6,6 +6,6 @@ namespace Dapper.Wrappers
 {
     public static class DapperWrappersConstants
     {
-        public static string OrderByDirectionParameter = "Direction";
+        public static string OrderByDirectionParameter = "orderbydirection";
     }
 }
