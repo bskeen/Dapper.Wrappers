@@ -66,6 +66,13 @@ WHERE
                 public const string InsertQuery = @"
 INSERT INTO
   [Books]
+({0})
+VALUES
+({1});";
+
+                public const string DefaultInsertQuery = @"
+INSERT INTO
+  [Books]
     ([BookID]
     ,[Name]
     ,[AuthorID]
@@ -98,7 +105,7 @@ SELECT
   ,[AuthorID]
   ,[PageCount]
 FROM
-  [Books]
+  [Books] b
 {0}
 {1}
 {2};";
@@ -230,6 +237,13 @@ WHERE
                 public const string InsertQuery = @"
 INSERT INTO
   ""Books""
+({0})
+VALUES
+({1});";
+
+                public const string DefaultInsertQuery = @"
+INSERT INTO
+  ""Books""
     (""BookID""
     ,""Name""
     ,""AuthorID""
@@ -262,7 +276,7 @@ SELECT
   ,""AuthorID""
   ,""PageCount""
 FROM
-  ""Books""
+  ""Books"" b
 {0}
 {1}
 {2};";

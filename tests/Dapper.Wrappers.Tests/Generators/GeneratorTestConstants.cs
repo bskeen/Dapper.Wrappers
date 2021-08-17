@@ -106,15 +106,38 @@ namespace Dapper.Wrappers.Tests.Generators
                         MetadataGenerator.GetDefaultOperation<Guid>("TestIDEquals", "[TestID] = {0}", "TestID")
                     }
                 };
-            
+
+            public static readonly IDictionary<string, MergeOperationMetadata> DefaultBookInsertMetadata =
+                new Dictionary<string, MergeOperationMetadata>
+                {
+                    {"BookID", MetadataGenerator.GetDefaultMergeOperation<Guid>("BookID", "{0}")},
+                    {"Name", MetadataGenerator.GetDefaultMergeOperation<string>("Name", "{0}")},
+                    {"AuthorID", MetadataGenerator.GetDefaultMergeOperation<Guid>("AuthorID", "{0}")},
+                    {"PageCount", MetadataGenerator.GetDefaultMergeOperation<int>("PageCount", "{0}")},
+                    {"TestScope", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestScope", "{0}")},
+                    {"TestID", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestID", "{0}")}
+                };
+
+            public static readonly IDictionary<string, MergeOperationMetadata> DefaultRequiredBookInsertMetadata =
+                new Dictionary<string, MergeOperationMetadata>
+                {
+                    {
+                        "Name", MetadataGenerator.GetMergeOperation("Name", "{0}", "Name", new[]
+                        {
+                            MetadataGenerator.GetParameter<string>("Name", "This is an Unnamed Book")
+                        })
+                    },
+                    {"AuthorID", MetadataGenerator.GetDefaultMergeOperation<Guid>("AuthorID", "{0}")},
+                    {"TestScope", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestScope", "{0}")},
+                    {"TestID", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestID", "{0}")}
+                };
+
             public static readonly string DefaultBookOrdering = "ORDER BY [Name] ASC";
 
             public static readonly IDictionary<string, QueryOperationMetadata> DefaultBookOrderMetadata =
                 new Dictionary<string, QueryOperationMetadata>
                 {
-                    {"BookID", MetadataGenerator.GetDefaultOrderOperation("BookID", "[BookID] {0}")},
                     {"Name", MetadataGenerator.GetDefaultOrderOperation("Name", "[Name] {0}")},
-                    {"AuthorID", MetadataGenerator.GetDefaultOrderOperation("AuthorID", "[AuthorID] {0}")},
                     {"PageCount", MetadataGenerator.GetDefaultOrderOperation("PageCount", "[PageCount] {0}")},
                 };
 
@@ -357,14 +380,37 @@ namespace Dapper.Wrappers.Tests.Generators
                     }
                 };
 
+            public static readonly IDictionary<string, MergeOperationMetadata> DefaultBookInsertMetadata =
+                new Dictionary<string, MergeOperationMetadata>
+                {
+                    {"BookID", MetadataGenerator.GetDefaultMergeOperation<Guid>("BookID", "{0}")},
+                    {"Name", MetadataGenerator.GetDefaultMergeOperation<string>("Name", "{0}")},
+                    {"AuthorID", MetadataGenerator.GetDefaultMergeOperation<Guid>("AuthorID", "{0}")},
+                    {"PageCount", MetadataGenerator.GetDefaultMergeOperation<int>("PageCount", "{0}")},
+                    {"TestScope", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestScope", "{0}")},
+                    {"TestID", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestID", "{0}")}
+                };
+
+            public static readonly IDictionary<string, MergeOperationMetadata> DefaultRequiredBookInsertMetadata =
+                new Dictionary<string, MergeOperationMetadata>
+                {
+                    {
+                        "Name", MetadataGenerator.GetMergeOperation("Name", "{0}", "Name", new[]
+                        {
+                            MetadataGenerator.GetParameter<string>("Name", "This is an Unnamed Book")
+                        })
+                    },
+                    {"AuthorID", MetadataGenerator.GetDefaultMergeOperation<Guid>("AuthorID", "{0}")},
+                    {"TestScope", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestScope", "{0}")},
+                    {"TestID", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestID", "{0}")}
+                };
+
             public static readonly string DefaultBookOrdering = "ORDER BY \"Name\" ASC";
 
             public static readonly IDictionary<string, QueryOperationMetadata> DefaultBookOrderMetadata =
                 new Dictionary<string, QueryOperationMetadata>
                 {
-                    {"BookID", MetadataGenerator.GetDefaultOrderOperation("BookID", "\"BookID\" {0}")},
                     {"Name", MetadataGenerator.GetDefaultOrderOperation("Name", "\"Name\" {0}")},
-                    {"AuthorID", MetadataGenerator.GetDefaultOrderOperation("AuthorID", "\"AuthorID\" {0}")},
                     {"PageCount", MetadataGenerator.GetDefaultOrderOperation("PageCount", "\"PageCount\" {0}")},
                 };
 
@@ -532,67 +578,63 @@ namespace Dapper.Wrappers.Tests.Generators
                 var bookGenres = new List<BookGenre>();
 
                 var author = GetAuthor(authorLookup, "Brandon", "Sanderson");
-                var genres = GetGenres(genreLookup, new[] {"High Fantasy", "Fantasy Fiction"});
+                var genres = GetGenres(genreLookup, "High Fantasy", "Fantasy Fiction");
                 var (nextBook, nextBookGenres) = GetBook("Rhythm of War", author, genres, 1230);
                 books.Add(nextBook);
                 bookGenres.AddRange(nextBookGenres);
 
                 author = GetAuthor(authorLookup, "Brandon", "Sanderson");
-                genres = GetGenres(genreLookup, new[] {"Science Fiction"});
+                genres = GetGenres(genreLookup, "Science Fiction");
                 (nextBook, nextBookGenres) = GetBook("Skyward", author, genres, 513);
                 books.Add(nextBook);
                 bookGenres.AddRange(nextBookGenres);
 
                 author = GetAuthor(authorLookup, "Brandon", "Sanderson");
-                genres = GetGenres(genreLookup, new[] {"Science Fiction", "Fantasy Fiction", "Young Adult Fiction"});
+                genres = GetGenres(genreLookup, "Science Fiction", "Fantasy Fiction", "Young Adult Fiction");
                 (nextBook, nextBookGenres) = GetBook("Steelheart", author, genres, 386);
                 books.Add(nextBook);
                 bookGenres.AddRange(nextBookGenres);
 
                 author = GetAuthor(authorLookup, "Arthur Conan", "Doyle");
-                genres = GetGenres(genreLookup,
-                    new[] {"Short Story", "Mystery", "Novel", "Detective Novel", "Noir Fiction", "Crime Fiction"});
+                genres = GetGenres(genreLookup, "Short Story", "Mystery", "Novel", "Detective Novel", "Noir Fiction",
+                    "Crime Fiction");
                 (nextBook, nextBookGenres) = GetBook("The Adventures of Sherlock Holmes", author, genres, 307);
                 books.Add(nextBook);
                 bookGenres.AddRange(nextBookGenres);
 
                 author = GetAuthor(authorLookup, "Arthur Conan", "Doyle");
-                genres = GetGenres(genreLookup, new[] {"Mystery", "Novel", "Detective Novel", "Crime Fiction"});
+                genres = GetGenres(genreLookup, "Mystery", "Novel", "Detective Novel", "Crime Fiction");
                 (nextBook, nextBookGenres) = GetBook("The Hound of the Baskervilles", author, genres, 226);
                 books.Add(nextBook);
                 bookGenres.AddRange(nextBookGenres);
 
                 author = GetAuthor(authorLookup, "Arthur Conan", "Doyle");
-                genres = GetGenres(genreLookup,
-                    new[]
-                    {
-                        "Novel", "Science Fiction", "Lost World", "Adventure Fiction", "Fantasy Fiction",
-                        "Scientific Romance", "Fantastic"
-                    });
+                genres = GetGenres(genreLookup, "Novel", "Science Fiction", "Lost World", "Adventure Fiction",
+                    "Fantasy Fiction", "Scientific Romance", "Fantastic");
                 (nextBook, nextBookGenres) = GetBook("The Lost World", author, genres, 240);
                 books.Add(nextBook);
                 bookGenres.AddRange(nextBookGenres);
 
                 author = GetAuthor(authorLookup, "Arthur Conan", "Doyle");
-                genres = GetGenres(genreLookup, new[] {"Mystery", "Novel", "Detective Novel", "Locked-Room Mystery"});
+                genres = GetGenres(genreLookup, "Mystery", "Novel", "Detective Novel", "Locked-Room Mystery");
                 (nextBook, nextBookGenres) = GetBook("The Valley of Fear", author, genres, 164);
                 books.Add(nextBook);
                 bookGenres.AddRange(nextBookGenres);
 
                 author = GetAuthor(authorLookup, "Dr.", "Seuss");
-                genres = GetGenres(genreLookup, new[] {"Children's Literature", "Picture Book", "Fiction"});
+                genres = GetGenres(genreLookup, "Children's Literature", "Picture Book", "Fiction");
                 (nextBook, nextBookGenres) = GetBook("The Cat in the Hat", author, genres, 61);
                 books.Add(nextBook);
                 bookGenres.AddRange(nextBookGenres);
 
                 author = GetAuthor(authorLookup, "Dr.", "Seuss");
-                genres = GetGenres(genreLookup, new[] {"Children's Literature", "Fiction"});
+                genres = GetGenres(genreLookup, "Children's Literature", "Fiction");
                 (nextBook, nextBookGenres) = GetBook("Fox in Socks", author, genres, 72);
                 books.Add(nextBook);
                 bookGenres.AddRange(nextBookGenres);
 
                 author = GetAuthor(authorLookup, "Titus", "Livius");
-                genres = GetGenres(genreLookup, new[] {"Non-Fiction", "History"});
+                genres = GetGenres(genreLookup, "Non-Fiction", "History");
                 (nextBook, nextBookGenres) = GetBook("Ab Urbe Condita", author, genres);
                 books.Add(nextBook);
                 bookGenres.AddRange(nextBookGenres);
@@ -645,7 +687,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 return result;
             }
 
-            private static IEnumerable<Genre> GetGenres(Dictionary<string, Genre> currentGenres, string[] names)
+            private static IEnumerable<Genre> GetGenres(Dictionary<string, Genre> currentGenres, params string[] names)
             {
                 var results = new List<Genre>();
 

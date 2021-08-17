@@ -107,8 +107,8 @@ namespace Dapper.Wrappers.Tests
             });
 
             string rawQuery = dbType == SupportedDatabases.SqlServer
-                ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
-                : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
+                ? SqlQueryFormatConstants.SqlServer.Books.DefaultInsertQuery
+                : SqlQueryFormatConstants.Postgres.Books.DefaultInsertQuery;
 
             string query = string.Format(rawQuery, "@BookID", "@Name", "@AuthorID", "@PageCount", "@TestScope",
                 "@TestID");
