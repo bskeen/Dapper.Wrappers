@@ -3,14 +3,14 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net5.0</TargetFrameworks>
     <PackageTags>orm sql micro-orm dapper</PackageTags>
-    <Version>0.3.2-beta</Version>
+    <Version>1.0.0</Version>
     <Authors>Benjamin Skeen</Authors>
     <Description>A thin wrapper around Dapper.Net that helps with runtime customization of queries.</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/bskeen/Dapper.Wrappers</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/bskeen/Dapper.Wrappers/wiki</PackageProjectUrl>
     <RepositoryUrl>https://github.com/bskeen/Dapper.Wrappers.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
-    <Copyright>© 2020 Benjamin Skeen</Copyright>
+    <Copyright>© 2021 Benjamin Skeen</Copyright>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
