@@ -105,7 +105,8 @@ namespace Dapper.Wrappers.Generators
         public void AddMultipleInsertQuery(IQueryContext context,
             IEnumerable<IEnumerable<QueryOperation>> insertOperations)
         {
-            var operationsLists = insertOperations?.ToList();
+            var operationsLists = insertOperations?.Select(io => io?.ToList()).OrderByDescending(io => io?.Count ?? 0)
+                .ToList();
 
             var firstOperations = operationsLists?.FirstOrDefault();
 

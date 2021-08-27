@@ -358,6 +358,392 @@ namespace Dapper.Wrappers.Tests.Generators
             books[0].Name.Should().Be("This is an Unnamed Book");
             books[0].PageCount.Should().Be(pageCount);
         }
+
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer, new [] {"The Way of Kings", "Arcanum Unbounded"}, new [] {1007, 672})]
+        [InlineData(SupportedDatabases.SqlServer, new [] {"The Sign of the Four", "The Return of Sherlock Holmes"}, new [] {122, 403})]
+        [InlineData(SupportedDatabases.SqlServer, new [] {"One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham"}, new [] {62, 62})]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        public async Task AddMultipleInsertQuery_WithMultipleInserts_ShouldInsertRecordsIntoDatabase(
+            SupportedDatabases dbType, string[] names, int[] pageCounts)
+        {
+            // Arrange
+            var testId = Guid.NewGuid();
+            var connection = GetConnection(dbType);
+
+            var testData = GeneratorTestConstants.TestData.GetTestData();
+            var authors = testData.Authors.ToList();
+
+            await _databaseFixture.AddAuthors(connection, dbType, testId, authors);
+
+            var query = dbType == SupportedDatabases.SqlServer
+                ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
+                : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
+
+            var metadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
+                : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
+
+            var requiredMetadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
+                : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
+
+            var defaultOperations = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
+                : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
+
+            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var context = GetQueryContext(dbType);
+
+            var randomGenerator = new Random();
+
+            var booksToCreate = new List<Book>();
+
+            var queryOperations = new List<IEnumerable<QueryOperation>>();
+
+            var nullIndex = randomGenerator.Next(names.Length);
+
+            for (var i = 0; i < names.Length; i++)
+            {
+                var authorIndex = randomGenerator.Next(authors.Count);
+
+                var bookToCreate = new Book
+                {
+                    AuthorID = authors[authorIndex].AuthorID,
+                    Name = names[i],
+                    PageCount = i != nullIndex ? (int?)pageCounts[i] : null
+                };
+
+                booksToCreate.Add(bookToCreate);
+
+                queryOperations.Add(new []
+                {
+                    _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookToCreate.BookID)),
+                    _metadataGenerator.GetQueryOperation("Name", ("Name", bookToCreate.Name)),
+                    _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", bookToCreate.AuthorID)),
+                    _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", bookToCreate.PageCount)),
+                    _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                    _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
+                });
+            }
+
+            // Act
+            generator.AddMultipleInsertQuery(context, queryOperations);
+
+            await context.ExecuteCommands();
+
+            // Assert
+            var books = (await _databaseFixture.GetBooks(connection, dbType, testId)).ToList();
+
+            books.Should().HaveCount(names.Length);
+
+            foreach (var book in books)
+            {
+                var bookToCheckAgainst = booksToCreate.FirstOrDefault(b => b.BookID == book.BookID);
+                bookToCheckAgainst.Should().NotBeNull();
+                if (bookToCheckAgainst != null)
+                {
+                    book.BookID.Should().Be(bookToCheckAgainst.BookID);
+                    book.AuthorID.Should().Be(bookToCheckAgainst.AuthorID);
+                    book.Name.Should().Be(bookToCheckAgainst.Name);
+                    book.PageCount.Should().Be(bookToCheckAgainst.PageCount);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(SupportedDatabases.SqlServer, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(SupportedDatabases.SqlServer, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        public async Task AddMultipleInsertQuery_WithInsertOperationsInDifferentOrders_ShouldInsertRecordsIntoDatabase(
+            SupportedDatabases dbType, string[] names, int[] pageCounts)
+        {
+            // Arrange
+            var testId = Guid.NewGuid();
+            var connection = GetConnection(dbType);
+
+            var testData = GeneratorTestConstants.TestData.GetTestData();
+            var authors = testData.Authors.ToList();
+
+            await _databaseFixture.AddAuthors(connection, dbType, testId, authors);
+
+            var query = dbType == SupportedDatabases.SqlServer
+                ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
+                : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
+
+            var metadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
+                : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
+
+            var requiredMetadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
+                : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
+
+            var defaultOperations = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
+                : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
+
+            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var context = GetQueryContext(dbType);
+
+            var randomGenerator = new Random();
+
+            var booksToCreate = new List<Book>();
+
+            var queryOperations = new List<IEnumerable<QueryOperation>>();
+
+            var nullIndex = randomGenerator.Next(names.Length);
+
+            for (var i = 0; i < names.Length; i++)
+            {
+                var authorIndex = randomGenerator.Next(authors.Count);
+
+                var bookToCreate = new Book
+                {
+                    AuthorID = authors[authorIndex].AuthorID,
+                    Name = names[i],
+                    PageCount = i != nullIndex ? (int?)pageCounts[i] : null
+                };
+
+                booksToCreate.Add(bookToCreate);
+
+                queryOperations.Add(new[]
+                {
+                    _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookToCreate.BookID)),
+                    _metadataGenerator.GetQueryOperation("Name", ("Name", bookToCreate.Name)),
+                    _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", bookToCreate.AuthorID)),
+                    _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", bookToCreate.PageCount)),
+                    _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                    _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
+                }.OrderBy(_ => new Guid()));
+            }
+
+            // Act
+            generator.AddMultipleInsertQuery(context, queryOperations);
+
+            await context.ExecuteCommands();
+
+            // Assert
+            var books = (await _databaseFixture.GetBooks(connection, dbType, testId)).ToList();
+
+            books.Should().HaveCount(names.Length);
+
+            foreach (var book in books)
+            {
+                var bookToCheckAgainst = booksToCreate.FirstOrDefault(b => b.BookID == book.BookID);
+                bookToCheckAgainst.Should().NotBeNull();
+                if (bookToCheckAgainst != null)
+                {
+                    book.BookID.Should().Be(bookToCheckAgainst.BookID);
+                    book.AuthorID.Should().Be(bookToCheckAgainst.AuthorID);
+                    book.Name.Should().Be(bookToCheckAgainst.Name);
+                    book.PageCount.Should().Be(bookToCheckAgainst.PageCount);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(SupportedDatabases.SqlServer, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(SupportedDatabases.SqlServer, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        public async Task AddMultipleInsertQuery_WithMissingOperations_ShouldInsertRecordsIntoDatabase(
+            SupportedDatabases dbType, string[] names, int[] pageCounts)
+        {
+            // Arrange
+            var testId = Guid.NewGuid();
+            var connection = GetConnection(dbType);
+
+            var testData = GeneratorTestConstants.TestData.GetTestData();
+            var authors = testData.Authors.ToList();
+
+            await _databaseFixture.AddAuthors(connection, dbType, testId, authors);
+
+            var query = dbType == SupportedDatabases.SqlServer
+                ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
+                : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
+
+            var metadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
+                : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
+
+            var requiredMetadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
+                : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
+
+            var defaultOperations = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
+                : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
+
+            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var context = GetQueryContext(dbType);
+
+            var randomGenerator = new Random();
+
+            var booksToCreate = new List<Book>();
+
+            var queryOperations = new List<IEnumerable<QueryOperation>>();
+
+            var nullIndex = randomGenerator.Next(names.Length);
+            Guid nullBookId = Guid.NewGuid();
+
+            for (var i = 0; i < names.Length; i++)
+            {
+                var authorIndex = randomGenerator.Next(authors.Count);
+
+                var bookToCreate = new Book
+                {
+                    AuthorID = authors[authorIndex].AuthorID,
+                    Name = names[i],
+                    PageCount = i != nullIndex ? (int?)pageCounts[i] : null
+                };
+
+                booksToCreate.Add(bookToCreate);
+
+                if (i == nullIndex)
+                {
+                    nullBookId = bookToCreate.BookID;
+                    queryOperations.Add(new[]
+                    {
+                        _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookToCreate.BookID)),
+                        _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", bookToCreate.AuthorID)),
+                        _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                        _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
+                    }.OrderBy(_ => new Guid()));
+                }
+                else
+                {
+                    queryOperations.Add(new[]
+                    {
+                        _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookToCreate.BookID)),
+                        _metadataGenerator.GetQueryOperation("Name", ("Name", bookToCreate.Name)),
+                        _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", bookToCreate.AuthorID)),
+                        _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", bookToCreate.PageCount)),
+                        _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                        _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
+                    }.OrderBy(_ => new Guid()));
+                }
+            }
+
+            // Act
+            generator.AddMultipleInsertQuery(context, queryOperations);
+
+            await context.ExecuteCommands();
+
+            // Assert
+            var books = (await _databaseFixture.GetBooks(connection, dbType, testId)).ToList();
+
+            books.Should().HaveCount(names.Length);
+
+            foreach (var book in books)
+            {
+                var bookToCheckAgainst = booksToCreate.FirstOrDefault(b => b.BookID == book.BookID);
+                bookToCheckAgainst.Should().NotBeNull();
+                if (bookToCheckAgainst != null)
+                {
+                    var nameToCheck = bookToCheckAgainst.BookID == nullBookId
+                        ? "This is a Default Book"
+                        : bookToCheckAgainst.Name;
+
+                    book.BookID.Should().Be(bookToCheckAgainst.BookID);
+                    book.AuthorID.Should().Be(bookToCheckAgainst.AuthorID);
+                    book.Name.Should().Be(nameToCheck);
+                    book.PageCount.Should().Be(bookToCheckAgainst.PageCount);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(SupportedDatabases.SqlServer, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(SupportedDatabases.SqlServer, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(SupportedDatabases.SqlServer, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(SupportedDatabases.PostgreSQL, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        public async Task AddMultipleInsertQuery_WithMissingNonDefaultOperation_ShouldThrowException(
+            SupportedDatabases dbType, string[] names, int[] pageCounts)
+        {
+            // Arrange
+            var testId = Guid.NewGuid();
+            var connection = GetConnection(dbType);
+
+            var testData = GeneratorTestConstants.TestData.GetTestData();
+            var authors = testData.Authors.ToList();
+
+            await _databaseFixture.AddAuthors(connection, dbType, testId, authors);
+
+            var query = dbType == SupportedDatabases.SqlServer
+                ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
+                : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
+
+            var metadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
+                : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
+
+            var requiredMetadata = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
+                : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
+
+            var defaultOperations = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
+                : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
+
+            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var context = GetQueryContext(dbType);
+
+            var randomGenerator = new Random();
+
+            var queryOperations = new List<IEnumerable<QueryOperation>>();
+
+            var nullIndex = randomGenerator.Next(names.Length);
+
+            for (var i = 0; i < names.Length; i++)
+            {
+                var authorIndex = randomGenerator.Next(authors.Count);
+
+                var bookToCreate = new Book
+                {
+                    AuthorID = authors[authorIndex].AuthorID,
+                    Name = names[i],
+                    PageCount = i != nullIndex ? (int?)pageCounts[i] : null
+                };
+
+                if (i == nullIndex)
+                {
+                    queryOperations.Add(new[]
+                    {
+                        _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookToCreate.BookID)),
+                        _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                        _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
+                    }.OrderBy(_ => new Guid()));
+                }
+                else
+                {
+                    queryOperations.Add(new[]
+                    {
+                        _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookToCreate.BookID)),
+                        _metadataGenerator.GetQueryOperation("Name", ("Name", bookToCreate.Name)),
+                        _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", bookToCreate.AuthorID)),
+                        _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", bookToCreate.PageCount)),
+                        _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                        _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
+                    }.OrderBy(_ => new Guid()));
+                }
+            }
+
+            // Act
+            Action act = () => generator.AddMultipleInsertQuery(context, queryOperations);
+
+            // Assert
+            act.Should().Throw<ArgumentException>().WithMessage("Value must be supplied for 'AuthorID'.");
+        }
     }
 
     public class TestInsertQueryGenerator : InsertQueryGenerator
