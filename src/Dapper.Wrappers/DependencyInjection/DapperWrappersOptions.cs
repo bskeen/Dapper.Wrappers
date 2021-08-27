@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Reflection;
 
 namespace Dapper.Wrappers.DependencyInjection
 {
@@ -32,5 +33,10 @@ namespace Dapper.Wrappers.DependencyInjection
         /// Configures which type to inject as an IDbConnection to the QueryContext.
         /// </summary>
         public Type DbConnectionType { get; set; }
+
+        /// <summary>
+        /// Configures which assembly should be scanned for generators to automatically add.
+        /// </summary>
+        public Assembly GeneratorTypeAssembly { get; set; }
     }
 }

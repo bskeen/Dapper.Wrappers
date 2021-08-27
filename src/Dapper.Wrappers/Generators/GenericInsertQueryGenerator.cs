@@ -7,11 +7,22 @@ using Dapper.Wrappers.Formatters;
 
 namespace Dapper.Wrappers.Generators
 {
-    public abstract class GenericInsertQueryGenerator<T> : InsertQueryGenerator, IGenericInsertQueryGenerator<T>
+    /// <summary>
+    /// Adds a method to the Insert query generator that can create the operations
+    /// for the AddInsertQuery method from a given type.
+    /// </summary>
+    /// <typeparam name="TSource">The type from which to generate the insert operations.</typeparam>
+    public abstract class GenericInsertQueryGenerator<TSource> : InsertQueryGenerator, IGenericInsertQueryGenerator<TSource>
     {
         protected GenericInsertQueryGenerator(IQueryFormatter queryFormatter) : base(queryFormatter)
         {
         }
-        public abstract IEnumerable<QueryOperation> GetInsertQueryOperationsFromEntity(T entity);
+
+        /// <summary>
+        /// Creates insert query operations to be passed to the AddInsertQuery method.
+        /// </summary>
+        /// <param name="source">The object to be converted into insert query operations.</param>
+        /// <returns>The list of insert QueryOperations.</returns>
+        public abstract IEnumerable<QueryOperation> GetInsertQueryOperationsFromSource(TSource source);
     }
 }
