@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using System.Reflection;
 using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Generators;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,6 +75,33 @@ namespace Dapper.Wrappers.DependencyInjection
             if (options.DbConnectionType != null)
             {
                 services.TryAddScoped(typeof(IDbConnection), options.DbConnectionType);
+            }
+
+            if (options.GeneratorTypeAssembly != null)
+            {
+                RegisterGenerators(services, options.GeneratorTypeAssembly);
+            }
+        }
+
+        private static void RegisterGenerators(IServiceCollection services, Assembly assembly)
+        {
+            var types = assembly.GetTypes();
+
+            var genericGenerators = new HashSet<Type>(new[]
+            {
+                typeof(IGenericDeleteQueryGenerator<>), typeof(IGenericGetQueryGenerator<,>),
+                typeof(IGenericInsertQueryGenerator<>), typeof(IGenericUpdateQueryGenerator<,>)
+            });
+
+            foreach (var type in types.Where(t => t.IsClass && !t.IsAbstract))
+            {
+                var interfaceToRegister = type.GetInterfaces().FirstOrDefault(i =>
+                    i.IsGenericType && genericGenerators.Contains(i.GetGenericTypeDefinition()));
+
+                if (interfaceToRegister != null)
+                {
+                    services.TryAddSingleton(interfaceToRegister, type);
+                }
             }
         }
     }
