@@ -79,30 +79,18 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Bogus1",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        { "BogusValue1", null },
-                        { "BogusValue2", true }
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "Bogus2",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        { "EvenMoreBogusValue1", 1 },
-                        { "EvenMoreBogusValue2", Guid.NewGuid() }
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Bogus1", ("BogusValue1", null), ("BogusValue2", true)),
+                _metadataGenerator.GetQueryOperation("Bogus2", ("EvenMoreBogusValue1", 1),
+                    ("EvenMoreBogusValue2", Guid.NewGuid()))
             };
 
             var operationMetadata = new Dictionary<string, QueryOperationMetadata>
             {
                 {"Real1", _metadataGenerator.GetDefaultOperation<string>("Real1", "this is not a query", "Real1")},
-                {"Real2", _metadataGenerator.GetDefaultOperation<string>("Real2", "this is not a query either", "Real2")}
+                {
+                    "Real2",
+                    _metadataGenerator.GetDefaultOperation<string>("Real2", "this is not a query either", "Real2")
+                }
             };
 
             // Act
@@ -129,33 +117,10 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Bogus1",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        { "BogusValue1", null },
-                        { "BogusValue2", true }
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "Valid1",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        { "Valid1Value1", 1 },
-                        { "Valid1Value2", Guid.NewGuid() }
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "Valid2",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        { "Valid2Value1", "Test String"},
-                        { "Valid2Value2", 233.4M }
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Bogus1", ("BogusValue1", null), ("BogusValue2", true)),
+                _metadataGenerator.GetQueryOperation("Valid1", ("Valid1Value1", 1), ("Valid1Value2", Guid.NewGuid())),
+                _metadataGenerator.GetQueryOperation("Valid2", ("Valid2Value1", "Test String"),
+                    ("Valid2Value2", 233.4M))
             };
 
             var operationMetadata = new Dictionary<string, QueryOperationMetadata>
@@ -199,7 +164,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 context => context.AddVariable(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<DbType>(),
                     It.IsAny<bool>()), Times.Exactly(4));
 
-            void TestAction(QueryOperationMetadata metadata)
+            void TestAction(QueryOperationMetadata metadata, int index, bool firstList)
             {
                 collectedMetadata.Add(metadata);
             }
@@ -218,25 +183,9 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Bogus1",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        { "BogusValue1", null },
-                        { "BogusValue2", true }
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "Valid1",
-                    Parameters = new Dictionary<string, object>()
-                },
-                new QueryOperation
-                {
-                    Name = "Valid2",
-                    Parameters = new Dictionary<string, object>()
-                }
+                _metadataGenerator.GetQueryOperation("Bogus1", ("BogusValue1", null), ("BogusValue2", true)),
+                _metadataGenerator.GetQueryOperation("Valid1"),
+                _metadataGenerator.GetQueryOperation("Valid2")
             };
 
             var operationMetadata = new Dictionary<string, QueryOperationMetadata>
@@ -281,25 +230,9 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Bogus1",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        { "BogusValue1", null },
-                        { "BogusValue2", true }
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "Valid1",
-                    Parameters = new Dictionary<string, object>()
-                },
-                new QueryOperation
-                {
-                    Name = "Valid2",
-                    Parameters = new Dictionary<string, object>()
-                }
+                _metadataGenerator.GetQueryOperation("Bogus1", ("BogusValue1", null), ("BogusValue2", true)),
+                _metadataGenerator.GetQueryOperation("Valid1"),
+                _metadataGenerator.GetQueryOperation("Valid2")
             };
 
             var operationMetadata = new Dictionary<string, QueryOperationMetadata>
@@ -343,32 +276,11 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Bogus1",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        { "BogusValue1", null },
-                        { "BogusValue2", true }
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "Column1",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {DapperWrappersConstants.OrderByDirectionParameter, OrderDirections.Asc.ToString()}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "Subquery1",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {DapperWrappersConstants.OrderByDirectionParameter, OrderDirections.Desc.ToString()},
-                        {"Value1", 1}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Bogus1", ("BogusValue1", null), ("BogusValue2", true)),
+                _metadataGenerator.GetQueryOperation("Column1",
+                    (DapperWrappersConstants.OrderByDirectionParameter, OrderDirections.Asc.ToString())),
+                _metadataGenerator.GetQueryOperation("Subquery1",
+                    (DapperWrappersConstants.OrderByDirectionParameter, OrderDirections.Desc.ToString()), ("Value1", 1))
             };
 
             var operationMetadata = new Dictionary<string, QueryOperationMetadata>
@@ -412,11 +324,11 @@ namespace Dapper.Wrappers.Tests.Generators
         public List<string> TestFormatOperations<TOpMetadata>(IQueryContext context,
             IEnumerable<QueryOperation> operations, IDictionary<string, TOpMetadata> operationMetadata,
             Func<string, IEnumerable<string>, OrderDirections?, string> formatOperation,
-            Action<TOpMetadata> operationAction, bool checkOrdering = false, bool useUniqueVariables = true)
+            Action<TOpMetadata, int, bool> operationAction, bool checkOrdering = false, bool useUniqueVariables = true)
             where TOpMetadata : QueryOperationMetadata => FormatOperations(context, operations, operationMetadata,
             formatOperation, operationAction, checkOrdering, useUniqueVariables);
 
-        public void TestNoopOperationAction(QueryOperationMetadata metadata){}
+        public void TestNoopOperationAction(QueryOperationMetadata metadata, int index, bool firstList) {}
 
         public Func<string, IEnumerable<string>, OrderDirections?, string> TestGetNonOrderingFormatOperation(
             Func<string, IEnumerable<string>, string> operation)

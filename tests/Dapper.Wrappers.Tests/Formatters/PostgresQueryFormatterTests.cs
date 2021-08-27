@@ -169,11 +169,11 @@ namespace Dapper.Wrappers.Tests.Formatters
         }
 
         [Theory]
-        [InlineData(new[] { "This", "is", "a", "test" }, "This, is, a, test")]
-        [InlineData(new[] { "\"Column1\"", "\"Column2\"", "\"Column3\"" }, "\"Column1\", \"Column2\", \"Column3\"")]
-        [InlineData(new[] { "\"Column1\"" }, "\"Column1\"")]
-        [InlineData(new string[] { null }, "")]
-        [InlineData(new[] { "", "" }, ", ")]
+        [InlineData(new[] { "This", "is", "a", "test" }, "(This, is, a, test)")]
+        [InlineData(new[] { "\"Column1\"", "\"Column2\"", "\"Column3\"" }, "(\"Column1\", \"Column2\", \"Column3\")")]
+        [InlineData(new[] { "\"Column1\"" }, "(\"Column1\")")]
+        [InlineData(new string[] { null }, "()")]
+        [InlineData(new[] { "", "" }, "(, )")]
         public void FormatInsertColumns_WithInput_ShouldAddCommasBetweenInputs(string[] inputs, string output)
         {
             // Arrange
@@ -208,11 +208,11 @@ namespace Dapper.Wrappers.Tests.Formatters
         }
 
         [Theory]
-        [InlineData(new[] { "This", "is", "a", "test" }, "This, is, a, test")]
-        [InlineData(new[] { "@Value1", "@Value2", "@Value3" }, "@Value1, @Value2, @Value3")]
-        [InlineData(new[] { "@Value1" }, "@Value1")]
-        [InlineData(new string[] { null }, "")]
-        [InlineData(new[] { "", "" }, ", ")]
+        [InlineData(new[] { "This", "is", "a", "test" }, "(This, is, a, test)")]
+        [InlineData(new[] { "@Value1", "@Value2", "@Value3" }, "(@Value1, @Value2, @Value3)")]
+        [InlineData(new[] { "@Value1" }, "(@Value1)")]
+        [InlineData(new string[] { null }, "()")]
+        [InlineData(new[] { "", "" }, "(, )")]
         public void FormatInsertOperations_WithInputs_ShouldInsertCommasAndSpacesBetweenValues(string[] inputs,
             string output)
         {

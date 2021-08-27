@@ -5,6 +5,8 @@
 using Dapper.Wrappers.Formatters;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.ExceptionServices;
 
 namespace Dapper.Wrappers.Generators
 {
@@ -29,6 +31,12 @@ namespace Dapper.Wrappers.Generators
         /// </summary>
         /// <returns>A dictionary containing the required insert operations, indexed by the referenced column.</returns>
         protected abstract IDictionary<string, MergeOperationMetadata> GetRequiredInsertOperationMetadata();
+
+        /// <summary>
+        /// Default operations to be used in case an operation is missing from one of the values lists. The keys are
+        /// the referenced column of the insert operation.
+        /// </summary>
+        protected abstract IDictionary<string, QueryOperation> DefaultOperations { get; }
 
         protected InsertQueryGenerator(IQueryFormatter queryFormatter)
             : base(queryFormatter)
@@ -72,7 +80,7 @@ namespace Dapper.Wrappers.Generators
 
             context.AddQuery(query);
 
-            void InsertOperationAction(MergeOperationMetadata metadata)
+            void InsertOperationAction(MergeOperationMetadata metadata, int index, bool firstList)
             {
                 if (requiredOperations.ContainsKey(metadata.ReferencedColumn))
                 {
@@ -86,6 +94,88 @@ namespace Dapper.Wrappers.Generators
 
                 currentColumns.Add(metadata.ReferencedColumn);
                 formattedColumnNames.Add(QueryFormatter.FormatInsertColumn(metadata.ReferencedColumn));
+            }
+        }
+
+        /// <summary>
+        /// Adds an insert query with multiple values lists to the context.
+        /// </summary>
+        /// <param name="context">The context to be updated.</param>
+        /// <param name="insertOperations">The operations corresponding to the objects to be inserted into the database.</param>
+        public void AddMultipleInsertQuery(IQueryContext context,
+            IEnumerable<IEnumerable<QueryOperation>> insertOperations)
+        {
+            var operationsLists = insertOperations?.ToList();
+
+            var firstOperations = operationsLists?.FirstOrDefault();
+
+            if (firstOperations == null)
+            {
+                throw new ArgumentException("Insert operations cannot be empty.");
+            }
+
+            var requiredOperations = GetRequiredInsertOperationMetadata();
+
+            var currentColumns = new HashSet<string>();
+            var columnOrder = new List<string>();
+            var valuesLists = new List<string>();
+
+            List<string> formattedColumnNames = new List<string>();
+
+            var formattedOperations = FormatOperations(context, firstOperations, InsertOperationMetadata,
+                GetNonOrderingFormatOperation(QueryFormatter.FormatInsertOperation), InsertOperationAction);
+
+            AddRequiredInsertOperations(context, requiredOperations, formattedColumnNames, formattedOperations);
+
+            if (formattedOperations.Count == 0)
+            {
+                throw new ArgumentException("No insert operations specified.");
+            }
+
+            valuesLists.Add(QueryFormatter.FormatInsertOperations(formattedOperations));
+
+            foreach (var operationsList in operationsLists.Skip(1))
+            {
+                var orderedOperations = GetOrderedOperations(operationsList, columnOrder);
+
+                formattedOperations = FormatOperations(context, orderedOperations, InsertOperationMetadata,
+                    GetNonOrderingFormatOperation(QueryFormatter.FormatInsertOperation), InsertOperationAction,
+                    isFirstOperationList: false);
+
+                valuesLists.Add(QueryFormatter.FormatInsertOperations(formattedOperations));
+            }
+
+            var columnList = QueryFormatter.FormatInsertColumns(formattedColumnNames);
+            var operationList = QueryFormatter.FormatMultipleInsertValuesLists(valuesLists);
+            var query = QueryFormatter.FormatInsertQuery(InsertQueryString, columnList, operationList);
+
+            context.AddQuery(query);
+
+            void InsertOperationAction(MergeOperationMetadata metadata, int index, bool firstList)
+            {
+                if (firstList)
+                {
+                    if (requiredOperations.ContainsKey(metadata.ReferencedColumn))
+                    {
+                        requiredOperations.Remove(metadata.ReferencedColumn);
+                    }
+
+                    if (currentColumns.Contains(metadata.ReferencedColumn))
+                    {
+                        throw new ArgumentException("Cannot have multiple inserts into the same column.");
+                    }
+
+                    currentColumns.Add(metadata.ReferencedColumn);
+                    columnOrder.Add(metadata.ReferencedColumn);
+                    formattedColumnNames.Add(QueryFormatter.FormatInsertColumn(metadata.ReferencedColumn));
+                }
+                else
+                {
+                    if (columnOrder[index] != metadata.ReferencedColumn)
+                    {
+                        throw new ArgumentException("Columns must be created in the same order.");
+                    }
+                }
             }
         }
 
@@ -119,6 +209,44 @@ namespace Dapper.Wrappers.Generators
 
                 formattedColumnNames.Add(QueryFormatter.FormatInsertColumn(requiredOperation.Key));
                 formattedOperations.Add(QueryFormatter.FormatInsertOperation(requiredOperation.Value.BaseQueryString, parameterNames));
+            }
+        }
+
+        private IEnumerable<QueryOperation> GetOrderedOperations(IEnumerable<QueryOperation> operations,
+            List<string> columnOrder)
+        {
+            if (operations is null)
+            {
+                throw new ArgumentException("Cannot process a null operation.");
+            }
+
+            var operationLookup = new Dictionary<string, QueryOperation>();
+            foreach (var operation in operations)
+            {
+                var metadata = InsertOperationMetadata[operation.Name];
+
+                if (operationLookup.ContainsKey(metadata.ReferencedColumn))
+                {
+                    throw new ArgumentException("Cannot have multiple inserts into the same column.");
+                }
+
+                operationLookup[metadata.ReferencedColumn] = operation;
+            }
+
+            foreach (var column in columnOrder)
+            {
+                if (operationLookup.TryGetValue(column, out var operation))
+                {
+                    yield return operation;
+                }
+                else if (DefaultOperations.TryGetValue(column, out var defaultOperation))
+                {
+                    yield return defaultOperation;
+                }
+                else
+                {
+                    throw new ArgumentException($"Value must be supplied for '{column}'.");
+                }
             }
         }
     }

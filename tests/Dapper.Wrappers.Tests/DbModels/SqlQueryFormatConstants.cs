@@ -66,9 +66,9 @@ WHERE
                 public const string InsertQuery = @"
 INSERT INTO
   [Books]
-({0})
+{0}
 VALUES
-({1});";
+{1};";
 
                 public const string DefaultInsertQuery = @"
 INSERT INTO
@@ -237,9 +237,9 @@ WHERE
                 public const string InsertQuery = @"
 INSERT INTO
   ""Books""
-({0})
+{0}
 VALUES
-({1});";
+{1};";
 
                 public const string DefaultInsertQuery = @"
 INSERT INTO

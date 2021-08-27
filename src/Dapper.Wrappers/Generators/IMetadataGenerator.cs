@@ -28,5 +28,7 @@ namespace Dapper.Wrappers.Generators
 
         QueryParameterMetadata GetParameter(string name, DbType? paramType, object defaultValue = null,
             bool hasDefault = false);
+
+        QueryOperation GetQueryOperation(string name, params (string name, object value)[] parameters);
     }
 }

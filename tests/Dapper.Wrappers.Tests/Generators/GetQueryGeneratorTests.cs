@@ -23,13 +23,16 @@ namespace Dapper.Wrappers.Tests.Generators
         private readonly DatabaseFixture _databaseFixture;
         private readonly IDbConnection _sqlConnection;
         private readonly IDbConnection _postgresConnection;
+        private readonly IMetadataGenerator _metadataGenerator;
 
-        public GetQueryGeneratorTests(DatabaseFixture databaseFixture, IEnumerable<IDbConnection> connections)
+        public GetQueryGeneratorTests(DatabaseFixture databaseFixture, IEnumerable<IDbConnection> connections,
+            IMetadataGenerator metadataGenerator)
         {
             _databaseFixture = databaseFixture;
             var dbConnections = connections.ToList();
             _sqlConnection = dbConnections.FirstOrDefault(c => c is SqlConnection);
             _postgresConnection = dbConnections.FirstOrDefault(c => c is NpgsqlConnection);
+            _metadataGenerator = metadataGenerator;
         }
 
         private TestGetQueryGenerator GetTestInstance(SupportedDatabases dbType, string queryString,
@@ -94,14 +97,7 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddGetQuery(context, filterOperations, orderOperations);
@@ -158,28 +154,15 @@ namespace Dapper.Wrappers.Tests.Generators
             var context = GetQueryContext(dbType);
 
             // Act
-            var orderOperations = new []
+            var orderOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = operationName,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {DapperWrappersConstants.OrderByDirectionParameter, direction.ToString()}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(operationName,
+                    (DapperWrappersConstants.OrderByDirectionParameter, direction.ToString()))
             };
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddGetQuery(context, filterOperations, orderOperations);
@@ -306,26 +289,13 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var orderOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = orderOperation,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {DapperWrappersConstants.OrderByDirectionParameter, direction.ToString()}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(orderOperation,
+                    (DapperWrappersConstants.OrderByDirectionParameter, direction.ToString()))
             };
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddGetQuery(context, filterOperations, orderOperations, new Pagination
@@ -421,14 +391,7 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddGetQuery(context, filterOperations, orderOperations, new Pagination
@@ -498,22 +461,8 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = operationName,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BookID", books[bookIndex].BookID}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(operationName, ("BookID", books[bookIndex].BookID)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddGetQuery(context, filterOperations, orderOperations);
@@ -590,22 +539,8 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = operationName,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BookName", filterValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(operationName, ("BookName", filterValue)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddGetQuery(context, filterOperations, orderOperations);
@@ -697,34 +632,14 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var orderOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = orderOperation,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {DapperWrappersConstants.OrderByDirectionParameter, direction.ToString()}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(orderOperation,
+                    (DapperWrappersConstants.OrderByDirectionParameter, direction.ToString()))
             };
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "HasGenre",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"GenreName", genreFilter}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("HasGenre", ("GenreName", genreFilter)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddGetQuery(context, filterOperations, orderOperations);
@@ -859,34 +774,14 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var orderOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = orderOperation,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {DapperWrappersConstants.OrderByDirectionParameter, direction.ToString()}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(orderOperation,
+                    (DapperWrappersConstants.OrderByDirectionParameter, direction.ToString()))
             };
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "HasGenre",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"GenreName", genreFilter}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("HasGenre", ("GenreName", genreFilter)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddGetQuery(context, filterOperations, orderOperations, new Pagination
@@ -1001,22 +896,8 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "HasGenre",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"GenreName", genreFilter}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("HasGenre", ("GenreName", genreFilter)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddGetQuery(context, filterOperations, orderOperations, new Pagination

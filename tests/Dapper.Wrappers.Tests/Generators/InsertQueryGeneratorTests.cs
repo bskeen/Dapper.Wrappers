@@ -23,22 +23,26 @@ namespace Dapper.Wrappers.Tests.Generators
         private readonly DatabaseFixture _databaseFixture;
         private readonly IDbConnection _sqlConnection;
         private readonly IDbConnection _postgresConnection;
+        private readonly IMetadataGenerator _metadataGenerator;
 
-        public InsertQueryGeneratorTests(DatabaseFixture databaseFixture, IEnumerable<IDbConnection> connections)
+        public InsertQueryGeneratorTests(DatabaseFixture databaseFixture, IEnumerable<IDbConnection> connections,
+            IMetadataGenerator metadataGenerator)
         {
             _databaseFixture = databaseFixture;
             var dbConnections = connections.ToList();
             _sqlConnection = dbConnections.FirstOrDefault(c => c is SqlConnection);
             _postgresConnection = dbConnections.FirstOrDefault(c => c is NpgsqlConnection);
+            _metadataGenerator = metadataGenerator;
         }
 
         private TestInsertQueryGenerator GetTestInstance(SupportedDatabases dbType, string query,
             IDictionary<string, MergeOperationMetadata> metadata,
-            IDictionary<string, MergeOperationMetadata> requiredMetadata)
+            IDictionary<string, MergeOperationMetadata> requiredMetadata,
+            IDictionary<string, QueryOperation> defaultOperations)
         {
             var formatter = _databaseFixture.GetFormatter(dbType);
 
-            return new TestInsertQueryGenerator(formatter, query, metadata, requiredMetadata);
+            return new TestInsertQueryGenerator(formatter, query, metadata, requiredMetadata, defaultOperations);
         }
 
         private IDbConnection GetConnection(SupportedDatabases dbType) =>
@@ -69,7 +73,11 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata);
+            var defaultOperations = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
+                : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
+
+            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -95,7 +103,11 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var requiredMetadata = new Dictionary<string, MergeOperationMetadata>();
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata);
+            var defaultOperations = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
+                : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
+
+            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -121,22 +133,18 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var requiredMetadata = new Dictionary<string, MergeOperationMetadata>();
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata);
+            var defaultOperations = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
+                : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
+
+            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             // Act
             Action act = () => generator.AddInsertQuery(context, new []
             {
-                new QueryOperation
-                {
-                    Name = "Bogus1",
-                    Parameters = new Dictionary<string, object>()
-                },
-                new QueryOperation
-                {
-                    Name = "Bogus2",
-                    Parameters = new Dictionary<string, object>()
-                }
+                _metadataGenerator.GetQueryOperation("Bogus1"),
+                _metadataGenerator.GetQueryOperation("Bogus2")
             });
 
             // Assert
@@ -163,36 +171,19 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata);
+            var defaultOperations = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
+                : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
+
+            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             // Act
             Action act = () => generator.AddInsertQuery(context, new[]
             {
-                new QueryOperation
-                {
-                    Name = "BookID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BookID", Guid.NewGuid()}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestScope",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestScope", _databaseFixture.TestScope}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("BookID", ("BookID", Guid.NewGuid())),
+                _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
             });
 
             // Assert
@@ -219,44 +210,20 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata);
+            var defaultOperations = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
+                : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
+
+            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             // Act
             Action act = () => generator.AddInsertQuery(context, new[]
             {
-                new QueryOperation
-                {
-                    Name = "BookID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BookID", Guid.NewGuid()}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "BookID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BookID", Guid.NewGuid()}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestScope",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestScope", _databaseFixture.TestScope}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("BookID", ("BookID", Guid.NewGuid())),
+                _metadataGenerator.GetQueryOperation("BookID", ("BookID", Guid.NewGuid())),
+                _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
             });
 
             // Assert
@@ -294,7 +261,11 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata);
+            var defaultOperations = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
+                : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
+
+            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             var randomGenerator = new Random();
@@ -304,54 +275,12 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             generator.AddInsertQuery(context, new[]
             {
-                new QueryOperation
-                {
-                    Name = "BookID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BookID", bookId}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "Name",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Name", name}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "AuthorID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"AuthorID", authors[authorIndex].AuthorID}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "PageCount",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", pageCount}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestScope",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestScope", _databaseFixture.TestScope}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookId)),
+                _metadataGenerator.GetQueryOperation("Name", ("Name", name)),
+                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authors[authorIndex].AuthorID)),
+                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCount)),
+                _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
             });
 
             await context.ExecuteCommands();
@@ -397,7 +326,11 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata);
+            var defaultOperations = dbType == SupportedDatabases.SqlServer
+                ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
+                : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
+
+            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             var randomGenerator = new Random();
@@ -407,46 +340,11 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             generator.AddInsertQuery(context, new[]
             {
-                new QueryOperation
-                {
-                    Name = "BookID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BookID", bookId}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "AuthorID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"AuthorID", authors[authorIndex].AuthorID}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "PageCount",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", pageCount}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestScope",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestScope", _databaseFixture.TestScope}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookId)),
+                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authors[authorIndex].AuthorID)),
+                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCount)),
+                _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
             });
 
             await context.ExecuteCommands();
@@ -468,11 +366,13 @@ namespace Dapper.Wrappers.Tests.Generators
 
         public TestInsertQueryGenerator(IQueryFormatter queryFormatter, string queryString,
             IDictionary<string, MergeOperationMetadata> metadata,
-            IDictionary<string, MergeOperationMetadata> requiredMetadata) : base(queryFormatter)
+            IDictionary<string, MergeOperationMetadata> requiredMetadata,
+            IDictionary<string, QueryOperation> defaultOperations) : base(queryFormatter)
         {
             InsertQueryString = queryString;
             InsertOperationMetadata = metadata;
             _requiredMetadata = requiredMetadata;
+            DefaultOperations = defaultOperations;
         }
 
         protected override string InsertQueryString { get; }
@@ -480,5 +380,7 @@ namespace Dapper.Wrappers.Tests.Generators
 
         protected override IDictionary<string, MergeOperationMetadata> GetRequiredInsertOperationMetadata() =>
             new Dictionary<string, MergeOperationMetadata>(_requiredMetadata);
+
+        protected override IDictionary<string, QueryOperation> DefaultOperations { get; }
     }
 }

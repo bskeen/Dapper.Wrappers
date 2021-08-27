@@ -94,22 +94,8 @@ namespace Dapper.Wrappers.Tests.Generators
 
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Column1",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Column1", 1}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "Subquery1",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Value1", 2}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Column1", ("Column1", 1)),
+                _metadataGenerator.GetQueryOperation("Subquery1", ("Value1", 2))
             };
 
             // Act

@@ -16,8 +16,15 @@ namespace Dapper.Wrappers.Generators
         /// </summary>
         /// <param name="context">The context to be updated.</param>
         /// <param name="insertOperations">
-        /// The objects to be inserted into the database.
+        /// The operations corresponding to the object to be inserted into the database.
         /// </param>
         void AddInsertQuery(IQueryContext context, IEnumerable<QueryOperation> insertOperations);
+
+        /// <summary>
+        /// Adds an insert query with multiple values lists to the context.
+        /// </summary>
+        /// <param name="context">The context to be updated.</param>
+        /// <param name="insertOperations">The operations corresponding to the objects to be inserted into the database.</param>
+        void AddMultipleInsertQuery(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> insertOperations);
     }
 }
