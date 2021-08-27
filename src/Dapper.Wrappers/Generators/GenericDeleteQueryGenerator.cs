@@ -7,12 +7,22 @@ using Dapper.Wrappers.Formatters;
 
 namespace Dapper.Wrappers.Generators
 {
-    public abstract class GenericDeleteQueryGenerator<T> : DeleteQueryGenerator, IGenericDeleteQueryGenerator<T>
+    /// <summary>
+    /// Adds a method to the Delete query generator that can create the operations
+    /// for the AddDeleteQuery method from a given type.
+    /// </summary>
+    /// <typeparam name="TSource">The type from which to generate the query operations.</typeparam>
+    public abstract class GenericDeleteQueryGenerator<TSource> : DeleteQueryGenerator, IGenericDeleteQueryGenerator<TSource>
     {
         protected GenericDeleteQueryGenerator(IQueryFormatter queryFormatter) : base(queryFormatter)
         {
         }
 
-        public abstract IEnumerable<QueryOperation> GetDeleteQueryOperations(T operationSource);
+        /// <summary>
+        /// Creates query operations to be passed to the AddDeleteQuery method.
+        /// </summary>
+        /// <param name="source">The object to be converted into query operations.</param>
+        /// <returns>The list of QueryOperations.</returns>
+        public abstract IEnumerable<QueryOperation> GetDeleteQueryOperations(TSource source);
     }
 }

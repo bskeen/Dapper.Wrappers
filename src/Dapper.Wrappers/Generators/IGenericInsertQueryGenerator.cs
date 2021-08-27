@@ -6,8 +6,18 @@ using System.Collections.Generic;
 
 namespace Dapper.Wrappers.Generators
 {
+    /// <summary>
+    /// Adds a method to the Insert query generator that can create the operations
+    /// for the AddInsertQuery method from a given type.
+    /// </summary>
+    /// <typeparam name="T">The type from which to generate the insert operations.</typeparam>
     public interface IGenericInsertQueryGenerator<in T> : IInsertQueryGenerator
     {
-        IEnumerable<QueryOperation> GetInsertQueryOperationsFromEntity(T entity);
+        /// <summary>
+        /// Creates insert query operations to be passed to the AddInsertQuery method.
+        /// </summary>
+        /// <param name="source">The object to be converted into insert query operations.</param>
+        /// <returns>The list of insert QueryOperations.</returns>
+        IEnumerable<QueryOperation> GetInsertQueryOperationsFromSource(T source);
     }
 }
