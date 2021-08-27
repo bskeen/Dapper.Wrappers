@@ -19,13 +19,16 @@ namespace Dapper.Wrappers.Tests.Generators
         private readonly DatabaseFixture _databaseFixture;
         private readonly IDbConnection _sqlConnection;
         private readonly IDbConnection _postgresConnection;
+        private readonly IMetadataGenerator _metadataGenerator;
 
-        public UpdateQueryGeneratorTests(DatabaseFixture databaseFixture, IEnumerable<IDbConnection> connections)
+        public UpdateQueryGeneratorTests(DatabaseFixture databaseFixture, IEnumerable<IDbConnection> connections,
+            IMetadataGenerator metadataGenerator)
         {
             _databaseFixture = databaseFixture;
             var dbConnections = connections.ToList();
             _sqlConnection = dbConnections.FirstOrDefault(c => c is SqlConnection);
             _postgresConnection = dbConnections.FirstOrDefault(c => c is NpgsqlConnection);
+            _metadataGenerator = metadataGenerator;
         }
 
         private TestUpdateQueryGenerator GetTestInstance(SupportedDatabases dbType, string updateQueryString,
@@ -99,42 +102,14 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Name",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Name", nameValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "AuthorID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"AuthorID", authorIdValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "PageCount",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", pageCountValue}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Name", ("Name", nameValue)),
+                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authorIdValue)),
+                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCountValue))
             };
 
-            var filterOperations = new QueryOperation[]
+            var filterOperations = new []
             {
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddUpdateQuery(context, operations, filterOperations);
@@ -204,24 +179,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new []
             {
-                new QueryOperation
-                {
-                    Name = "Bogus1",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BogusValue1", 1},
-                        {"BogusValue2", "Really Bogus!"}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "Bogus2",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BogusValue3", Guid.NewGuid()},
-                        {"BogusValue4", null}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Bogus1", ("BogusValue1", 1), ("BogusValue2", "Really Bogus!")),
+                _metadataGenerator.GetQueryOperation("Bogus2", ("BogusValue3", Guid.NewGuid()), ("BogusValue4", null))
             };
 
             Action act = () => generator.AddUpdateQuery(context, operations, operations);
@@ -254,22 +213,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Name",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Name", "Test Name 1"}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "Name",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Name", "Test Name 2"}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Name", ("Name", "Test Name 1")),
+                _metadataGenerator.GetQueryOperation("Name", ("Name", "Test Name 2"))
             };
 
             Action act = () => generator.AddUpdateQuery(context, operations, operations);
@@ -327,50 +272,15 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Name",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Name", nameValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "AuthorID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"AuthorID", authorIdValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "PageCount",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", pageCountValue}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Name", ("Name", nameValue)),
+                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authorIdValue)),
+                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCountValue))
             };
 
             var filterOperations = new []
             {
-                new QueryOperation
-                {
-                    Name = filterOperationName,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BookID", books[bookIndex].BookID}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(filterOperationName, ("BookID", books[bookIndex].BookID)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddUpdateQuery(context, operations, filterOperations);
@@ -456,50 +366,15 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Name",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Name", nameValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "AuthorID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"AuthorID", authorIdValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "PageCount",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", pageCountValue}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Name", ("Name", nameValue)),
+                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authorIdValue)),
+                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCountValue))
             };
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "BookIDIn",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BookIDs", idsToUpdate}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("BookIDIn", ("BookIDs", idsToUpdate)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddUpdateQuery(context, operations, filterOperations);
@@ -601,50 +476,15 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Name",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Name", nameValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "AuthorID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"AuthorID", authorIdValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "PageCount",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", pageCountValue}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Name",("Name", nameValue)),
+                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authorIdValue)),
+                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCountValue))
             };
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = filterOperationName,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BookName", filterOperationValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(filterOperationName, ("BookName", filterOperationValue)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddUpdateQuery(context, operations, filterOperations);
@@ -721,50 +561,15 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Name",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Name", nameValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "AuthorID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"AuthorID", authorIdValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "PageCount",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", pageCountValue}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Name", ("Name", nameValue)),
+                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authorIdValue)),
+                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCountValue))
             };
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = filterOperationName,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", filterOperationValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(filterOperationName, ("PageCount", filterOperationValue)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddUpdateQuery(context, operations, filterOperations);
@@ -832,51 +637,16 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Name",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Name", nameValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "AuthorID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"AuthorID", authorIdValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "PageCount",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", pageCountValue}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Name", ("Name", nameValue)),
+                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authorIdValue)),
+                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCountValue))
             };
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "PageCountBetween",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCountStart", start},
-                        {"PageCountEnd", end}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("PageCountBetween", ("PageCountStart", start),
+                    ("PageCountEnd", end)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddUpdateQuery(context, operations, filterOperations);
@@ -938,47 +708,15 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Name",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Name", nameValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "AuthorID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"AuthorID", authorIdValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "PageCount",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", pageCountValue}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Name", ("Name", nameValue)),
+                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authorIdValue)),
+                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCountValue))
             };
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = filterOperationName,
-                    Parameters = new Dictionary<string, object>()
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(filterOperationName),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddUpdateQuery(context, operations, filterOperations);
@@ -1053,50 +791,15 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "Name",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"Name", nameValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "AuthorID",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"AuthorID", authorIdValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "PageCount",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", pageCountValue}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("Name", ("Name", nameValue)),
+                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authorIdValue)),
+                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCountValue))
             };
 
             var filterOperations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "HasGenre",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"GenreName", genreName}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("HasGenre", ("GenreName", genreName)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddUpdateQuery(context, operations, filterOperations);

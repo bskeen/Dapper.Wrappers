@@ -88,7 +88,7 @@ namespace Dapper.Wrappers.Formatters
         /// <returns>The formatted column list.</returns>
         public string FormatInsertColumns(IEnumerable<string> insertColumns)
         {
-            return string.Join(", ", insertColumns);
+            return $"({string.Join(", ", insertColumns)})";
         }
 
         /// <summary>
@@ -109,7 +109,17 @@ namespace Dapper.Wrappers.Formatters
         /// <returns>The formatted value list.</returns>
         public string FormatInsertOperations(IEnumerable<string> insertOperations)
         {
-            return string.Join(", ", insertOperations);
+            return $"({string.Join(", ", insertOperations)})";
+        }
+
+        /// <summary>
+        /// Combines multiple formatted values lists to allow multiple inserts to be performed.
+        /// </summary>
+        /// <param name="valuesLists">Each item contains a distinct values list to be included in the insert.</param>
+        /// <returns>The formatted list of values lists.</returns>
+        public string FormatMultipleInsertValuesLists(IEnumerable<string> valuesLists)
+        {
+            return string.Join(",", valuesLists);
         }
 
         /// <summary>

@@ -57,7 +57,7 @@ namespace Dapper.Wrappers.Generators
 
             context.AddQuery(query);
 
-            void UpdateOperationAction(MergeOperationMetadata metadata)
+            void UpdateOperationAction(MergeOperationMetadata metadata, int index, bool firstList)
             {
                 if (currentColumns.Contains(metadata.ReferencedColumn))
                 {

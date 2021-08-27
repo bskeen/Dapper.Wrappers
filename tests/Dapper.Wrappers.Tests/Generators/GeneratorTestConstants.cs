@@ -132,6 +132,17 @@ namespace Dapper.Wrappers.Tests.Generators
                     {"TestID", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestID", "{0}")}
                 };
 
+            public static readonly IDictionary<string, QueryOperation> DefaultBookInsertOperations =
+                new Dictionary<string, QueryOperation>
+                {
+                    {
+                        "Name", MetadataGenerator.GetQueryOperation("Name", ("Name", "This is a Default Book"))
+                    },
+                    {
+                        "PageCount", MetadataGenerator.GetQueryOperation("PageCount", ("PageCount", null))
+                    }
+                };
+
             public static readonly string DefaultBookOrdering = "ORDER BY [Name] ASC";
 
             public static readonly IDictionary<string, QueryOperationMetadata> DefaultBookOrderMetadata =
@@ -403,6 +414,17 @@ namespace Dapper.Wrappers.Tests.Generators
                     {"AuthorID", MetadataGenerator.GetDefaultMergeOperation<Guid>("AuthorID", "{0}")},
                     {"TestScope", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestScope", "{0}")},
                     {"TestID", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestID", "{0}")}
+                };
+
+            public static readonly IDictionary<string, QueryOperation> DefaultBookInsertOperations =
+                new Dictionary<string, QueryOperation>
+                {
+                    {
+                        "Name", MetadataGenerator.GetQueryOperation("Name", ("Name", "This is a Default Book"))
+                    },
+                    {
+                        "PageCount", MetadataGenerator.GetQueryOperation("PageCount", ("PageCount", null))
+                    }
                 };
 
             public static readonly string DefaultBookOrdering = "ORDER BY \"Name\" ASC";

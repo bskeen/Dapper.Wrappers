@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using Dapper.Wrappers.Formatters;
+using Dapper.Wrappers.Generators;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -67,6 +68,7 @@ namespace Dapper.Wrappers.DependencyInjection
             }
 
             services.TryAddScoped(typeof(IQueryContext), options.QueryContextType);
+            services.TryAddSingleton<IMetadataGenerator, MetadataGenerator>();
 
             if (options.DbConnectionType != null)
             {

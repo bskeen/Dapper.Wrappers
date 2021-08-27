@@ -109,5 +109,17 @@ namespace Dapper.Wrappers.Generators
                 DefaultValue = null
             };
         }
+
+        public QueryOperation GetQueryOperation(string name, params (string name, object value)[] parameters)
+        {
+            var paramDictionary =
+                parameters.ToDictionary(paramValues => paramValues.name, paramValues => paramValues.value);
+
+            return new QueryOperation
+            {
+                Name = name,
+                Parameters = paramDictionary
+            };
+        }
     }
 }

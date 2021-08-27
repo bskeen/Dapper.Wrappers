@@ -23,13 +23,16 @@ namespace Dapper.Wrappers.Tests.Generators
         private readonly DatabaseFixture _databaseFixture;
         private readonly IDbConnection _sqlConnection;
         private readonly IDbConnection _postgresConnection;
+        private readonly IMetadataGenerator _metadataGenerator;
 
-        public DeleteQueryGeneratorTests(DatabaseFixture databaseFixture, IEnumerable<IDbConnection> connections)
+        public DeleteQueryGeneratorTests(DatabaseFixture databaseFixture, IEnumerable<IDbConnection> connections,
+            IMetadataGenerator metadataGenerator)
         {
             _databaseFixture = databaseFixture;
             var dbConnections = connections.ToList();
             _sqlConnection = dbConnections.FirstOrDefault(c => c is SqlConnection);
             _postgresConnection = dbConnections.FirstOrDefault(c => c is NpgsqlConnection);
+            _metadataGenerator = metadataGenerator;
         }
 
         private TestDeleteQueryGenerator GetTestInstance(SupportedDatabases dbType, string deleteQueryString,
@@ -86,22 +89,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = operationName,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"GenreID", genres[genreIndex].GenreID}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(operationName, ("GenreID", genres[genreIndex].GenreID)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddDeleteQuery(context, operations);
@@ -164,22 +153,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "GenreIDIn",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"GenreIDs", idsToDelete}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("GenreIDIn", ("GenreIDs", idsToDelete)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddDeleteQuery(context, operations);
@@ -259,22 +234,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = operationName,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"GenreName", operationValue}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(operationName, ("GenreName", operationValue)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddDeleteQuery(context, operations);
@@ -329,22 +290,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "NameIn",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"GenreNames", namesToDelete}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("NameIn", ("GenreNames", namesToDelete)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddDeleteQuery(context, operations);
@@ -398,22 +345,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = operationName,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"BookID", books[bookIndex].BookID}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(operationName, ("BookID", books[bookIndex].BookID)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddDeleteQuery(context, operations);
@@ -478,22 +411,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = operationName,
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCount", value}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(operationName, ("PageCount", value)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddDeleteQuery(context, operations);
@@ -542,19 +461,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = operationName,
-                    Parameters = new Dictionary<string, object>()
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation(operationName),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddDeleteQuery(context, operations);
@@ -615,23 +523,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "PageCountBetween",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"PageCountStart", start},
-                        {"PageCountEnd", end}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                _metadataGenerator.GetQueryOperation("PageCountBetween", ("PageCountStart", start), ("PageCountEnd", end)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddDeleteQuery(context, operations);
@@ -686,22 +579,8 @@ namespace Dapper.Wrappers.Tests.Generators
             // Act
             var operations = new[]
             {
-                new QueryOperation
-                {
-                    Name = "HasGenre",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"GenreName", genreName}
-                    }
-                },
-                new QueryOperation
-                {
-                    Name = "TestIDEquals",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        {"TestID", testId}
-                    }
-                }
+                this._metadataGenerator.GetQueryOperation("HasGenre", ("GenreName", genreName)),
+                _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
             generator.AddDeleteQuery(context, operations);

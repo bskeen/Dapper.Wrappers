@@ -38,8 +38,8 @@ namespace Dapper.Wrappers.Generators
         /// <returns></returns>
         protected virtual List<string> FormatOperations<TOpMetadata>(IQueryContext context, IEnumerable<QueryOperation> operations,
             IDictionary<string, TOpMetadata> operationMetadata,
-            Func<string, IEnumerable<string>, OrderDirections?, string> formatOperation, Action<TOpMetadata> operationAction,
-            bool checkOrdering = false, bool useUniqueVariables = true)
+            Func<string, IEnumerable<string>, OrderDirections?, string> formatOperation, Action<TOpMetadata, int, bool> operationAction,
+            bool checkOrdering = false, bool useUniqueVariables = true, bool isFirstOperationList = true)
             where TOpMetadata : QueryOperationMetadata
         {
             List<string> formattedOperations = new List<string>();
@@ -49,11 +49,13 @@ namespace Dapper.Wrappers.Generators
                 return formattedOperations;
             }
 
+            var index = 0;
+
             foreach (var operation in operations.Where(o => operationMetadata.ContainsKey(o.Name)))
             {
                 var currentOperationMetadata = operationMetadata[operation.Name];
 
-                operationAction(currentOperationMetadata);
+                operationAction(currentOperationMetadata, index++, isFirstOperationList);
 
                 List<string> parameterNames = new List<string>();
                 OrderDirections? orderDirection = null;
@@ -98,7 +100,8 @@ namespace Dapper.Wrappers.Generators
         /// An action that can be used if no action is required to process the operations.
         /// </summary>
         /// <param name="metadata">The operation being processed.</param>
-        protected void NoopOperationAction(QueryOperationMetadata metadata) { }
+        /// <param name="index">The index of the currently processed operation.</param>
+        protected void NoopOperationAction(QueryOperationMetadata metadata, int index, bool firstList) { }
 
         protected Func<string, IEnumerable<string>, OrderDirections?, string> GetNonOrderingFormatOperation(
             Func<string, IEnumerable<string>, string> operation)

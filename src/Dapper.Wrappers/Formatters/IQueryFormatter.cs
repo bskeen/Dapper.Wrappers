@@ -79,6 +79,13 @@ namespace Dapper.Wrappers.Formatters
         string FormatInsertOperations(IEnumerable<string> insertOperations);
 
         /// <summary>
+        /// Combines multiple formatted values lists to allow multiple inserts to be performed.
+        /// </summary>
+        /// <param name="valuesLists">Each item contains a distinct values list to be included in the insert.</param>
+        /// <returns>The formatted list of values lists.</returns>
+        string FormatMultipleInsertValuesLists(IEnumerable<string> valuesLists);
+
+        /// <summary>
         /// Formats an insert query given the different pieces.
         /// </summary>
         /// <param name="baseQueryString">The base query string to use for the insert query.</param>
