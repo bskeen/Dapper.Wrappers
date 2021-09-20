@@ -1,28 +1,11 @@
-﻿// © 2021 by Benjamin Skeen
-// Licensed to be used under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dapper.Wrappers.OperationFormatters;
 
-namespace Dapper.Wrappers.Generators
+namespace Dapper.Wrappers.QueryFormatters
 {
-    /// <summary>
-    /// Provides basic fo
-    /// </summary>
-    public abstract class QueryGenerator
+    public class QueryFormatter<T>
     {
-        /// <summary>
-        /// Returns the IQueryFormatter that is passed to the constructor.
-        /// </summary>
-        protected IQueryOperationFormatter QueryFormatter { get; }
-
-        protected QueryGenerator(IQueryOperationFormatter queryFormatter)
-        {
-            QueryFormatter = queryFormatter;
-        }
 
         /// <summary>
         /// Formats the given operations using the given format function.
@@ -33,13 +16,15 @@ namespace Dapper.Wrappers.Generators
         /// <param name="operationMetadata">The metadata about allowed operations.</param>
         /// <param name="formatOperation">The format operation to use.</param>
         /// <param name="operationAction">An additional action to apply to each operation.</param>
+        /// <param name="operationActionState">Any state needed by the input operationAction.</param>
         /// <param name="checkOrdering">Whether or not to check for an ordering parameter.</param>
         /// <param name="useUniqueVariables">Whether or not to add unique variables to the context.</param>
         /// <returns></returns>
-        protected virtual List<string> FormatOperations<TOpMetadata>(IQueryContext context, IEnumerable<QueryOperation> operations,
-            IDictionary<string, TOpMetadata> operationMetadata,
-            Func<string, IEnumerable<string>, OrderDirections?, string> formatOperation, Action<TOpMetadata, int, bool> operationAction,
-            bool checkOrdering = false, bool useUniqueVariables = true, bool isFirstOperationList = true)
+        protected virtual List<string> FormatOperations<TOpMetadata>(IQueryContext context,
+            IEnumerable<QueryOperation> operations, IDictionary<string, TOpMetadata> operationMetadata,
+            Func<string, IEnumerable<string>, OrderDirections?, string> formatOperation,
+            Action<TOpMetadata, int, T> operationAction, T operationActionState, bool checkOrdering = false,
+            bool useUniqueVariables = true)
             where TOpMetadata : QueryOperationMetadata
         {
             List<string> formattedOperations = new List<string>();
@@ -55,7 +40,7 @@ namespace Dapper.Wrappers.Generators
             {
                 var currentOperationMetadata = operationMetadata[operation.Name];
 
-                operationAction(currentOperationMetadata, index++, isFirstOperationList);
+                operationAction(currentOperationMetadata, index++, operationActionState);
 
                 List<string> parameterNames = new List<string>();
                 OrderDirections? orderDirection = null;
@@ -101,12 +86,12 @@ namespace Dapper.Wrappers.Generators
         /// </summary>
         /// <param name="metadata">The operation being processed.</param>
         /// <param name="index">The index of the currently processed operation.</param>
-        protected void NoopOperationAction(QueryOperationMetadata metadata, int index, bool firstList) { }
+        protected void NoopOperationAction(QueryOperationMetadata metadata, int index, T state) { }
 
         protected Func<string, IEnumerable<string>, OrderDirections?, string> GetNonOrderingFormatOperation(
             Func<string, IEnumerable<string>, string> operation)
         {
-            return (string operationString, IEnumerable<string> variableNames, OrderDirections? orderDirection) =>
+            return (operationString, variableNames, orderDirection) =>
                 operation(operationString, variableNames);
         }
     }

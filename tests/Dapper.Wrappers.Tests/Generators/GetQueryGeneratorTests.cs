@@ -8,8 +8,8 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Generators;
+using Dapper.Wrappers.OperationFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
@@ -928,7 +928,7 @@ namespace Dapper.Wrappers.Tests.Generators
 
     public class TestGetQueryGenerator : GetQueryGenerator
     {
-        public TestGetQueryGenerator(IQueryFormatter queryFormatter, string queryString, string defaultOrdering,
+        public TestGetQueryGenerator(IQueryOperationFormatter queryFormatter, string queryString, string defaultOrdering,
             IDictionary<string, QueryOperationMetadata> filterMetadata,
             IDictionary<string, QueryOperationMetadata> orderMetadata) : base(queryFormatter)
         {

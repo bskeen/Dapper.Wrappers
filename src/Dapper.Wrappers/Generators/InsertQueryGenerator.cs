@@ -2,11 +2,11 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Dapper.Wrappers.Formatters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using Dapper.Wrappers.OperationFormatters;
 
 namespace Dapper.Wrappers.Generators
 {
@@ -38,7 +38,7 @@ namespace Dapper.Wrappers.Generators
         /// </summary>
         protected abstract IDictionary<string, QueryOperation> DefaultOperations { get; }
 
-        protected InsertQueryGenerator(IQueryFormatter queryFormatter)
+        protected InsertQueryGenerator(IQueryOperationFormatter queryFormatter)
             : base(queryFormatter)
         {
         }

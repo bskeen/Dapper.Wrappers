@@ -4,8 +4,8 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Generators;
+using Dapper.Wrappers.OperationFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
@@ -822,7 +822,7 @@ namespace Dapper.Wrappers.Tests.Generators
 
     public class TestUpdateQueryGenerator : UpdateQueryGenerator
     {
-        public TestUpdateQueryGenerator(IQueryFormatter queryFormatter, string updateQueryString,
+        public TestUpdateQueryGenerator(IQueryOperationFormatter queryFormatter, string updateQueryString,
             IDictionary<string, MergeOperationMetadata> updateMetadata,
             IDictionary<string, QueryOperationMetadata> filterMetadata) : base(queryFormatter)
         {

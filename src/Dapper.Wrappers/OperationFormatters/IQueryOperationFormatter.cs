@@ -4,12 +4,12 @@
 
 using System.Collections.Generic;
 
-namespace Dapper.Wrappers.Formatters
+namespace Dapper.Wrappers.OperationFormatters
 {
     /// <summary>
     /// Provides methods to format a query given the operations.
     /// </summary>
-    public interface IQueryFormatter
+    public interface IQueryOperationFormatter
     {
         /// <summary>
         /// Formats a delete query given the different pieces.
@@ -108,7 +108,15 @@ namespace Dapper.Wrappers.Formatters
         /// </summary>
         /// <param name="orderOperations">Formatted order operations to combine into a get query's order by statement.</param>
         /// <returns>The formatted order by statement.</returns>
-        string FormatOrderOperations(IEnumerable<string> orderOperations);
+        string FormatOrderOperations(IEnumerable<string> orderOperations, string pagination = null);
+
+        /// <summary>
+        /// Formats the variables containing the skip and take parameters into a pagination statement.
+        /// </summary>
+        /// <param name="skipVariable">The name of the skip variable.</param>
+        /// <param name="takeVariable">The name of the take variable.</param>
+        /// <returns>A correctly formatted pagination statement.</returns>
+        string FormatPagination(string skipVariable, string takeVariable);
 
         /// <summary>
         /// Formats an update operation with the given variable names.

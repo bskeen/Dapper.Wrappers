@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Generators;
+using Dapper.Wrappers.OperationFormatters;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -19,9 +19,9 @@ namespace Dapper.Wrappers.Tests.Generators
         private static TestFilterableQueryGenerator GetDefaultTestInstance(SupportedDatabases dbType,
             IDictionary<string, QueryOperationMetadata> metadata)
         {
-            IQueryFormatter formatter = dbType == SupportedDatabases.SqlServer
-                ? (IQueryFormatter)(new SqlServerQueryFormatter())
-                : new PostgresQueryFormatter();
+            IQueryOperationFormatter formatter = dbType == SupportedDatabases.SqlServer
+                ? (IQueryOperationFormatter)(new SqlServerQueryOperationFormatter())
+                : new PostgresQueryOperationFormatter();
             
             return new TestFilterableQueryGenerator(formatter, metadata);
         }
@@ -108,7 +108,7 @@ namespace Dapper.Wrappers.Tests.Generators
 
     public class TestFilterableQueryGenerator : FilterableQueryGenerator
     {
-        public TestFilterableQueryGenerator(IQueryFormatter queryFormatter,
+        public TestFilterableQueryGenerator(IQueryOperationFormatter queryFormatter,
             IDictionary<string, QueryOperationMetadata> filterOperationMetadata) : base(queryFormatter)
         {
             FilterOperationMetadata = filterOperationMetadata;

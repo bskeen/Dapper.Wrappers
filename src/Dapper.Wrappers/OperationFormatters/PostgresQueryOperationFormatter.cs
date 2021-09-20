@@ -2,12 +2,12 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Dapper.Wrappers.Formatters
+namespace Dapper.Wrappers.OperationFormatters
 {
     /// <summary>
     /// Provides methods to format a PostgreSQL query given the operations.
     /// </summary>
-    public class PostgresQueryFormatter : BaseSqlQueryFormatter
+    public class PostgresQueryOperationFormatter : BaseSqlQueryOperationFormatter
     {
         /// <summary>
         /// Formats an identifier (such as a column name) for use in a query.

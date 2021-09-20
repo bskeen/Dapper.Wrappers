@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
-using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Generators;
+using Dapper.Wrappers.OperationFormatters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -24,8 +24,8 @@ namespace Dapper.Wrappers.DependencyInjection
         /// </summary>
         private static readonly IDictionary<SupportedDatabases, Type> QueryFormatterTypes = new Dictionary<SupportedDatabases, Type>
         {
-            { SupportedDatabases.SqlServer, typeof(SqlServerQueryFormatter) },
-            { SupportedDatabases.PostgreSQL, typeof(PostgresQueryFormatter) }
+            { SupportedDatabases.SqlServer, typeof(SqlServerQueryOperationFormatter) },
+            { SupportedDatabases.PostgreSQL, typeof(PostgresQueryOperationFormatter) }
         };
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Dapper.Wrappers.DependencyInjection
         {
             if (QueryFormatterTypes.ContainsKey(options.DatabaseEngine))
             {
-                services.TryAddSingleton(typeof(IQueryFormatter), QueryFormatterTypes[options.DatabaseEngine]);
+                services.TryAddSingleton(typeof(IQueryOperationFormatter), QueryFormatterTypes[options.DatabaseEngine]);
             }
 
             services.TryAddScoped(typeof(IQueryContext), options.QueryContextType);

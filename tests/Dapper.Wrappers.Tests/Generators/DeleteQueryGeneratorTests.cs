@@ -8,8 +8,8 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Generators;
+using Dapper.Wrappers.OperationFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
@@ -606,7 +606,7 @@ namespace Dapper.Wrappers.Tests.Generators
 
     public class TestDeleteQueryGenerator : DeleteQueryGenerator
     {
-        public TestDeleteQueryGenerator(IQueryFormatter queryFormatter, string deleteQueryString,
+        public TestDeleteQueryGenerator(IQueryOperationFormatter queryFormatter, string deleteQueryString,
             IDictionary<string, QueryOperationMetadata> filterOperationMetadata) : base(queryFormatter)
         {
             FilterOperationMetadata = filterOperationMetadata;

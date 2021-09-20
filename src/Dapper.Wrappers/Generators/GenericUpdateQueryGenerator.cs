@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Dapper.Wrappers.Formatters;
+using Dapper.Wrappers.OperationFormatters;
 
 namespace Dapper.Wrappers.Generators
 {
@@ -16,7 +16,7 @@ namespace Dapper.Wrappers.Generators
     public abstract class GenericUpdateQueryGenerator<TFilter, TUpdate> : UpdateQueryGenerator,
         IGenericUpdateQueryGenerator<TFilter, TUpdate>
     {
-        protected GenericUpdateQueryGenerator(IQueryFormatter queryFormatter) : base(queryFormatter)
+        protected GenericUpdateQueryGenerator(IQueryOperationFormatter queryFormatter) : base(queryFormatter)
         {
         }
 

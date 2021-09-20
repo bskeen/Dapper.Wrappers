@@ -5,12 +5,12 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Dapper.Wrappers.Formatters
+namespace Dapper.Wrappers.OperationFormatters
 {
     /// <summary>
     /// Provides methods to format a SQL query given the operations.
     /// </summary>
-    public abstract class BaseSqlQueryFormatter : IQueryFormatter
+    public abstract class BaseSqlQueryOperationFormatter : IQueryOperationFormatter
     {
         /// <summary>
         /// Formats a delete query given the different pieces.
@@ -155,9 +155,9 @@ namespace Dapper.Wrappers.Formatters
         /// </summary>
         /// <param name="orderOperations">Formatted order operations to combine into a get query's order by statement.</param>
         /// <returns>The formatted order by statement.</returns>
-        public string FormatOrderOperations(IEnumerable<string> orderOperations)
+        public string FormatOrderOperations(IEnumerable<string> orderOperations, string pagination = null)
         {
-            return $"ORDER BY {string.Join(", ", orderOperations)}";
+            return $"ORDER BY {string.Join(", ", orderOperations)} {pagination}";
         }
 
         /// <summary>

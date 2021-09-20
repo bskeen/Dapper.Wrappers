@@ -8,8 +8,8 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Formatters;
 using Dapper.Wrappers.Generators;
+using Dapper.Wrappers.OperationFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
@@ -750,7 +750,7 @@ namespace Dapper.Wrappers.Tests.Generators
     {
         private readonly IDictionary<string, MergeOperationMetadata> _requiredMetadata;
 
-        public TestInsertQueryGenerator(IQueryFormatter queryFormatter, string queryString,
+        public TestInsertQueryGenerator(IQueryOperationFormatter queryFormatter, string queryString,
             IDictionary<string, MergeOperationMetadata> metadata,
             IDictionary<string, MergeOperationMetadata> requiredMetadata,
             IDictionary<string, QueryOperation> defaultOperations) : base(queryFormatter)

@@ -2,7 +2,7 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Dapper.Wrappers.Formatters;
+using Dapper.Wrappers.OperationFormatters;
 using FluentAssertions;
 using Xunit;
 
@@ -10,7 +10,7 @@ namespace Dapper.Wrappers.Tests.Formatters
 {
     public class SqlServerQueryFormatterTests
     {
-        private readonly SqlServerQueryFormatter _formatter = new SqlServerQueryFormatter();
+        private readonly SqlServerQueryOperationFormatter _operationFormatter = new SqlServerQueryOperationFormatter();
 
         [Theory]
         [InlineData("TestIdentifier1", "[TestIdentifier1]")]
@@ -25,7 +25,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatIdentifier(input);
+            var result = _operationFormatter.FormatIdentifier(input);
 
             // Assert
             result.Should().Be(output);
@@ -44,7 +44,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatVariable(input);
+            var result = _operationFormatter.FormatVariable(input);
 
             // Assert
             result.Should().Be(output);
@@ -65,7 +65,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatPagination(skipVariable, takeVariable);
+            var result = _operationFormatter.FormatPagination(skipVariable, takeVariable);
 
             // Assert
             result.Should().Be(output);
@@ -83,7 +83,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatDeleteQuery(baseQuery, criteria);
+            var result = _operationFormatter.FormatDeleteQuery(baseQuery, criteria);
 
             // Assert
             result.Should().Be(output);
@@ -102,7 +102,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatFilterOperation(filterOperation, variables);
+            var result = _operationFormatter.FormatFilterOperation(filterOperation, variables);
 
             // Assert
             result.Should().Be(output);
@@ -121,7 +121,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatFilterOperations(operations);
+            var result = _operationFormatter.FormatFilterOperations(operations);
 
             // Assert
             result.Should().Be(output);
@@ -142,7 +142,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatGetQuery(baseQuery, filterOperations, orderOperations, pagination,
+            var result = _operationFormatter.FormatGetQuery(baseQuery, filterOperations, orderOperations, pagination,
                 skipVariable, takeVariable);
 
             // Assert
@@ -162,7 +162,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatInsertColumn(input);
+            var result = _operationFormatter.FormatInsertColumn(input);
 
             // Assert
             result.Should().Be(output);
@@ -180,7 +180,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatInsertColumns(inputs);
+            var result = _operationFormatter.FormatInsertColumns(inputs);
 
             // Assert
             result.Should().Be(output);
@@ -201,7 +201,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatInsertOperation(operation, variableNames);
+            var result = _operationFormatter.FormatInsertOperation(operation, variableNames);
 
             // Assert
             result.Should().Be(output);
@@ -220,7 +220,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatInsertOperations(inputs);
+            var result = _operationFormatter.FormatInsertOperations(inputs);
 
             // Assert
             result.Should().Be(output);
@@ -237,7 +237,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatInsertQuery(baseQuery, columnList, insertOperations);
+            var result = _operationFormatter.FormatInsertQuery(baseQuery, columnList, insertOperations);
 
             // Assert
             result.Should().Be(output);
@@ -257,7 +257,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
             
             // Act
-            var result = _formatter.FormatOrderOperation(baseOperation, variables, direction);
+            var result = _operationFormatter.FormatOrderOperation(baseOperation, variables, direction);
 
             // Assert
             result.Should().Be(output);
@@ -273,7 +273,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatOrderOperations(operations);
+            var result = _operationFormatter.FormatOrderOperations(operations);
 
             // Assert
             result.Should().Be(output);
@@ -294,7 +294,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatUpdateOperation(operation, variables);
+            var result = _operationFormatter.FormatUpdateOperation(operation, variables);
 
             // Assert
             result.Should().Be(output);
@@ -310,7 +310,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatUpdateOperations(operations);
+            var result = _operationFormatter.FormatUpdateOperations(operations);
 
             // Assert
             result.Should().Be(output);
@@ -327,7 +327,7 @@ namespace Dapper.Wrappers.Tests.Formatters
             // Nothing to do here...
 
             // Act
-            var result = _formatter.FormatUpdateQuery(baseQuery, operations, criteria);
+            var result = _operationFormatter.FormatUpdateQuery(baseQuery, operations, criteria);
 
             // Assert
             result.Should().Be(output);

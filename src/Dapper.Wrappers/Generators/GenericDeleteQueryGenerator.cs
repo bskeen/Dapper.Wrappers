@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Dapper.Wrappers.Formatters;
+using Dapper.Wrappers.OperationFormatters;
 
 namespace Dapper.Wrappers.Generators
 {
@@ -14,7 +14,7 @@ namespace Dapper.Wrappers.Generators
     /// <typeparam name="TSource">The type from which to generate the query operations.</typeparam>
     public abstract class GenericDeleteQueryGenerator<TSource> : DeleteQueryGenerator, IGenericDeleteQueryGenerator<TSource>
     {
-        protected GenericDeleteQueryGenerator(IQueryFormatter queryFormatter) : base(queryFormatter)
+        protected GenericDeleteQueryGenerator(IQueryOperationFormatter queryFormatter) : base(queryFormatter)
         {
         }
 

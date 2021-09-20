@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using Dapper.Wrappers.Formatters;
+using Dapper.Wrappers.OperationFormatters;
 
 namespace Dapper.Wrappers.Generators
 {
@@ -17,7 +17,7 @@ namespace Dapper.Wrappers.Generators
     public abstract class GenericGetQueryGenerator<TFilter, TOrder> : GetQueryGenerator,
         IGenericGetQueryGenerator<TFilter, TOrder>
     {
-        protected GenericGetQueryGenerator(IQueryFormatter queryFormatter) : base(queryFormatter)
+        protected GenericGetQueryGenerator(IQueryOperationFormatter queryFormatter) : base(queryFormatter)
         {
         }
 

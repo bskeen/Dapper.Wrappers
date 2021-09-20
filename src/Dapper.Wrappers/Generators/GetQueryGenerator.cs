@@ -2,8 +2,8 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Dapper.Wrappers.Formatters;
 using System.Collections.Generic;
+using Dapper.Wrappers.OperationFormatters;
 
 namespace Dapper.Wrappers.Generators
 {
@@ -29,7 +29,7 @@ namespace Dapper.Wrappers.Generators
         /// </summary>
         protected abstract IDictionary<string, QueryOperationMetadata> OrderOperationMetadata { get; }
 
-        protected GetQueryGenerator(IQueryFormatter queryFormatter)
+        protected GetQueryGenerator(IQueryOperationFormatter queryFormatter)
             : base(queryFormatter)
         {
         }
