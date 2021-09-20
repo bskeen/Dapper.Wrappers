@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using Dapper.Wrappers.Builders;
 using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.OperationFormatters;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,26 +78,39 @@ namespace Dapper.Wrappers.DependencyInjection
                 services.TryAddScoped(typeof(IDbConnection), options.DbConnectionType);
             }
 
-            if (options.GeneratorTypeAssembly != null)
+            if (options.QueryBuilderTypeAssembly != null)
             {
-                RegisterGenerators(services, options.GeneratorTypeAssembly);
+                RegisterQueryBuilders(services, options.QueryBuilderTypeAssembly);
             }
         }
 
-        private static void RegisterGenerators(IServiceCollection services, Assembly assembly)
+        /// <summary>
+        /// Registers any QueryBuilders found in the given assembly.
+        /// </summary>
+        /// <param name="services">The service collection with which to register the query builder types.</param>
+        /// <param name="assembly">The assembly containing the types to register.</param>
+        private static void RegisterQueryBuilders(IServiceCollection services, Assembly assembly)
         {
             var types = assembly.GetTypes();
 
-            var genericGenerators = new HashSet<Type>(new[]
+            var genericQueryBuilders = new HashSet<Type>(new[]
             {
-                typeof(IGenericDeleteQueryGenerator<>), typeof(IGenericGetQueryGenerator<,>),
-                typeof(IGenericInsertQueryGenerator<>), typeof(IGenericUpdateQueryGenerator<,>)
+                typeof(IQueryBuilder<>),
+                typeof(IQueryBuilder<,>),
+                typeof(IQueryBuilder<,,>),
+                typeof(IQueryBuilder<,,,>),
+                typeof(IQueryBuilder<,,,,>),
+                typeof(IQueryBuilder<,,,,,>),
+                typeof(IQueryBuilder<,,,,,,>),
+                typeof(IQueryBuilder<,,,,,,,>),
+                typeof(IQueryBuilder<,,,,,,,,>),
+                typeof(IQueryBuilder<,,,,,,,,,>)
             });
 
             foreach (var type in types.Where(t => t.IsClass && !t.IsAbstract))
             {
                 var interfaceToRegister = type.GetInterfaces().FirstOrDefault(i =>
-                    i.IsGenericType && genericGenerators.Contains(i.GetGenericTypeDefinition()));
+                    i.IsGenericType && genericQueryBuilders.Contains(i.GetGenericTypeDefinition()));
 
                 if (interfaceToRegister != null)
                 {

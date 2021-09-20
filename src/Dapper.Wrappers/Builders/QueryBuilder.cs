@@ -1,21 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// © 2021 by Benjamin Skeen
+// Licensed to be used under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Dapper.Wrappers.Builders
 {
-    public class QueryBuilder<T>
+    public abstract class QueryBuilder : IQueryBuilder
     {
-
-
-        public void AddQueryToContext(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> queryOperations)
-        {
-
-        }
-
-        public void AddQueryToContext(IQueryContext context, T operationObject)
-        {
-
-        }
+        public abstract string QueryFormat { get; }
     }
 }

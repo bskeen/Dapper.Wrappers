@@ -37,6 +37,6 @@ namespace Dapper.Wrappers.DependencyInjection
         /// <summary>
         /// Configures which assembly should be scanned for generators to automatically add.
         /// </summary>
-        public Assembly GeneratorTypeAssembly { get; set; }
+        public Assembly QueryBuilderTypeAssembly { get; set; }
     }
 }
