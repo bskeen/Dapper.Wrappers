@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Dapper.Wrappers.Builders;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.Generators;
-using Dapper.Wrappers.OperationFormatters;
 using Dapper.Wrappers.QueryFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
@@ -18,7 +17,7 @@ using Microsoft.Data.SqlClient;
 using Npgsql;
 using Xunit;
 
-namespace Dapper.Wrappers.Tests.Generators
+namespace Dapper.Wrappers.Tests.Builders
 {
     public class DeleteQueryBuilderTests : IClassFixture<DatabaseFixture>, IDisposable
     {
@@ -37,22 +36,14 @@ namespace Dapper.Wrappers.Tests.Generators
             _metadataGenerator = metadataGenerator;
         }
 
-        private TestDeleteQueryBuilder<T> GetTestInstance<T>(SupportedDatabases dbType, string deleteQueryString,
+        private TestDeleteQueryBuilder GetTestInstance(SupportedDatabases dbType, string deleteQueryString,
             IDictionary<string, QueryOperationMetadata> filterOperationMetadata)
         {
             var operationFormatter = _databaseFixture.GetFormatter(dbType);
 
             var filterFormatter = new FilterFormatter(operationFormatter);
 
-            object result = null;
-
-            if (typeof(T) == typeof(GenreDeleteCriteria))
-            {
-                result = new TestDeleteGenreQueryBuilder(filterFormatter, deleteQueryString,
-                    filterOperationMetadata);
-            }
-
-            return (TestDeleteQueryBuilder<T>)result;
+            return new TestDeleteQueryBuilder(filterFormatter, deleteQueryString, filterOperationMetadata);
         }
 
         private IDbConnection GetConnection(SupportedDatabases dbType) =>
@@ -92,7 +83,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultGenreFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultGenreFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata);
+            var builder = GetTestInstance(dbType, query, metadata);
             var context = GetQueryContext(dbType);
 
             var randomGenerator = new Random();
@@ -105,7 +96,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddQueryToContext(context, operations);
+            builder.AddQueryToContext(context, new []{operations});
             await context.ExecuteCommands();
 
             // Assert
@@ -158,7 +149,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultGenreFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultGenreFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata);
+            var builder = GetTestInstance(dbType, query, metadata);
             var context = GetQueryContext(dbType);
             var idsToDelete = genres.Skip(startIndex).Take(endIndex - startIndex).Select(g => g.GenreID).ToList();
 
@@ -169,7 +160,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddDeleteQuery(context, operations);
+            builder.AddQueryToContext(context, new[] {operations});
             await context.ExecuteCommands();
 
             // Assert
@@ -240,7 +231,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultGenreFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultGenreFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata);
+            var builder = GetTestInstance(dbType, query, metadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -250,7 +241,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddDeleteQuery(context, operations);
+            builder.AddQueryToContext(context, new [] {operations});
             await context.ExecuteCommands();
 
             // Assert
@@ -295,7 +286,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultGenreFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultGenreFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata);
+            var builder = GetTestInstance(dbType, query, metadata);
             var context = GetQueryContext(dbType);
             var namesToDelete = genres.Skip(startIndex).Take(endIndex - startIndex).Select(g => g.Name).ToList();
 
@@ -306,7 +297,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddDeleteQuery(context, operations);
+            builder.AddQueryToContext(context, new[] {operations});
             await context.ExecuteCommands();
 
             // Assert
@@ -348,7 +339,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata);
+            var builder = GetTestInstance(dbType, query, metadata);
             var context = GetQueryContext(dbType);
 
             var randomGenerator = new Random();
@@ -361,7 +352,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddDeleteQuery(context, operations);
+            builder.AddQueryToContext(context, new[] {operations});
             await context.ExecuteCommands();
 
             // Assert
@@ -417,7 +408,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata);
+            var builder = GetTestInstance(dbType, query, metadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -427,7 +418,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddDeleteQuery(context, operations);
+            builder.AddQueryToContext(context, new [] {operations});
             await context.ExecuteCommands();
 
             // Assert
@@ -465,7 +456,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata);
+            var builder = GetTestInstance(dbType, query, metadata);
             var context = GetQueryContext(dbType);
 
             var nullPageCountId = books.Where(b => !b.PageCount.HasValue).Select(b => b.BookID).FirstOrDefault();
@@ -477,7 +468,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddDeleteQuery(context, operations);
+            builder.AddQueryToContext(context, new[] {operations});
             await context.ExecuteCommands();
 
             // Assert
@@ -529,7 +520,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata);
+            var builder = GetTestInstance(dbType, query, metadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -539,7 +530,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddDeleteQuery(context, operations);
+            builder.AddQueryToContext(context, new[] {operations});
             await context.ExecuteCommands();
 
             // Assert
@@ -583,7 +574,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, metadata);
+            var builder = GetTestInstance(dbType, query, metadata);
             var context = GetQueryContext(dbType);
 
             var removedGenreId = genres.FirstOrDefault(g => g.Name == genreName)?.GenreID;
@@ -595,7 +586,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddDeleteQuery(context, operations);
+            builder.AddQueryToContext(context, new[] {operations});
             await context.ExecuteCommands();
 
             // Assert
@@ -621,9 +612,9 @@ namespace Dapper.Wrappers.Tests.Generators
         public HashSet<string> UpdatedProperties { get; } = new HashSet<string>();
     }
 
-    public abstract class TestDeleteQueryBuilder<T> : QueryBuilder<T>
+    public class TestDeleteQueryBuilder : QueryBuilder<object>
     {
-        protected TestDeleteQueryBuilder(IFilterFormatter filterFormatter,
+        public TestDeleteQueryBuilder(IFilterFormatter filterFormatter,
             string deleteQueryString, IDictionary<string, QueryOperationMetadata> filterOperationMetadata)
         {
             QueryFormat = deleteQueryString;
@@ -640,58 +631,10 @@ namespace Dapper.Wrappers.Tests.Generators
         {
             return FilterFormatter.FormatFilterOperations(context, FilterOperationMetadata, operations.FirstOrDefault());
         }
-    }
 
-    public class GenreDeleteCriteria : TestDeleteCriteria
-    {
-        private int _genreIdEquals;
-        public int GenreIDEquals
+        public override IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(object operationObject)
         {
-            get => _genreIdEquals;
-
-            set
-            {
-                UpdatedProperties.Add(nameof(GenreIDEquals));
-                _genreIdEquals = value;
-            }
-        }
-
-        private int _genreIdNotEquals;
-
-        public int GenreIDNotEquals
-        {
-            get => _genreIdNotEquals;
-            set
-            {
-                UpdatedProperties.Add(nameof(GenreIDNotEquals));
-                _genreIdNotEquals = value;
-            }
-        }
-
-
-    }
-
-    public class TestDeleteGenreQueryBuilder : TestDeleteQueryBuilder<GenreDeleteCriteria>
-    {
-        public TestDeleteGenreQueryBuilder(IFilterFormatter filterFormatter, string deleteQueryString,
-            IDictionary<string, QueryOperationMetadata> filterOperationMetadata) : base(filterFormatter,
-            deleteQueryString, filterOperationMetadata)
-        {
-        }
-
-        public override IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(GenreDeleteCriteria operationObject)
-        {
-            var operations = new List<QueryOperation>();
-
-            foreach (var property in operationObject.UpdatedProperties)
-            {
-                switch (property)
-                {
-                    
-                }
-            }
-
-            return new[] {operations};
+            throw new NotImplementedException();
         }
     }
 }

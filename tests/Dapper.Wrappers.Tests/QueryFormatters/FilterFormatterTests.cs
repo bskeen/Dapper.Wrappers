@@ -8,22 +8,22 @@ using System.Data;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.OperationFormatters;
+using Dapper.Wrappers.QueryFormatters;
 using FluentAssertions;
 using Moq;
 using Xunit;
 
-namespace Dapper.Wrappers.Tests.Generators
+namespace Dapper.Wrappers.Tests.QueryFormatters
 {
-    public class FilterableQueryGeneratorTests
+    public class FilterFormatterTests
     {
-        private static TestFilterableQueryGenerator GetDefaultTestInstance(SupportedDatabases dbType,
-            IDictionary<string, QueryOperationMetadata> metadata)
+        private static FilterFormatter GetDefaultTestInstance(SupportedDatabases dbType)
         {
             IQueryOperationFormatter formatter = dbType == SupportedDatabases.SqlServer
                 ? (IQueryOperationFormatter)(new SqlServerQueryOperationFormatter())
                 : new PostgresQueryOperationFormatter();
             
-            return new TestFilterableQueryGenerator(formatter, metadata);
+            return new FilterFormatter(formatter);
         }
 
         private static Mock<IQueryContext> GetMockQueryContext()
@@ -39,7 +39,7 @@ namespace Dapper.Wrappers.Tests.Generators
 
         private readonly IMetadataGenerator _metadataGenerator;
 
-        public FilterableQueryGeneratorTests(IMetadataGenerator metadataGenerator)
+        public FilterFormatterTests(IMetadataGenerator metadataGenerator)
         {
             _metadataGenerator = metadataGenerator;
         }
@@ -59,13 +59,13 @@ namespace Dapper.Wrappers.Tests.Generators
                 {"Column2", _metadataGenerator.GetDefaultOperation<Guid>("Column2", "Column2 = {0}", "Column2")}
             };
 
-            var generator = GetDefaultTestInstance(dbType, metadata);
+            var formatter = GetDefaultTestInstance(dbType);
             var context = GetMockQueryContext();
 
             var operations = isEmptyInput ? new QueryOperation[]{} : null;
 
             // Act
-            var result = generator.TestFormatFilterOperations(context.Object, operations);
+            var result = formatter.FormatFilterOperations(context.Object, metadata, operations);
 
             // Assert
             result.Should().BeEmpty();
@@ -89,7 +89,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 }
             };
 
-            var generator = GetDefaultTestInstance(dbType, metadata);
+            var formatter = GetDefaultTestInstance(dbType);
             var context = GetMockQueryContext();
 
             var operations = new[]
@@ -99,25 +99,10 @@ namespace Dapper.Wrappers.Tests.Generators
             };
 
             // Act
-            var result = generator.TestFormatFilterOperations(context.Object, operations);
+            var result = formatter.FormatFilterOperations(context.Object, metadata, operations);
 
             // Assert
             result.Should().MatchRegex("WHERE Column1 = @Column1[0-9]* AND EXISTS \\(SELECT Column2 FROM Values WHERE TestValue = @Value1[0-9]*\\)");
         }
-    }
-
-    public class TestFilterableQueryGenerator : FilterableQueryGenerator
-    {
-        public TestFilterableQueryGenerator(IQueryOperationFormatter queryFormatter,
-            IDictionary<string, QueryOperationMetadata> filterOperationMetadata) : base(queryFormatter)
-        {
-            FilterOperationMetadata = filterOperationMetadata;
-        }
-
-        protected override IDictionary<string, QueryOperationMetadata> FilterOperationMetadata { get; }
-
-        public string TestFormatFilterOperations(IQueryContext queryContext,
-            IEnumerable<QueryOperation> filterOperations = null) =>
-            FormatFilterOperations(queryContext, filterOperations);
     }
 }

@@ -12,7 +12,7 @@ using Microsoft.Data.SqlClient;
 using Npgsql;
 using Xunit;
 
-namespace Dapper.Wrappers.Tests.Generators
+namespace Dapper.Wrappers.Tests.Builders
 {
     public class UpdateQueryGeneratorTests : IClassFixture<DatabaseFixture>, IDisposable
     {

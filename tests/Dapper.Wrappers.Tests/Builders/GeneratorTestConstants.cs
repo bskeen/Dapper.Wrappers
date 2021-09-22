@@ -8,7 +8,7 @@ using System.Linq;
 using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.Tests.DbModels;
 
-namespace Dapper.Wrappers.Tests.Generators
+namespace Dapper.Wrappers.Tests.Builders
 {
     public static class GeneratorTestConstants
     {

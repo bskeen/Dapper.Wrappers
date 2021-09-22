@@ -7,16 +7,18 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Dapper.Wrappers.Builders;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.OperationFormatters;
+using Dapper.Wrappers.QueryFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
 using Npgsql;
 using Xunit;
 
-namespace Dapper.Wrappers.Tests.Generators
+namespace Dapper.Wrappers.Tests.Builders
 {
     public class GetQueryGeneratorTests : IClassFixture<DatabaseFixture>
     {
@@ -35,13 +37,16 @@ namespace Dapper.Wrappers.Tests.Generators
             _metadataGenerator = metadataGenerator;
         }
 
-        private TestGetQueryGenerator GetTestInstance(SupportedDatabases dbType, string queryString,
+        private TestGetQueryBuilder GetTestInstance(SupportedDatabases dbType, string queryString,
             string defaultOrdering, IDictionary<string, QueryOperationMetadata> filterMetadata,
             IDictionary<string, QueryOperationMetadata> orderMetadata)
         {
             var formatter = _databaseFixture.GetFormatter(dbType);
+            var filterFormatter = new FilterFormatter(formatter);
+            var orderingFormatter = new OrderingFormatter(formatter);
 
-            return new TestGetQueryGenerator(formatter, queryString, defaultOrdering, filterMetadata, orderMetadata);
+            return new TestGetQueryBuilder(filterFormatter, orderingFormatter, queryString, defaultOrdering,
+                filterMetadata, orderMetadata);
         }
 
         private IDbConnection GetConnection(SupportedDatabases dbType) =>
@@ -89,7 +94,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
+            var builder = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -100,7 +105,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddGetQuery(context, filterOperations, orderOperations);
+            builder.AddQueryToContext(context, new[] {filterOperations}, new[] {orderOperations});
 
             var results = (await context.ExecuteNextQuery<Book>()).ToList();
 
@@ -150,7 +155,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
+            var builder = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -165,7 +170,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddGetQuery(context, filterOperations, orderOperations);
+            builder.AddQueryToContext(context, new[] {filterOperations}, new [] {orderOperations});
 
             var results = (await context.ExecuteNextQuery<Book>()).ToList();
 
@@ -283,7 +288,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
+            var builder = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -298,7 +303,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddGetQuery(context, filterOperations, orderOperations, new Pagination
+            builder.AddQueryToContext(context, new[] {filterOperations}, new [] {orderOperations}, new Pagination
             {
                 Skip = skip,
                 Take = take
@@ -926,21 +931,51 @@ namespace Dapper.Wrappers.Tests.Generators
         }
     }
 
-    public class TestGetQueryGenerator : GetQueryGenerator
+    public class TestGetQueryBuilder : QueryBuilder<object, int>
     {
-        public TestGetQueryGenerator(IQueryOperationFormatter queryFormatter, string queryString, string defaultOrdering,
-            IDictionary<string, QueryOperationMetadata> filterMetadata,
-            IDictionary<string, QueryOperationMetadata> orderMetadata) : base(queryFormatter)
+        private readonly IFilterFormatter _filterFormatter;
+        private readonly IOrderingFormatter _orderingFormatter;
+
+        public TestGetQueryBuilder(IFilterFormatter filterFormatter, IOrderingFormatter orderingFormatter,
+            string queryString, string defaultOrdering, IDictionary<string, QueryOperationMetadata> filterMetadata,
+            IDictionary<string, QueryOperationMetadata> orderMetadata)
         {
-            GetQueryString = queryString;
-            DefaultOrdering = defaultOrdering;
-            FilterOperationMetadata = filterMetadata;
-            OrderOperationMetadata = orderMetadata;
+            _filterFormatter = filterFormatter;
+            _orderingFormatter = orderingFormatter;
+            QueryFormat = queryString;
+            _defaultOrdering = defaultOrdering;
+            _filterOperationMetadata = filterMetadata;
+            _orderOperationMetadata = orderMetadata;
         }
 
-        protected override IDictionary<string, QueryOperationMetadata> FilterOperationMetadata { get; }
-        protected override string GetQueryString { get; }
-        protected override string DefaultOrdering { get; }
-        protected override IDictionary<string, QueryOperationMetadata> OrderOperationMetadata { get; }
+        private readonly IDictionary<string, QueryOperationMetadata> _filterOperationMetadata;
+
+        private readonly string _defaultOrdering;
+
+        private readonly IDictionary<string, QueryOperationMetadata> _orderOperationMetadata;
+
+        public override string QueryFormat { get; }
+
+        public override IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(object operationObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(int operationObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string GetFormattedOperations2(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations)
+        {
+            return _orderingFormatter.FormatOrderOperations(context, _orderOperationMetadata, _defaultOrdering,
+                operations.FirstOrDefault());
+        }
+
+        public override string GetFormattedOperations1(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations)
+        {
+            return _filterFormatter.FormatFilterOperations(context, _filterOperationMetadata,
+                operations.FirstOrDefault());
+        }
     }
 }
