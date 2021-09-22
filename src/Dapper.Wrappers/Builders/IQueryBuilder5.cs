@@ -2,8 +2,6 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-
 namespace Dapper.Wrappers.Builders
 {
     /// <summary>
@@ -25,11 +23,11 @@ namespace Dapper.Wrappers.Builders
         /// <param name="queryOperations3">The third operations to include in the query.</param>
         /// <param name="queryOperations4">The fourth operations to include in the query.</param>
         /// <param name="queryOperations5">The fifth operations to include in the query.</param>
-        void AddQueryToContext(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> queryOperations1,
-            IEnumerable<IEnumerable<QueryOperation>> queryOperations2,
-            IEnumerable<IEnumerable<QueryOperation>> queryOperations3,
-            IEnumerable<IEnumerable<QueryOperation>> queryOperations4,
-            IEnumerable<IEnumerable<QueryOperation>> queryOperations5);
+        void AddQueryToContext(IQueryContext context, ParsedQueryOperations queryOperations1,
+            ParsedQueryOperations queryOperations2,
+            ParsedQueryOperations queryOperations3,
+            ParsedQueryOperations queryOperations4,
+            ParsedQueryOperations queryOperations5);
 
         /// <summary>
         /// Adds a query to the given QueryContext, using the given query operations.
@@ -48,7 +46,7 @@ namespace Dapper.Wrappers.Builders
         /// </summary>
         /// <param name="operationObject">The object to use when constructing the operations.</param>
         /// <returns>The object converted into query operations.</returns>
-        IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(TOperations1 operationObject);
+        ParsedQueryOperations GetOperationsFromObject1(TOperations1 operationObject);
 
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
@@ -56,14 +54,14 @@ namespace Dapper.Wrappers.Builders
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations1(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
         /// </summary>
         /// <param name="operationObject">The object to use when constructing the operations.</param>
         /// <returns>The object converted into query operations.</returns>
-        IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(TOperations2 operationObject);
+        ParsedQueryOperations GetOperationsFromObject2(TOperations2 operationObject);
 
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
@@ -71,14 +69,14 @@ namespace Dapper.Wrappers.Builders
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations2(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
         /// </summary>
         /// <param name="operationObject">The object to use when constructing the operations.</param>
         /// <returns>The object converted into query operations.</returns>
-        IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(TOperations3 operationObject);
+        ParsedQueryOperations GetOperationsFromObject3(TOperations3 operationObject);
 
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
@@ -86,14 +84,14 @@ namespace Dapper.Wrappers.Builders
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations3(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations3(IQueryContext context, ParsedQueryOperations operations);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
         /// </summary>
         /// <param name="operationObject">The object to use when constructing the operations.</param>
         /// <returns>The object converted into query operations.</returns>
-        IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(TOperations4 operationObject);
+        ParsedQueryOperations GetOperationsFromObject4(TOperations4 operationObject);
 
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
@@ -101,14 +99,14 @@ namespace Dapper.Wrappers.Builders
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations4(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations4(IQueryContext context, ParsedQueryOperations operations);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
         /// </summary>
         /// <param name="operationObject">The object to use when constructing the operations.</param>
         /// <returns>The object converted into query operations.</returns>
-        IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(TOperations5 operationObject);
+        ParsedQueryOperations GetOperationsFromObject5(TOperations5 operationObject);
 
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
@@ -116,6 +114,6 @@ namespace Dapper.Wrappers.Builders
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations5(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations5(IQueryContext context, ParsedQueryOperations operations);
     }
 }

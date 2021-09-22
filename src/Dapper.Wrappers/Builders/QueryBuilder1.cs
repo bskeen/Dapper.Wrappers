@@ -2,8 +2,6 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-
 namespace Dapper.Wrappers.Builders
 {
     /// <summary>
@@ -17,7 +15,7 @@ namespace Dapper.Wrappers.Builders
         /// </summary>
         /// <param name="context">The context to be updated.</param>
         /// <param name="queryOperations">The operations to include in the query.</param>
-        public void AddQueryToContext(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> queryOperations)
+        public void AddQueryToContext(IQueryContext context, ParsedQueryOperations queryOperations)
         {
             var formattedOperations = GetFormattedOperations(context, queryOperations);
 
@@ -42,7 +40,7 @@ namespace Dapper.Wrappers.Builders
         /// </summary>
         /// <param name="operationObject">The object to use when constructing the operations.</param>
         /// <returns>The object converted into query operations.</returns>
-        public abstract IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(TOperations operationObject);
+        public abstract ParsedQueryOperations GetOperationsFromObject(TOperations operationObject);
 
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
@@ -50,6 +48,6 @@ namespace Dapper.Wrappers.Builders
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        public abstract string GetFormattedOperations(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
+        public abstract string GetFormattedOperations(IQueryContext context, ParsedQueryOperations operations);
     }
 }

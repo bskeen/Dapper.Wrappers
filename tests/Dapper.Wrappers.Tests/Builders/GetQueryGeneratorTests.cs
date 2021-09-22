@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Dapper.Wrappers.Builders;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.Generators;
-using Dapper.Wrappers.OperationFormatters;
 using Dapper.Wrappers.QueryFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
@@ -105,7 +104,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new[] {filterOperations}, new[] {orderOperations});
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = orderOperations
+            });
 
             var results = (await context.ExecuteNextQuery<Book>()).ToList();
 
@@ -170,7 +175,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new[] {filterOperations}, new [] {orderOperations});
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = orderOperations
+            });
 
             var results = (await context.ExecuteNextQuery<Book>()).ToList();
 
@@ -303,10 +314,17 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new[] {filterOperations}, new [] {orderOperations}, new Pagination
+            builder.AddQueryToContext(context, new ParsedQueryOperations
             {
-                Skip = skip,
-                Take = take
+                QueryOperations = filterOperations
+            }, new ParsedOrderingQueryOperations
+            {
+                QueryOperations = orderOperations,
+                Pagination = new Pagination
+                {
+                    Skip = skip,
+                    Take = take
+                }
             });
 
             var results = (await context.ExecuteNextQuery<Book>()).ToList();
@@ -388,7 +406,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
+            var builder = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -399,10 +417,17 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddGetQuery(context, filterOperations, orderOperations, new Pagination
+            builder.AddQueryToContext(context, new ParsedQueryOperations
             {
-                Skip = skip,
-                Take = take
+                QueryOperations = filterOperations
+            }, new ParsedOrderingQueryOperations
+            {
+                QueryOperations = orderOperations,
+                Pagination = new Pagination
+                {
+                    Skip = skip,
+                    Take = take
+                }
             });
 
             var results = (await context.ExecuteNextQuery<Book>()).ToList();
@@ -455,7 +480,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
+            var builder = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
             var context = GetQueryContext(dbType);
 
             var randomGenerator = new Random();
@@ -470,7 +495,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddGetQuery(context, filterOperations, orderOperations);
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = orderOperations
+            });
 
             var results = (await context.ExecuteNextQuery<Book>()).ToList();
 
@@ -536,7 +567,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
+            var builder = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -548,7 +579,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddGetQuery(context, filterOperations, orderOperations);
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = orderOperations
+            });
 
             var results = (await context.ExecuteNextQuery<Book>()).ToList();
 
@@ -631,7 +668,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
+            var builder = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -647,7 +684,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddGetQuery(context, filterOperations, orderOperations);
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = orderOperations
+            });
 
             var results = (await context.ExecuteNextQuery<Book>()).ToList();
 
@@ -773,7 +816,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
+            var builder = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -789,10 +832,17 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddGetQuery(context, filterOperations, orderOperations, new Pagination
+            builder.AddQueryToContext(context, new ParsedQueryOperations
             {
-                Skip = skip,
-                Take = take
+                QueryOperations = filterOperations
+            }, new ParsedOrderingQueryOperations
+            {
+                QueryOperations = orderOperations,
+                Pagination = new Pagination
+                {
+                    Skip = skip,
+                    Take = take
+                }
             });
 
             var results = (await context.ExecuteNextQuery<Book>()).ToList();
@@ -893,7 +943,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
+            var builder = GetTestInstance(dbType, query, defaultOrdering, filterMetadata, orderMetadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -905,10 +955,17 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddGetQuery(context, filterOperations, orderOperations, new Pagination
+            builder.AddQueryToContext(context, new ParsedQueryOperations
             {
-                Skip = skip,
-                Take = take
+                QueryOperations = filterOperations
+            }, new ParsedOrderingQueryOperations
+            {
+                QueryOperations = orderOperations,
+                Pagination = new Pagination
+                {
+                    Skip = skip,
+                    Take = take
+                }
             });
 
             var results = (await context.ExecuteNextQuery<Book>()).ToList();
@@ -956,26 +1013,32 @@ namespace Dapper.Wrappers.Tests.Builders
 
         public override string QueryFormat { get; }
 
-        public override IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(object operationObject)
+        public override ParsedQueryOperations GetOperationsFromObject1(object operationObject)
         {
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(int operationObject)
+        public override ParsedQueryOperations GetOperationsFromObject2(int operationObject)
         {
             throw new NotImplementedException();
         }
 
-        public override string GetFormattedOperations2(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations)
+        public override string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations)
         {
+            if (operations is ParsedOrderingQueryOperations orderingOperations)
+            {
+                return _orderingFormatter.FormatOrderOperations(context, _orderOperationMetadata, _defaultOrdering,
+                    orderingOperations.QueryOperations, orderingOperations.Pagination);
+            }
+
             return _orderingFormatter.FormatOrderOperations(context, _orderOperationMetadata, _defaultOrdering,
-                operations.FirstOrDefault());
+                operations.QueryOperations);
         }
 
-        public override string GetFormattedOperations1(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations)
+        public override string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations)
         {
             return _filterFormatter.FormatFilterOperations(context, _filterOperationMetadata,
-                operations.FirstOrDefault());
+                operations.QueryOperations);
         }
     }
 }

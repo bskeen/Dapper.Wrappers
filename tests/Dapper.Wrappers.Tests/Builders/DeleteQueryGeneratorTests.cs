@@ -96,7 +96,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new []{operations});
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
+
             await context.ExecuteCommands();
 
             // Assert
@@ -160,7 +164,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new[] {operations});
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
+
             await context.ExecuteCommands();
 
             // Assert
@@ -241,7 +249,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new [] {operations});
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
+
             await context.ExecuteCommands();
 
             // Assert
@@ -297,7 +309,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new[] {operations});
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
+
             await context.ExecuteCommands();
 
             // Assert
@@ -352,7 +368,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new[] {operations});
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
+
             await context.ExecuteCommands();
 
             // Assert
@@ -418,7 +438,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new [] {operations});
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
+
             await context.ExecuteCommands();
 
             // Assert
@@ -468,7 +492,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new[] {operations});
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
+
             await context.ExecuteCommands();
 
             // Assert
@@ -530,7 +558,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new[] {operations});
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
+
             await context.ExecuteCommands();
 
             // Assert
@@ -586,7 +618,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            builder.AddQueryToContext(context, new[] {operations});
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
+
             await context.ExecuteCommands();
 
             // Assert
@@ -618,21 +654,21 @@ namespace Dapper.Wrappers.Tests.Builders
             string deleteQueryString, IDictionary<string, QueryOperationMetadata> filterOperationMetadata)
         {
             QueryFormat = deleteQueryString;
-            FilterOperationMetadata = filterOperationMetadata;
-            FilterFormatter = filterFormatter;
+            _filterOperationMetadata = filterOperationMetadata;
+            _filterFormatter = filterFormatter;
         }
 
-        protected readonly IDictionary<string, QueryOperationMetadata> FilterOperationMetadata;
-        protected readonly IFilterFormatter FilterFormatter;
+        private readonly IDictionary<string, QueryOperationMetadata> _filterOperationMetadata;
+        private readonly IFilterFormatter _filterFormatter;
 
         public override string QueryFormat { get; }
 
-        public override string GetFormattedOperations(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations)
+        public override string GetFormattedOperations(IQueryContext context, ParsedQueryOperations operations)
         {
-            return FilterFormatter.FormatFilterOperations(context, FilterOperationMetadata, operations.FirstOrDefault());
+            return _filterFormatter.FormatFilterOperations(context, _filterOperationMetadata, operations.QueryOperations);
         }
 
-        public override IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(object operationObject)
+        public override ParsedQueryOperations GetOperationsFromObject(object operationObject)
         {
             throw new NotImplementedException();
         }

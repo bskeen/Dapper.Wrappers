@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Dapper.Wrappers.Builders;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.OperationFormatters;
+using Dapper.Wrappers.QueryFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
@@ -746,27 +748,52 @@ namespace Dapper.Wrappers.Tests.Builders
         }
     }
 
-    public class TestInsertQueryGenerator : InsertQueryGenerator
+    public class TestInsertQueryGenerator : QueryBuilder<object, object>
     {
-        private readonly IDictionary<string, MergeOperationMetadata> _requiredMetadata;
+        private readonly IInsertColumnsFormatter _insertColumnsFormatter;
+        private readonly IValuesListFormatter _valuesListFormatter;
 
-        public TestInsertQueryGenerator(IQueryOperationFormatter queryFormatter, string queryString,
+        public TestInsertQueryGenerator(IQueryOperationFormatter queryFormatter, IInsertColumnsFormatter insertColumnsFormatter, IValuesListFormatter valuesListFormatter, string queryString,
             IDictionary<string, MergeOperationMetadata> metadata,
             IDictionary<string, MergeOperationMetadata> requiredMetadata,
-            IDictionary<string, QueryOperation> defaultOperations) : base(queryFormatter)
+            IDictionary<string, QueryOperation> defaultOperations)
         {
-            InsertQueryString = queryString;
-            InsertOperationMetadata = metadata;
+            QueryFormat = queryString;
+            _insertOperationMetadata = metadata;
             _requiredMetadata = requiredMetadata;
-            DefaultOperations = defaultOperations;
+            _defaultOperations = defaultOperations;
+            _insertColumnsFormatter = insertColumnsFormatter;
+            _valuesListFormatter = valuesListFormatter;
+        }
+        
+        private readonly IDictionary<string, MergeOperationMetadata> _insertOperationMetadata;
+
+        private readonly IDictionary<string, MergeOperationMetadata> _requiredMetadata;
+
+        private readonly IDictionary<string, QueryOperation> _defaultOperations;
+        public override string QueryFormat { get; }
+
+        public override ParsedQueryOperations GetOperationsFromObject1(object operationObject)
+        {
+            throw new NotImplementedException();
         }
 
-        protected override string InsertQueryString { get; }
-        protected override IDictionary<string, MergeOperationMetadata> InsertOperationMetadata { get; }
+        public override string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations)
+        {
+            return _insertColumnsFormatter.FormatInsertColumns(operations.QueryOperations, _insertOperationMetadata);
+        }
 
-        protected override IDictionary<string, MergeOperationMetadata> GetRequiredInsertOperationMetadata() =>
-            new Dictionary<string, MergeOperationMetadata>(_requiredMetadata);
+        public override ParsedQueryOperations GetOperationsFromObject2(object operationObject)
+        {
+            throw new NotImplementedException();
+        }
 
-        protected override IDictionary<string, QueryOperation> DefaultOperations { get; }
+        public override string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations)
+        {
+            if (operations is ParsedValuesListsQueryOperations valuesListsOperations)
+            {
+                return _valuesListFormatter.FormatValuesLists(context, valuesListsOperations.MultiQueryOperations, _insertOperationMetadata, _defaultOperations)
+            }
+        }
     }
 }
