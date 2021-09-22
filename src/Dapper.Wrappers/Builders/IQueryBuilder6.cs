@@ -59,9 +59,10 @@ namespace Dapper.Wrappers.Builders
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
         /// </summary>
+        /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations1(IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations1(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -73,9 +74,10 @@ namespace Dapper.Wrappers.Builders
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
         /// </summary>
+        /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations2(IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations2(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -87,9 +89,10 @@ namespace Dapper.Wrappers.Builders
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
         /// </summary>
+        /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations3(IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations3(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -101,9 +104,10 @@ namespace Dapper.Wrappers.Builders
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
         /// </summary>
+        /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations4(IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations4(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -115,9 +119,10 @@ namespace Dapper.Wrappers.Builders
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
         /// </summary>
+        /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations5(IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations5(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -129,8 +134,9 @@ namespace Dapper.Wrappers.Builders
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
         /// </summary>
+        /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations6(IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations6(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
     }
 }

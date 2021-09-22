@@ -36,8 +36,9 @@ namespace Dapper.Wrappers.Builders
         /// <summary>
         /// Formats the given operations into a string ready to be inserted into the finished query.
         /// </summary>
+        /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations(IEnumerable<IEnumerable<QueryOperation>> operations);
+        string GetFormattedOperations(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations);
     }
 }

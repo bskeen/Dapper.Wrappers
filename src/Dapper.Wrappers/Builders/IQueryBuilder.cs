@@ -5,7 +5,7 @@
 namespace Dapper.Wrappers.Builders
 {
     /// <summary>
-    /// Defines the base query builder type.
+    /// The base query builder type.
     /// </summary>
     public interface IQueryBuilder
     {

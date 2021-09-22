@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Dapper.Wrappers.Builders;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.OperationFormatters;
+using Dapper.Wrappers.QueryFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
@@ -18,14 +20,14 @@ using Xunit;
 
 namespace Dapper.Wrappers.Tests.Generators
 {
-    public class DeleteQueryGeneratorTests : IClassFixture<DatabaseFixture>, IDisposable
+    public class DeleteQueryBuilderTests : IClassFixture<DatabaseFixture>, IDisposable
     {
         private readonly DatabaseFixture _databaseFixture;
         private readonly IDbConnection _sqlConnection;
         private readonly IDbConnection _postgresConnection;
         private readonly IMetadataGenerator _metadataGenerator;
 
-        public DeleteQueryGeneratorTests(DatabaseFixture databaseFixture, IEnumerable<IDbConnection> connections,
+        public DeleteQueryBuilderTests(DatabaseFixture databaseFixture, IEnumerable<IDbConnection> connections,
             IMetadataGenerator metadataGenerator)
         {
             _databaseFixture = databaseFixture;
@@ -35,12 +37,22 @@ namespace Dapper.Wrappers.Tests.Generators
             _metadataGenerator = metadataGenerator;
         }
 
-        private TestDeleteQueryGenerator GetTestInstance(SupportedDatabases dbType, string deleteQueryString,
+        private TestDeleteQueryBuilder<T> GetTestInstance<T>(SupportedDatabases dbType, string deleteQueryString,
             IDictionary<string, QueryOperationMetadata> filterOperationMetadata)
         {
-            var formatter = _databaseFixture.GetFormatter(dbType);
+            var operationFormatter = _databaseFixture.GetFormatter(dbType);
 
-            return new TestDeleteQueryGenerator(formatter, deleteQueryString, filterOperationMetadata);
+            var filterFormatter = new FilterFormatter(operationFormatter);
+
+            object result = null;
+
+            if (typeof(T) == typeof(GenreDeleteCriteria))
+            {
+                result = new TestDeleteGenreQueryBuilder(filterFormatter, deleteQueryString,
+                    filterOperationMetadata);
+            }
+
+            return (TestDeleteQueryBuilder<T>)result;
         }
 
         private IDbConnection GetConnection(SupportedDatabases dbType) =>
@@ -93,7 +105,7 @@ namespace Dapper.Wrappers.Tests.Generators
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddDeleteQuery(context, operations);
+            generator.AddQueryToContext(context, operations);
             await context.ExecuteCommands();
 
             // Assert
@@ -604,16 +616,82 @@ namespace Dapper.Wrappers.Tests.Generators
         }
     }
 
-    public class TestDeleteQueryGenerator : DeleteQueryGenerator
+    public class TestDeleteCriteria
     {
-        public TestDeleteQueryGenerator(IQueryOperationFormatter queryFormatter, string deleteQueryString,
-            IDictionary<string, QueryOperationMetadata> filterOperationMetadata) : base(queryFormatter)
+        public HashSet<string> UpdatedProperties { get; } = new HashSet<string>();
+    }
+
+    public abstract class TestDeleteQueryBuilder<T> : QueryBuilder<T>
+    {
+        protected TestDeleteQueryBuilder(IFilterFormatter filterFormatter,
+            string deleteQueryString, IDictionary<string, QueryOperationMetadata> filterOperationMetadata)
         {
+            QueryFormat = deleteQueryString;
             FilterOperationMetadata = filterOperationMetadata;
-            DeleteQueryString = deleteQueryString;
+            FilterFormatter = filterFormatter;
         }
 
-        protected override IDictionary<string, QueryOperationMetadata> FilterOperationMetadata { get; }
-        protected override string DeleteQueryString { get; }
+        protected readonly IDictionary<string, QueryOperationMetadata> FilterOperationMetadata;
+        protected readonly IFilterFormatter FilterFormatter;
+
+        public override string QueryFormat { get; }
+
+        public override string GetFormattedOperations(IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> operations)
+        {
+            return FilterFormatter.FormatFilterOperations(context, FilterOperationMetadata, operations.FirstOrDefault());
+        }
+    }
+
+    public class GenreDeleteCriteria : TestDeleteCriteria
+    {
+        private int _genreIdEquals;
+        public int GenreIDEquals
+        {
+            get => _genreIdEquals;
+
+            set
+            {
+                UpdatedProperties.Add(nameof(GenreIDEquals));
+                _genreIdEquals = value;
+            }
+        }
+
+        private int _genreIdNotEquals;
+
+        public int GenreIDNotEquals
+        {
+            get => _genreIdNotEquals;
+            set
+            {
+                UpdatedProperties.Add(nameof(GenreIDNotEquals));
+                _genreIdNotEquals = value;
+            }
+        }
+
+
+    }
+
+    public class TestDeleteGenreQueryBuilder : TestDeleteQueryBuilder<GenreDeleteCriteria>
+    {
+        public TestDeleteGenreQueryBuilder(IFilterFormatter filterFormatter, string deleteQueryString,
+            IDictionary<string, QueryOperationMetadata> filterOperationMetadata) : base(filterFormatter,
+            deleteQueryString, filterOperationMetadata)
+        {
+        }
+
+        public override IEnumerable<IEnumerable<QueryOperation>> GetOperationsFromObject(GenreDeleteCriteria operationObject)
+        {
+            var operations = new List<QueryOperation>();
+
+            foreach (var property in operationObject.UpdatedProperties)
+            {
+                switch (property)
+                {
+                    
+                }
+            }
+
+            return new[] {operations};
+        }
     }
 }
