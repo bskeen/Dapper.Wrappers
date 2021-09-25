@@ -2,7 +2,7 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Dapper.Wrappers.Formatters;
+using Dapper.Wrappers.OperationFormatters;
 using FluentAssertions;
 using Xunit;
 
@@ -10,7 +10,7 @@ namespace Dapper.Wrappers.Tests.Formatters
 {
     public class PostgresQueryFormatterTests
     {
-        private readonly PostgresQueryFormatter _formatter = new PostgresQueryFormatter();
+        private readonly PostgresQueryOperationFormatter _formatter = new PostgresQueryOperationFormatter();
 
         [Theory]
         [InlineData("TestIdentifier1", "\"TestIdentifier1\"")]
@@ -264,9 +264,9 @@ namespace Dapper.Wrappers.Tests.Formatters
         }
 
         [Theory]
-        [InlineData(new[] { "\"Column1\" ASC" }, "ORDER BY \"Column1\" ASC")]
-        [InlineData(new[] { "\"Column1\" ASC", "\"Column2\" DESC" }, "ORDER BY \"Column1\" ASC, \"Column2\" DESC")]
-        [InlineData(new[] { "is", "not", "a", "query" }, "ORDER BY is, not, a, query")]
+        [InlineData(new[] { "\"Column1\" ASC" }, "ORDER BY \"Column1\" ASC ")]
+        [InlineData(new[] { "\"Column1\" ASC", "\"Column2\" DESC" }, "ORDER BY \"Column1\" ASC, \"Column2\" DESC ")]
+        [InlineData(new[] { "is", "not", "a", "query" }, "ORDER BY is, not, a, query ")]
         public void FormatOrderOperations_WithInputs_ShouldCommaDelimitWithOrderBy(string[] operations, string output)
         {
             // Arrange

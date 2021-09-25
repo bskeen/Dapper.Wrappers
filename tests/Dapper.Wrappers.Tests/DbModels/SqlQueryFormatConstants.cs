@@ -66,9 +66,9 @@ WHERE
                 public const string InsertQuery = @"
 INSERT INTO
   [Books]
-{0}
+{1}
 VALUES
-{1};";
+{0};";
 
                 public const string DefaultInsertQuery = @"
 INSERT INTO
@@ -107,8 +107,7 @@ SELECT
 FROM
   [Books] b
 {0}
-{1}
-{2};";
+{1};";
 
                 public const string DeleteQuery = @"
 SELECT
@@ -237,9 +236,9 @@ WHERE
                 public const string InsertQuery = @"
 INSERT INTO
   ""Books""
-{0}
+{1}
 VALUES
-{1};";
+{0};";
 
                 public const string DefaultInsertQuery = @"
 INSERT INTO
@@ -278,8 +277,7 @@ SELECT
 FROM
   ""Books"" b
 {0}
-{1}
-{2};";
+{1};";
 
                 public const string DeleteQuery = @"
 CREATE TEMPORARY TABLE

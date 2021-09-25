@@ -1,0 +1,131 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 1 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet restore  /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true in C:\Source\Personal\Dapper.Wrappers\tests\Dapper.Wrappers.Performance\bin\Release\net5.0\66a7c004-fa19-4bc9-a127-998a855468e6
+// command took 1.82s and exited with 0
+// start dotnet build -c Release  --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true in C:\Source\Personal\Dapper.Wrappers\tests\Dapper.Wrappers.Performance\bin\Release\net5.0\66a7c004-fa19-4bc9-a127-998a855468e6
+// command took 2.78s and exited with 0
+// ***** Done, took 00:00:04 (4.71 sec)   *****
+// Found 1 benchmarks:
+//   QueryContextPerformance.Baseline: DefaultJob
+
+// **************************
+// Benchmark: QueryContextPerformance.Baseline: DefaultJob
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "66a7c004-fa19-4bc9-a127-998a855468e6.dll" --benchmarkName "Dapper.Wrappers.Performance.QueryContextPerformance.Baseline" --job "Default" --benchmarkId 0 in C:\Source\Personal\Dapper.Wrappers\tests\Dapper.Wrappers.Performance\bin\Release\net5.0\66a7c004-fa19-4bc9-a127-998a855468e6\bin\Release\net5.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET 5.0.10 (5.0.1021.41214), X64 RyuJIT
+// GC=Concurrent Workstation
+// Job: DefaultJob
+
+OverheadJitting  1: 1 op, 165800.00 ns, 165.8000 us/op
+WorkloadJitting  1: 1 op, 6501051500.00 ns, 6.5011 s/op
+
+WorkloadWarmup   1: 1 op, 4183042700.00 ns, 4.1830 s/op
+WorkloadWarmup   2: 1 op, 4203847800.00 ns, 4.2038 s/op
+WorkloadWarmup   3: 1 op, 4154852700.00 ns, 4.1549 s/op
+WorkloadWarmup   4: 1 op, 4042201600.00 ns, 4.0422 s/op
+WorkloadWarmup   5: 1 op, 4182999900.00 ns, 4.1830 s/op
+WorkloadWarmup   6: 1 op, 4067176800.00 ns, 4.0672 s/op
+
+// BeforeActualRun
+WorkloadActual   1: 1 op, 4061295000.00 ns, 4.0613 s/op
+WorkloadActual   2: 1 op, 3989835400.00 ns, 3.9898 s/op
+WorkloadActual   3: 1 op, 3983285600.00 ns, 3.9833 s/op
+WorkloadActual   4: 1 op, 4010855100.00 ns, 4.0109 s/op
+WorkloadActual   5: 1 op, 4002465900.00 ns, 4.0025 s/op
+WorkloadActual   6: 1 op, 4002134900.00 ns, 4.0021 s/op
+WorkloadActual   7: 1 op, 3967224600.00 ns, 3.9672 s/op
+WorkloadActual   8: 1 op, 4071253000.00 ns, 4.0713 s/op
+WorkloadActual   9: 1 op, 4041880600.00 ns, 4.0419 s/op
+WorkloadActual  10: 1 op, 4031193200.00 ns, 4.0312 s/op
+WorkloadActual  11: 1 op, 4096745200.00 ns, 4.0967 s/op
+WorkloadActual  12: 1 op, 4154287400.00 ns, 4.1543 s/op
+WorkloadActual  13: 1 op, 4100367900.00 ns, 4.1004 s/op
+WorkloadActual  14: 1 op, 4063271000.00 ns, 4.0633 s/op
+WorkloadActual  15: 1 op, 4127264600.00 ns, 4.1273 s/op
+
+// AfterActualRun
+WorkloadResult   1: 1 op, 4061295000.00 ns, 4.0613 s/op
+WorkloadResult   2: 1 op, 3989835400.00 ns, 3.9898 s/op
+WorkloadResult   3: 1 op, 3983285600.00 ns, 3.9833 s/op
+WorkloadResult   4: 1 op, 4010855100.00 ns, 4.0109 s/op
+WorkloadResult   5: 1 op, 4002465900.00 ns, 4.0025 s/op
+WorkloadResult   6: 1 op, 4002134900.00 ns, 4.0021 s/op
+WorkloadResult   7: 1 op, 3967224600.00 ns, 3.9672 s/op
+WorkloadResult   8: 1 op, 4071253000.00 ns, 4.0713 s/op
+WorkloadResult   9: 1 op, 4041880600.00 ns, 4.0419 s/op
+WorkloadResult  10: 1 op, 4031193200.00 ns, 4.0312 s/op
+WorkloadResult  11: 1 op, 4096745200.00 ns, 4.0967 s/op
+WorkloadResult  12: 1 op, 4154287400.00 ns, 4.1543 s/op
+WorkloadResult  13: 1 op, 4100367900.00 ns, 4.1004 s/op
+WorkloadResult  14: 1 op, 4063271000.00 ns, 4.0633 s/op
+WorkloadResult  15: 1 op, 4127264600.00 ns, 4.1273 s/op
+GC:  9 1 0 56664256 1
+Threading:  2003 0 1
+
+// AfterAll
+// Benchmark Process 21076 has exited with code 0.
+
+Mean = 4.047 s, StdErr = 0.014 s (0.36%), N = 15, StdDev = 0.056 s
+Min = 3.967 s, Q1 = 4.002 s, Median = 4.042 s, Q3 = 4.084 s, Max = 4.154 s
+IQR = 0.082 s, LowerFence = 3.880 s, UpperFence = 4.207 s
+ConfidenceInterval = [3.987 s; 4.107 s] (CI 99.9%), Margin = 0.060 s (1.47% of Mean)
+Skewness = 0.34, Kurtosis = 1.83, MValue = 2
+
+// ***** BenchmarkRunner: Finish  *****
+
+// * Export *
+  BenchmarkDotNet.Artifacts\results\Dapper.Wrappers.Performance.QueryContextPerformance-report.csv
+  BenchmarkDotNet.Artifacts\results\Dapper.Wrappers.Performance.QueryContextPerformance-report-github.md
+  BenchmarkDotNet.Artifacts\results\Dapper.Wrappers.Performance.QueryContextPerformance-report.html
+
+// * Detailed results *
+QueryContextPerformance.Baseline: DefaultJob
+Runtime = .NET 5.0.10 (5.0.1021.41214), X64 RyuJIT; GC = Concurrent Workstation
+Mean = 4.047 s, StdErr = 0.014 s (0.36%), N = 15, StdDev = 0.056 s
+Min = 3.967 s, Q1 = 4.002 s, Median = 4.042 s, Q3 = 4.084 s, Max = 4.154 s
+IQR = 0.082 s, LowerFence = 3.880 s, UpperFence = 4.207 s
+ConfidenceInterval = [3.987 s; 4.107 s] (CI 99.9%), Margin = 0.060 s (1.47% of Mean)
+Skewness = 0.34, Kurtosis = 1.83, MValue = 2
+-------------------- Histogram --------------------
+[3.938 s ; 4.053 s) | @@@@@@@@
+[4.053 s ; 4.184 s) | @@@@@@@
+---------------------------------------------------
+
+// * Summary *
+
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1165 (21H1/May2021Update)
+Intel Core i7-9750H CPU 2.60GHz, 1 CPU, 12 logical and 6 physical cores
+.NET SDK=5.0.401
+  [Host]     : .NET 5.0.10 (5.0.1021.41214), X64 RyuJIT
+  DefaultJob : .NET 5.0.10 (5.0.1021.41214), X64 RyuJIT
+
+
+|   Method |    Mean |    Error |   StdDev |     Gen 0 |     Gen 1 | Allocated |
+|--------- |--------:|---------:|---------:|----------:|----------:|----------:|
+| Baseline | 4.047 s | 0.0597 s | 0.0558 s | 9000.0000 | 1000.0000 |     54 MB |
+
+// * Legends *
+  Mean      : Arithmetic mean of all measurements
+  Error     : Half of 99.9% confidence interval
+  StdDev    : Standard deviation of all measurements
+  Gen 0     : GC Generation 0 collects per 1000 operations
+  Gen 1     : GC Generation 1 collects per 1000 operations
+  Allocated : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+  1 s       : 1 Second (1 sec)
+
+// * Diagnostic Output - MemoryDiagnoser *
+
+
+// ***** BenchmarkRunner: End *****
+// ** Remained 0 benchmark(s) to run **
+Run time: 00:01:37 (97.07 sec), executed benchmarks: 1
+
+Global total time: 00:01:41 (101.79 sec), executed benchmarks: 1
+// * Artifacts cleanup *
+BenchmarkDotNet.Reports.Summary

@@ -13,5 +13,7 @@ namespace Dapper.Wrappers
         /// The column referenced by the insert or update operation.
         /// </summary>
         public string ReferencedColumn { get; set; }
+
+        public bool IsRequired { get; set; }
     }
 }

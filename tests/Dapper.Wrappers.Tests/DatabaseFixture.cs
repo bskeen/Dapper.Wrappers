@@ -8,7 +8,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Formatters;
+using Dapper.Wrappers.OperationFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using Microsoft.Data.SqlClient;
 using Npgsql;
@@ -20,27 +20,27 @@ namespace Dapper.Wrappers.Tests
     public class DatabaseFixture : IDisposable
     {
         private IDbConnection _sqlConnection;
-        private readonly IQueryFormatter _sqlQueryFormatter;
+        private readonly IQueryOperationFormatter _sqlQueryFormatter;
 
         private IDbConnection _postgresConnection;
-        private readonly IQueryFormatter _postgresQueryFormatter;
+        private readonly IQueryOperationFormatter _postgresQueryFormatter;
 
         public Guid TestScope { get; }
 
-        public DatabaseFixture(IEnumerable<IDbConnection> connections, IEnumerable<IQueryFormatter> formatters)
+        public DatabaseFixture(IEnumerable<IDbConnection> connections, IEnumerable<IQueryOperationFormatter> formatters)
         {
             var connectionList = connections.ToList();
             _sqlConnection = connectionList.FirstOrDefault(c => c is SqlConnection);
             _postgresConnection = connectionList.FirstOrDefault(c => c is NpgsqlConnection);
 
             var formatterList = formatters.ToList();
-            _sqlQueryFormatter = formatterList.FirstOrDefault(f => f is SqlServerQueryFormatter);
-            _postgresQueryFormatter = formatterList.FirstOrDefault(f => f is PostgresQueryFormatter);
+            _sqlQueryFormatter = formatterList.FirstOrDefault(f => f is SqlServerQueryOperationFormatter);
+            _postgresQueryFormatter = formatterList.FirstOrDefault(f => f is PostgresQueryOperationFormatter);
 
             TestScope = Guid.NewGuid();
         }
 
-        public IQueryFormatter GetFormatter(SupportedDatabases dbType) => dbType == SupportedDatabases.SqlServer
+        public IQueryOperationFormatter GetFormatter(SupportedDatabases dbType) => dbType == SupportedDatabases.SqlServer
             ? _sqlQueryFormatter
             : _postgresQueryFormatter;
 
