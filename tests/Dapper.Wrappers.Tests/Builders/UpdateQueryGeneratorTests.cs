@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Dapper.Wrappers.Builders;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Generators;
-using Dapper.Wrappers.OperationFormatters;
+using Dapper.Wrappers.QueryFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
@@ -31,13 +31,16 @@ namespace Dapper.Wrappers.Tests.Builders
             _metadataGenerator = metadataGenerator;
         }
 
-        private TestUpdateQueryGenerator GetTestInstance(SupportedDatabases dbType, string updateQueryString,
+        private TestUpdateQueryBuilder GetTestInstance(SupportedDatabases dbType, string updateQueryString,
             IDictionary<string, MergeOperationMetadata> updateMetadata,
             IDictionary<string, QueryOperationMetadata> filterMetadata)
         {
             var formatter = _databaseFixture.GetFormatter(dbType);
+            var updateFormatter = new UpdateFormatter(formatter);
+            var filterFormatter = new FilterFormatter(formatter);
 
-            return new TestUpdateQueryGenerator(formatter, updateQueryString, updateMetadata, filterMetadata);
+            return new TestUpdateQueryBuilder(updateFormatter, filterFormatter, updateQueryString, updateMetadata,
+                filterMetadata);
         }
 
         private IDbConnection GetConnection(SupportedDatabases dbType) =>
@@ -94,7 +97,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var builder = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
             var context = GetQueryContext(dbType);
 
             var authorIdValue = authors.First(a => $"{a.FirstName} {a.LastName}" == authorName).AuthorID;
@@ -112,7 +115,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddUpdateQuery(context, operations, filterOperations);
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            });
 
             await context.ExecuteCommands();
 
@@ -143,13 +152,19 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var builder = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
             var context = GetQueryContext(dbType);
 
             // Act
             var operations = isEmpty ? new QueryOperation[] { } : null;
 
-            Action act = () => generator.AddUpdateQuery(context, operations, operations);
+            Action act = () => builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("No update operations specified.");
@@ -173,7 +188,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var builder = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -183,7 +198,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("Bogus2", ("BogusValue3", Guid.NewGuid()), ("BogusValue4", null))
             };
 
-            Action act = () => generator.AddUpdateQuery(context, operations, operations);
+            Action act = () => builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("No update operations specified.");
@@ -207,7 +228,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var builder = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
             var context = GetQueryContext(dbType);
 
             // Act
@@ -217,7 +238,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("Name", ("Name", "Test Name 2"))
             };
 
-            Action act = () => generator.AddUpdateQuery(context, operations, operations);
+            Action act = () => builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            });
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("Cannot have multiple updates of the same column.");
@@ -261,7 +288,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var builder = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
             var context = GetQueryContext(dbType);
 
             var authorIdValue = authors.First(a => $"{a.FirstName} {a.LastName}" == authorName).AuthorID;
@@ -283,7 +310,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddUpdateQuery(context, operations, filterOperations);
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            });
 
             await context.ExecuteCommands();
 
@@ -355,7 +388,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var builder = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
             var context = GetQueryContext(dbType);
 
             var authorIdValue = authors.First(a => $"{a.FirstName} {a.LastName}" == authorName).AuthorID;
@@ -377,7 +410,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddUpdateQuery(context, operations, filterOperations);
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            });
 
             await context.ExecuteCommands();
 
@@ -468,7 +507,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var builder = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
             var context = GetQueryContext(dbType);
 
             var authorIdValue = authors.First(a => $"{a.FirstName} {a.LastName}" == authorName).AuthorID;
@@ -487,7 +526,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddUpdateQuery(context, operations, filterOperations);
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            });
 
             await context.ExecuteCommands();
 
@@ -553,7 +598,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var builder = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
             var context = GetQueryContext(dbType);
 
             var authorIdValue = authors.First(a => $"{a.FirstName} {a.LastName}" == authorName).AuthorID;
@@ -572,7 +617,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddUpdateQuery(context, operations, filterOperations);
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            });
 
             await context.ExecuteCommands();
 
@@ -629,7 +680,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var builder = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
             var context = GetQueryContext(dbType);
 
             var authorIdValue = authors.First(a => $"{a.FirstName} {a.LastName}" == authorName).AuthorID;
@@ -649,7 +700,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddUpdateQuery(context, operations, filterOperations);
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            });
 
             await context.ExecuteCommands();
 
@@ -698,7 +755,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var builder = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
             var context = GetQueryContext(dbType);
 
             var authorIdValue = authors.First(a => $"{a.FirstName} {a.LastName}" == authorName).AuthorID;
@@ -719,7 +776,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddUpdateQuery(context, operations, filterOperations);
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            });
 
             await context.ExecuteCommands();
 
@@ -781,12 +844,10 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
-            var generator = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
+            var builder = GetTestInstance(dbType, query, operationMetadata, filterMetadata);
             var context = GetQueryContext(dbType);
 
             var authorIdValue = authors.First(a => $"{a.FirstName} {a.LastName}" == authorName).AuthorID;
-
-            var nullPageCountId = books.Where(b => !b.PageCount.HasValue).Select(b => b.BookID).First();
 
             // Act
             var operations = new[]
@@ -802,7 +863,13 @@ namespace Dapper.Wrappers.Tests.Builders
                 _metadataGenerator.GetQueryOperation("TestIDEquals", ("TestID", testId))
             };
 
-            generator.AddUpdateQuery(context, operations, filterOperations);
+            builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = operations
+            }, new ParsedQueryOperations
+            {
+                QueryOperations = filterOperations
+            });
 
             await context.ExecuteCommands();
 
@@ -820,19 +887,51 @@ namespace Dapper.Wrappers.Tests.Builders
         }
     }
 
-    public class TestUpdateQueryGenerator : UpdateQueryGenerator
+    public class TestUpdateQueryBuilder : QueryBuilder<object, object, object>
     {
-        public TestUpdateQueryGenerator(IQueryOperationFormatter queryFormatter, string updateQueryString,
-            IDictionary<string, MergeOperationMetadata> updateMetadata,
-            IDictionary<string, QueryOperationMetadata> filterMetadata) : base(queryFormatter)
+        private readonly IUpdateFormatter _updateFormatter;
+        private readonly IFilterFormatter _filterFormatter;
+
+        public TestUpdateQueryBuilder(IUpdateFormatter updateFormatter, IFilterFormatter filterFormatter,
+            string updateQueryString, IDictionary<string, MergeOperationMetadata> updateMetadata,
+            IDictionary<string, QueryOperationMetadata> filterMetadata)
         {
-            UpdateQueryString = updateQueryString;
-            UpdateOperationMetadata = updateMetadata;
-            FilterOperationMetadata = filterMetadata;
+            _updateFormatter = updateFormatter;
+            _filterFormatter = filterFormatter;
+            QueryFormat = updateQueryString;
+            _updateOperationMetadata = updateMetadata;
+            _filterOperationMetadata = filterMetadata;
         }
 
-        protected override IDictionary<string, QueryOperationMetadata> FilterOperationMetadata { get; }
-        protected override string UpdateQueryString { get; }
-        protected override IDictionary<string, MergeOperationMetadata> UpdateOperationMetadata { get; }
+        private readonly IDictionary<string, QueryOperationMetadata> _filterOperationMetadata;
+        private readonly IDictionary<string, MergeOperationMetadata> _updateOperationMetadata;
+        public override string QueryFormat { get; }
+
+        public override object InitializeContext()
+        {
+            return null;
+        }
+
+        public override ParsedQueryOperations GetOperationsFromObject1(object operationObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations, object builderContext)
+        {
+            return _updateFormatter.FormatUpdateOperations(context, operations.QueryOperations,
+                _updateOperationMetadata);
+        }
+
+        public override ParsedQueryOperations GetOperationsFromObject2(object operationObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations, object builderContext)
+        {
+            return _filterFormatter.FormatFilterOperations(context, _filterOperationMetadata,
+                operations.QueryOperations);
+        }
     }
 }

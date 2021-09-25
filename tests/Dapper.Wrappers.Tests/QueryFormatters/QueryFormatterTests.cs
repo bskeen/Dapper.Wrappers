@@ -7,23 +7,25 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.OperationFormatters;
+using Dapper.Wrappers.QueryFormatters;
 using FluentAssertions;
 using Moq;
 using Xunit;
 
-namespace Dapper.Wrappers.Tests.Builders
+namespace Dapper.Wrappers.Tests.QueryFormatters
 {
-    public class QueryGeneratorTests
+    public class QueryFormatterTests
     {
-        private static TestQueryGenerator GetDefaultTestInstance(SupportedDatabases dbType)
+        private static TestQueryFormatter GetDefaultTestInstance()
         {
-            IQueryOperationFormatter formatter = dbType == SupportedDatabases.SqlServer
-                ? (IQueryOperationFormatter)(new SqlServerQueryOperationFormatter())
-                : new PostgresQueryOperationFormatter();
-            return new TestQueryGenerator(formatter);
+            return new TestQueryFormatter();
         }
+
+        private static IQueryOperationFormatter GetQueryOperationFormatter(SupportedDatabases dbType) =>
+            dbType == SupportedDatabases.SqlServer
+                ? (IQueryOperationFormatter) (new SqlServerQueryOperationFormatter())
+                : new PostgresQueryOperationFormatter();
 
         private static Mock<IQueryContext> GetMockQueryContext()
         {
@@ -38,7 +40,7 @@ namespace Dapper.Wrappers.Tests.Builders
 
         private readonly IMetadataGenerator _metadataGenerator;
 
-        public QueryGeneratorTests(IMetadataGenerator metadataGenerator)
+        public QueryFormatterTests(IMetadataGenerator metadataGenerator)
         {
             _metadataGenerator = metadataGenerator;
         }
@@ -51,14 +53,14 @@ namespace Dapper.Wrappers.Tests.Builders
         public void FormatOperations_WithNullOrEmptyInputs_ShouldReturnAnEmptyList(bool isNull, SupportedDatabases dbType)
         {
             // Arrange
-            var generator = GetDefaultTestInstance(dbType);
+            var queryFormatter = GetDefaultTestInstance();
             var mockContext = GetMockQueryContext();
             IEnumerable<QueryOperation> operations = isNull ? null : new List<QueryOperation>();
 
             // Act
             var results =
-                generator.TestFormatOperations<QueryOperationMetadata>(mockContext.Object, operations, null, null,
-                    null);
+                queryFormatter.TestFormatOperations<QueryOperationMetadata>(mockContext.Object, operations, null, null,
+                    null, null);
 
             // Assert
             results.Should().NotBeNull();
@@ -74,7 +76,7 @@ namespace Dapper.Wrappers.Tests.Builders
         public void FormatOperations_WithBogusOperators_ShouldReturnAnEmptyList(SupportedDatabases dbType)
         {
             // Arrange
-            var generator = GetDefaultTestInstance(dbType);
+            var queryFormatter = GetDefaultTestInstance();
             var mockContext = GetMockQueryContext();
 
             var operations = new[]
@@ -94,7 +96,9 @@ namespace Dapper.Wrappers.Tests.Builders
             };
 
             // Act
-            var results = generator.TestFormatOperations(mockContext.Object, operations, operationMetadata, null, null);
+            var results =
+                queryFormatter.TestFormatOperations(mockContext.Object, operations, operationMetadata, null, null,
+                    null);
 
             // Assert
             results.Should().NotBeNull();
@@ -112,7 +116,7 @@ namespace Dapper.Wrappers.Tests.Builders
             SupportedDatabases dbType)
         {
             // Arrange
-            var generator = GetDefaultTestInstance(dbType);
+            var queryFormatter = GetDefaultTestInstance();
             var mockContext = GetMockQueryContext();
 
             var operations = new[]
@@ -143,9 +147,11 @@ namespace Dapper.Wrappers.Tests.Builders
 
             List<QueryOperationMetadata> collectedMetadata = new List<QueryOperationMetadata>();
 
+            var operationFormatter = GetQueryOperationFormatter(dbType);
+
             // Act
-            var results = generator.TestFormatOperations(mockContext.Object, operations, operationMetadata,
-                generator.TestGetNonOrderingFormatOperation(generator.TestFormatter.FormatFilterOperation), TestAction);
+            var results = queryFormatter.TestFormatOperations(mockContext.Object, operations, operationMetadata,
+                queryFormatter.TestGetNonOrderingFormatOperation(operationFormatter.FormatFilterOperation), TestAction, null);
 
             // Assert
             foreach (var result in results)
@@ -164,7 +170,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 context => context.AddVariable(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<DbType>(),
                     It.IsAny<bool>()), Times.Exactly(4));
 
-            void TestAction(QueryOperationMetadata metadata, int index, bool firstList)
+            void TestAction(QueryOperationMetadata metadata, int index, object state)
             {
                 collectedMetadata.Add(metadata);
             }
@@ -178,7 +184,7 @@ namespace Dapper.Wrappers.Tests.Builders
         {
 
             // Arrange
-            var generator = GetDefaultTestInstance(dbType);
+            var queryFormatter = GetDefaultTestInstance();
             var mockContext = GetMockQueryContext();
 
             var operations = new[]
@@ -206,10 +212,12 @@ namespace Dapper.Wrappers.Tests.Builders
                 }
             };
 
+            var operationFormatter = GetQueryOperationFormatter(dbType);
+
             // Act
-            var results = generator.TestFormatOperations(mockContext.Object, operations, operationMetadata,
-                generator.TestGetNonOrderingFormatOperation(generator.TestFormatter.FormatFilterOperation),
-                generator.TestNoopOperationAction);
+            var results = queryFormatter.TestFormatOperations(mockContext.Object, operations, operationMetadata,
+                queryFormatter.TestGetNonOrderingFormatOperation(operationFormatter.FormatFilterOperation),
+                queryFormatter.TestNoopOperationAction, null);
 
             // Assert
             foreach (var result in results)
@@ -225,7 +233,7 @@ namespace Dapper.Wrappers.Tests.Builders
         {
 
             // Arrange
-            var generator = GetDefaultTestInstance(dbType);
+            var queryFormatter = GetDefaultTestInstance();
             var mockContext = GetMockQueryContext();
 
             var operations = new[]
@@ -253,10 +261,12 @@ namespace Dapper.Wrappers.Tests.Builders
                 }
             };
 
+            var operationFormatter = GetQueryOperationFormatter(dbType);
+
             // Act
-            Func<List<string>> act = () => generator.TestFormatOperations(mockContext.Object, operations, operationMetadata,
-                generator.TestGetNonOrderingFormatOperation(generator.TestFormatter.FormatFilterOperation),
-                generator.TestNoopOperationAction);
+            Func<List<string>> act = () => queryFormatter.TestFormatOperations(mockContext.Object, operations, operationMetadata,
+                queryFormatter.TestGetNonOrderingFormatOperation(operationFormatter.FormatFilterOperation),
+                queryFormatter.TestNoopOperationAction, null);
 
             // Assert
             act.Should().Throw<ArgumentException>()
@@ -271,7 +281,7 @@ namespace Dapper.Wrappers.Tests.Builders
         {
 
             // Arrange
-            var generator = GetDefaultTestInstance(dbType);
+            var queryFormatter = GetDefaultTestInstance();
             var mockContext = GetMockQueryContext();
 
             var operations = new[]
@@ -288,7 +298,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 {
                     "Column1",
                     _metadataGenerator.GetOperation("Column1", "Column1 {0}",
-                        new QueryParameterMetadata[]
+                        new []
                         {
                             _metadataGenerator.GetParameter<OrderDirections>(DapperWrappersConstants.OrderByDirectionParameter, OrderDirections.Asc)
                         })
@@ -303,9 +313,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 }
             };
 
+            var operationFormatter = GetQueryOperationFormatter(dbType);
+
             // Act
-            var results = generator.TestFormatOperations(mockContext.Object, operations,
-                operationMetadata, generator.TestFormatter.FormatOrderOperation, generator.TestNoopOperationAction, true);
+            var results = queryFormatter.TestFormatOperations(mockContext.Object, operations,
+                operationMetadata, operationFormatter.FormatOrderOperation, queryFormatter.TestNoopOperationAction, null, true);
 
             // Assert
             results.Should().Contain(new[] {"Column1 ASC"});
@@ -313,22 +325,17 @@ namespace Dapper.Wrappers.Tests.Builders
         }
     }
 
-    public class TestQueryGenerator : QueryGenerator
+    public class TestQueryFormatter : QueryFormatter<object>
     {
-        public TestQueryGenerator(IQueryOperationFormatter queryFormatter) : base(queryFormatter)
-        {
-        }
-
-        public IQueryOperationFormatter TestFormatter => QueryFormatter;
-
         public List<string> TestFormatOperations<TOpMetadata>(IQueryContext context,
             IEnumerable<QueryOperation> operations, IDictionary<string, TOpMetadata> operationMetadata,
             Func<string, IEnumerable<string>, OrderDirections?, string> formatOperation,
-            Action<TOpMetadata, int, bool> operationAction, bool checkOrdering = false, bool useUniqueVariables = true)
-            where TOpMetadata : QueryOperationMetadata => FormatOperations(context, operations, operationMetadata,
-            formatOperation, operationAction, checkOrdering, useUniqueVariables);
+            Action<TOpMetadata, int, object> operationAction, object operationActionState, bool checkOrdering = false,
+            bool useUniqueVariables = true) where TOpMetadata : QueryOperationMetadata => FormatOperations(
+            context, operations, operationMetadata, formatOperation, operationAction, operationActionState,
+            checkOrdering, useUniqueVariables);
 
-        public void TestNoopOperationAction(QueryOperationMetadata metadata, int index, bool firstList) {}
+        public void TestNoopOperationAction(QueryOperationMetadata metadata, int index, object state) {}
 
         public Func<string, IEnumerable<string>, OrderDirections?, string> TestGetNonOrderingFormatOperation(
             Func<string, IEnumerable<string>, string> operation)

@@ -8,5 +8,7 @@ namespace Dapper.Wrappers.QueryFormatters
     {
         string FormatInsertColumns(IEnumerable<QueryOperation> insertOperations,
             IDictionary<string, MergeOperationMetadata> operationMetadata);
+
+        string FormatInsertColumns(IEnumerable<string> columns);
     }
 }

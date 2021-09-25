@@ -264,9 +264,9 @@ namespace Dapper.Wrappers.Tests.Formatters
         }
 
         [Theory]
-        [InlineData(new[] { "\"Column1\" ASC" }, "ORDER BY \"Column1\" ASC")]
-        [InlineData(new[] { "\"Column1\" ASC", "\"Column2\" DESC" }, "ORDER BY \"Column1\" ASC, \"Column2\" DESC")]
-        [InlineData(new[] { "is", "not", "a", "query" }, "ORDER BY is, not, a, query")]
+        [InlineData(new[] { "\"Column1\" ASC" }, "ORDER BY \"Column1\" ASC ")]
+        [InlineData(new[] { "\"Column1\" ASC", "\"Column2\" DESC" }, "ORDER BY \"Column1\" ASC, \"Column2\" DESC ")]
+        [InlineData(new[] { "is", "not", "a", "query" }, "ORDER BY is, not, a, query ")]
         public void FormatOrderOperations_WithInputs_ShouldCommaDelimitWithOrderBy(string[] operations, string output)
         {
             // Arrange

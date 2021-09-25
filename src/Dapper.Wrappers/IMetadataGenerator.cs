@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Data;
 
-namespace Dapper.Wrappers.Generators
+namespace Dapper.Wrappers
 {
     public interface IMetadataGenerator
     {
@@ -19,10 +19,11 @@ namespace Dapper.Wrappers.Generators
         QueryOperationMetadata GetOrderOperation(string name, string baseQueryString,
             IEnumerable<QueryParameterMetadata> parameters);
 
-        MergeOperationMetadata GetDefaultMergeOperation<T>(string columnName, string baseQueryString);
+        MergeOperationMetadata GetDefaultMergeOperation<T>(string columnName, string baseQueryString,
+            bool isRequired = false);
 
         MergeOperationMetadata GetMergeOperation(string name, string baseQueryString, string referencedColumn,
-            IEnumerable<QueryParameterMetadata> parameters);
+            IEnumerable<QueryParameterMetadata> parameters, bool isRequired = false);
 
         QueryParameterMetadata GetParameter<T>(string name, object defaultValue = null, bool hasDefault = false);
 

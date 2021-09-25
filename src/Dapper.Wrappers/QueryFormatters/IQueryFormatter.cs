@@ -9,6 +9,6 @@ namespace Dapper.Wrappers.QueryFormatters
             IEnumerable<QueryOperation> operations, IDictionary<string, TOpMetadata> operationMetadata,
             Func<string, IEnumerable<string>, OrderDirections?, string> formatOperation,
             Action<TOpMetadata, int, T> operationAction, T operationActionState, bool checkOrdering = false,
-            bool useUniqueVariables = true);
+            bool useUniqueVariables = true) where TOpMetadata : QueryOperationMetadata;
     }
 }

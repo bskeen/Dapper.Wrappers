@@ -141,5 +141,12 @@ namespace Dapper.Wrappers.OperationFormatters
         /// <param name="updateCriteria">The formatted criteria to add to the query.</param>
         /// <returns>The formatted update query.</returns>
         string FormatUpdateQuery(string baseQueryString, string updateOperations, string updateCriteria);
+
+        /// <summary>
+        /// Formats an identifier as a variable to be used by the query.
+        /// </summary>
+        /// <param name="variableName">The identifier to be formatted as a variable.</param>
+        /// <returns>A correctly formatted variable.</returns>
+        string FormatVariable(string variableName);
     }
 }

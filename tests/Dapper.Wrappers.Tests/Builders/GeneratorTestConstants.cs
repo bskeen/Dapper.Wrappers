@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.Tests.DbModels;
 
 namespace Dapper.Wrappers.Tests.Builders
@@ -121,15 +120,17 @@ namespace Dapper.Wrappers.Tests.Builders
             public static readonly IDictionary<string, MergeOperationMetadata> DefaultRequiredBookInsertMetadata =
                 new Dictionary<string, MergeOperationMetadata>
                 {
+                    {"BookID", MetadataGenerator.GetDefaultMergeOperation<Guid>("BookID", "{0}")},
                     {
                         "Name", MetadataGenerator.GetMergeOperation("Name", "{0}", "Name", new[]
                         {
                             MetadataGenerator.GetParameter<string>("Name", "This is an Unnamed Book")
-                        })
+                        }, true)
                     },
-                    {"AuthorID", MetadataGenerator.GetDefaultMergeOperation<Guid>("AuthorID", "{0}")},
-                    {"TestScope", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestScope", "{0}")},
-                    {"TestID", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestID", "{0}")}
+                    {"AuthorID", MetadataGenerator.GetDefaultMergeOperation<Guid>("AuthorID", "{0}", true)},
+                    {"PageCount", MetadataGenerator.GetDefaultMergeOperation<int>("PageCount", "{0}")},
+                    {"TestScope", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestScope", "{0}", true)},
+                    {"TestID", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestID", "{0}", true)}
                 };
 
             public static readonly IDictionary<string, QueryOperation> DefaultBookInsertOperations =
@@ -143,7 +144,7 @@ namespace Dapper.Wrappers.Tests.Builders
                     }
                 };
 
-            public static readonly string DefaultBookOrdering = "ORDER BY [Name] ASC";
+            public static readonly string DefaultBookOrdering = "[Name] ASC";
 
             public static readonly IDictionary<string, QueryOperationMetadata> DefaultBookOrderMetadata =
                 new Dictionary<string, QueryOperationMetadata>
@@ -405,15 +406,17 @@ namespace Dapper.Wrappers.Tests.Builders
             public static readonly IDictionary<string, MergeOperationMetadata> DefaultRequiredBookInsertMetadata =
                 new Dictionary<string, MergeOperationMetadata>
                 {
+                    {"BookID", MetadataGenerator.GetDefaultMergeOperation<Guid>("BookID", "{0}")},
                     {
                         "Name", MetadataGenerator.GetMergeOperation("Name", "{0}", "Name", new[]
                         {
                             MetadataGenerator.GetParameter<string>("Name", "This is an Unnamed Book")
-                        })
+                        }, true)
                     },
-                    {"AuthorID", MetadataGenerator.GetDefaultMergeOperation<Guid>("AuthorID", "{0}")},
-                    {"TestScope", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestScope", "{0}")},
-                    {"TestID", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestID", "{0}")}
+                    {"AuthorID", MetadataGenerator.GetDefaultMergeOperation<Guid>("AuthorID", "{0}", true)},
+                    {"PageCount", MetadataGenerator.GetDefaultMergeOperation<int>("PageCount", "{0}")},
+                    {"TestScope", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestScope", "{0}", true)},
+                    {"TestID", MetadataGenerator.GetDefaultMergeOperation<Guid>("TestID", "{0}", true)}
                 };
 
             public static readonly IDictionary<string, QueryOperation> DefaultBookInsertOperations =
@@ -427,7 +430,7 @@ namespace Dapper.Wrappers.Tests.Builders
                     }
                 };
 
-            public static readonly string DefaultBookOrdering = "ORDER BY \"Name\" ASC";
+            public static readonly string DefaultBookOrdering = "\"Name\" ASC";
 
             public static readonly IDictionary<string, QueryOperationMetadata> DefaultBookOrderMetadata =
                 new Dictionary<string, QueryOperationMetadata>

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper.Wrappers.Builders;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.QueryFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
@@ -648,7 +647,7 @@ namespace Dapper.Wrappers.Tests.Builders
         public HashSet<string> UpdatedProperties { get; } = new HashSet<string>();
     }
 
-    public class TestDeleteQueryBuilder : QueryBuilder<object>
+    public class TestDeleteQueryBuilder : QueryBuilder<object, object>
     {
         public TestDeleteQueryBuilder(IFilterFormatter filterFormatter,
             string deleteQueryString, IDictionary<string, QueryOperationMetadata> filterOperationMetadata)
@@ -663,7 +662,12 @@ namespace Dapper.Wrappers.Tests.Builders
 
         public override string QueryFormat { get; }
 
-        public override string GetFormattedOperations(IQueryContext context, ParsedQueryOperations operations)
+        public override object InitializeContext()
+        {
+            return null;
+        }
+
+        public override string GetFormattedOperations(IQueryContext context, ParsedQueryOperations operations, object builderContext)
         {
             return _filterFormatter.FormatFilterOperations(context, _filterOperationMetadata, operations.QueryOperations);
         }

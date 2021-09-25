@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.OperationFormatters;
 using Dapper.Wrappers.QueryFormatters;
 using FluentAssertions;

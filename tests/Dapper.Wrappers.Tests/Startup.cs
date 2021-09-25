@@ -6,7 +6,6 @@ using System;
 using System.Data;
 using System.IO;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.OperationFormatters;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;

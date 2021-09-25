@@ -169,7 +169,7 @@ namespace Dapper.Wrappers.QueryFormatters
                 }
                 else
                 {
-                    throw new ArgumentException($"Value must be supplied for '{column}'.");
+                    throw new ArgumentException($"Value must be supplied for '{column.ReferencedColumn}'.");
                 }
             }
         }

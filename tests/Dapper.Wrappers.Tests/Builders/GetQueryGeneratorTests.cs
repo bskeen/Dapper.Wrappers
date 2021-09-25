@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper.Wrappers.Builders;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Generators;
 using Dapper.Wrappers.QueryFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
@@ -988,7 +987,7 @@ namespace Dapper.Wrappers.Tests.Builders
         }
     }
 
-    public class TestGetQueryBuilder : QueryBuilder<object, int>
+    public class TestGetQueryBuilder : QueryBuilder<object, object, object>
     {
         private readonly IFilterFormatter _filterFormatter;
         private readonly IOrderingFormatter _orderingFormatter;
@@ -1013,17 +1012,22 @@ namespace Dapper.Wrappers.Tests.Builders
 
         public override string QueryFormat { get; }
 
+        public override object InitializeContext()
+        {
+            return null;
+        }
+
         public override ParsedQueryOperations GetOperationsFromObject1(object operationObject)
         {
             throw new NotImplementedException();
         }
 
-        public override ParsedQueryOperations GetOperationsFromObject2(int operationObject)
+        public override ParsedQueryOperations GetOperationsFromObject2(object operationObject)
         {
             throw new NotImplementedException();
         }
 
-        public override string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations)
+        public override string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations, object builderContext)
         {
             if (operations is ParsedOrderingQueryOperations orderingOperations)
             {
@@ -1035,7 +1039,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 operations.QueryOperations);
         }
 
-        public override string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations)
+        public override string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations, object builderContext)
         {
             return _filterFormatter.FormatFilterOperations(context, _filterOperationMetadata,
                 operations.QueryOperations);

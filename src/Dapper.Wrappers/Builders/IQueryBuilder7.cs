@@ -7,6 +7,9 @@ namespace Dapper.Wrappers.Builders
     /// <summary>
     /// Defines a query builder type that includes methods to use operation types to build the query.
     /// </summary>
+    /// <typeparam name="TBuilderContext">
+    /// The type containing the state that needs to be shared between calls to GetFormattedOperations.
+    /// </typeparam>
     /// <typeparam name="TOperations1">The first type used to get the query operations.</typeparam>
     /// <typeparam name="TOperations2">The second type used to get the query operations.</typeparam>
     /// <typeparam name="TOperations3">The third type used to get the query operations.</typeparam>
@@ -14,7 +17,7 @@ namespace Dapper.Wrappers.Builders
     /// <typeparam name="TOperations5">The fifth type used to get the query operations.</typeparam>
     /// <typeparam name="TOperations6">The sixth type used to get the query operations.</typeparam>
     /// <typeparam name="TOperations7">The seventh type used to get the query operations.</typeparam>
-    public interface IQueryBuilder<in TOperations1, in TOperations2, in TOperations3, in TOperations4, in TOperations5, in TOperations6,
+    public interface IQueryBuilder<TBuilderContext, in TOperations1, in TOperations2, in TOperations3, in TOperations4, in TOperations5, in TOperations6,
         in TOperations7> : IQueryBuilder
     {
         /// <summary>
@@ -52,6 +55,12 @@ namespace Dapper.Wrappers.Builders
             TOperations5 operationObject5, TOperations6 operationObject6, TOperations7 operationObject7);
 
         /// <summary>
+        /// Gets a default builder context to use while building.
+        /// </summary>
+        /// <returns>A default builder context to use while building.</returns>
+        TBuilderContext InitializeContext();
+
+        /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
         /// </summary>
         /// <param name="operationObject">The object to use when constructing the operations.</param>
@@ -63,8 +72,9 @@ namespace Dapper.Wrappers.Builders
         /// </summary>
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
+        /// <param name="builderContext">Any state that needs to be shared between calls to GetFormattedOperations.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations);
+        string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -78,8 +88,9 @@ namespace Dapper.Wrappers.Builders
         /// </summary>
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
+        /// <param name="builderContext">Any state that needs to be shared between calls to GetFormattedOperations.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations);
+        string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -93,8 +104,9 @@ namespace Dapper.Wrappers.Builders
         /// </summary>
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
+        /// <param name="builderContext">Any state that needs to be shared between calls to GetFormattedOperations.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations3(IQueryContext context, ParsedQueryOperations operations);
+        string GetFormattedOperations3(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -108,8 +120,9 @@ namespace Dapper.Wrappers.Builders
         /// </summary>
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
+        /// <param name="builderContext">Any state that needs to be shared between calls to GetFormattedOperations.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations4(IQueryContext context, ParsedQueryOperations operations);
+        string GetFormattedOperations4(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -123,8 +136,9 @@ namespace Dapper.Wrappers.Builders
         /// </summary>
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
+        /// <param name="builderContext">Any state that needs to be shared between calls to GetFormattedOperations.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations5(IQueryContext context, ParsedQueryOperations operations);
+        string GetFormattedOperations5(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -138,8 +152,9 @@ namespace Dapper.Wrappers.Builders
         /// </summary>
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
+        /// <param name="builderContext">Any state that needs to be shared between calls to GetFormattedOperations.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations6(IQueryContext context, ParsedQueryOperations operations);
+        string GetFormattedOperations6(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -153,7 +168,8 @@ namespace Dapper.Wrappers.Builders
         /// </summary>
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
+        /// <param name="builderContext">Any state that needs to be shared between calls to GetFormattedOperations.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations7(IQueryContext context, ParsedQueryOperations operations);
+        string GetFormattedOperations7(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
     }
 }

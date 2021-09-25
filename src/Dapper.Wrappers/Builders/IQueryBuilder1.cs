@@ -7,8 +7,11 @@ namespace Dapper.Wrappers.Builders
     /// <summary>
     /// Defines a query builder type that includes methods to use operation types to build the query.
     /// </summary>
+    /// <typeparam name="TBuilderContext">
+    /// The type containing the state that needs to be shared between calls to GetFormattedOperations.
+    /// </typeparam>
     /// <typeparam name="TOperations">The type used to get the query operations.</typeparam>
-    public interface IQueryBuilder<in TOperations> : IQueryBuilder
+    public interface IQueryBuilder<TBuilderContext, in TOperations> : IQueryBuilder
     {
         /// <summary>
         /// Adds a query to the given QueryContext, using the given query operations.
@@ -25,6 +28,12 @@ namespace Dapper.Wrappers.Builders
         void AddQueryToContext(IQueryContext context, TOperations operationObject);
 
         /// <summary>
+        /// Gets a default builder context to use while building.
+        /// </summary>
+        /// <returns>A default builder context to use while building.</returns>
+        TBuilderContext InitializeContext();
+
+        /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
         /// </summary>
         /// <param name="operationObject">The object to use when constructing the operations.</param>
@@ -36,7 +45,8 @@ namespace Dapper.Wrappers.Builders
         /// </summary>
         /// <param name="context">The query context to be updated.</param>
         /// <param name="operations">The operations to include in the formatted query piece.</param>
+        /// <param name="builderContext">Any state that needs to be shared between calls to GetFormattedOperations.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations(IQueryContext context, ParsedQueryOperations operations);
+        string GetFormattedOperations(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
     }
 }

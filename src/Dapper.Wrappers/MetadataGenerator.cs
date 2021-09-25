@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
-namespace Dapper.Wrappers.Generators
+namespace Dapper.Wrappers
 {
     public class MetadataGenerator: IMetadataGenerator
     {
@@ -39,20 +39,21 @@ namespace Dapper.Wrappers.Generators
             Parameters = parameters.Concat(new[]
                 {GetParameter<string>(DapperWrappersConstants.OrderByDirectionParameter)})
         };
-
-        public MergeOperationMetadata GetDefaultMergeOperation<T>(string columnName, string baseQueryString) =>
+        
+        public MergeOperationMetadata GetDefaultMergeOperation<T>(string columnName, string baseQueryString, bool isRequired = false) =>
             GetMergeOperation(columnName, baseQueryString, columnName, new[]
             {
                 GetParameter<T>(columnName)
-            });
+            }, isRequired);
 
         public MergeOperationMetadata GetMergeOperation(string name, string baseQueryString, string referencedColumn,
-            IEnumerable<QueryParameterMetadata> parameters) => new MergeOperationMetadata
+            IEnumerable<QueryParameterMetadata> parameters, bool isRequired = false) => new MergeOperationMetadata
         {
             Name = name,
             BaseQueryString = baseQueryString,
             Parameters = parameters,
-            ReferencedColumn = referencedColumn
+            ReferencedColumn = referencedColumn,
+            IsRequired = isRequired
         };
 
         // This list was generated from the list shown here (retrieved 8/6/2021):

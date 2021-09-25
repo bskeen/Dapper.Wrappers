@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Dapper.Wrappers.OperationFormatters;
 
 namespace Dapper.Wrappers.QueryFormatters
@@ -35,6 +36,12 @@ namespace Dapper.Wrappers.QueryFormatters
                 formattedColumns.Add(_queryOperationFormatter.FormatInsertColumn(metadata.ReferencedColumn));
             }
 
+            return _queryOperationFormatter.FormatInsertColumns(formattedColumns);
+        }
+
+        public string FormatInsertColumns(IEnumerable<string> columns)
+        {
+            var formattedColumns = columns.Select(c => _queryOperationFormatter.FormatInsertColumn(c));
             return _queryOperationFormatter.FormatInsertColumns(formattedColumns);
         }
     }

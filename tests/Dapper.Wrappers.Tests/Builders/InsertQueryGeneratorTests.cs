@@ -9,8 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper.Wrappers.Builders;
 using Dapper.Wrappers.DependencyInjection;
-using Dapper.Wrappers.Generators;
-using Dapper.Wrappers.OperationFormatters;
 using Dapper.Wrappers.QueryFormatters;
 using Dapper.Wrappers.Tests.DbModels;
 using FluentAssertions;
@@ -37,14 +35,16 @@ namespace Dapper.Wrappers.Tests.Builders
             _metadataGenerator = metadataGenerator;
         }
 
-        private TestInsertQueryGenerator GetTestInstance(SupportedDatabases dbType, string query,
+        private TestInsertQueryBuilder GetTestInstance(SupportedDatabases dbType, string query,
             IDictionary<string, MergeOperationMetadata> metadata,
-            IDictionary<string, MergeOperationMetadata> requiredMetadata,
             IDictionary<string, QueryOperation> defaultOperations)
         {
             var formatter = _databaseFixture.GetFormatter(dbType);
+            var insertColumnsFormatter = new InsertColumnsFormatter(formatter);
+            var valuesListFormatter = new ValuesListFormatter(formatter);
 
-            return new TestInsertQueryGenerator(formatter, query, metadata, requiredMetadata, defaultOperations);
+            return new TestInsertQueryBuilder(insertColumnsFormatter, valuesListFormatter, query, metadata,
+                defaultOperations);
         }
 
         private IDbConnection GetConnection(SupportedDatabases dbType) =>
@@ -71,22 +71,18 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var requiredMetadata = dbType == SupportedDatabases.SqlServer
-                ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
-                : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
-
             var defaultOperations = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var builder = GetTestInstance(dbType, query, metadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             // Act
-            Action act = () => generator.AddInsertQuery(context, null);
+            Action act = () => builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations(), null);
 
             // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("Insert operations cannot be null.");
+            act.Should().Throw<ArgumentException>().WithMessage("Insert operations cannot be empty.");
         }
 
         [Theory]
@@ -103,20 +99,21 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var requiredMetadata = new Dictionary<string, MergeOperationMetadata>();
-
             var defaultOperations = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var builder = GetTestInstance(dbType, query, metadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             // Act
-            Action act = () => generator.AddInsertQuery(context, new QueryOperation[] { });
+            Action act = () => builder.AddQueryToContext(context, new ParsedQueryOperations
+            {
+                QueryOperations = new QueryOperation[] { }
+            }, null);
 
             // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("No insert operations specified.");
+            act.Should().Throw<ArgumentException>().WithMessage("No values list operations specified.");
         }
 
         [Theory]
@@ -133,24 +130,25 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var requiredMetadata = new Dictionary<string, MergeOperationMetadata>();
-
             var defaultOperations = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var builder = GetTestInstance(dbType, query, metadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             // Act
-            Action act = () => generator.AddInsertQuery(context, new []
+            Action act = () => builder.AddQueryToContext(context, new ParsedQueryOperations
             {
-                _metadataGenerator.GetQueryOperation("Bogus1"),
-                _metadataGenerator.GetQueryOperation("Bogus2")
-            });
+                QueryOperations = new[]
+                {
+                    _metadataGenerator.GetQueryOperation("Bogus1"),
+                    _metadataGenerator.GetQueryOperation("Bogus2")
+                }
+            }, null);
 
             // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("No insert operations specified.");
+            act.Should().Throw<ArgumentException>().WithMessage("No values list operations specified.");
         }
 
         [Theory]
@@ -166,10 +164,6 @@ namespace Dapper.Wrappers.Tests.Builders
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
             var metadata = dbType == SupportedDatabases.SqlServer
-                ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
-                : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
-
-            var requiredMetadata = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
 
@@ -177,16 +171,19 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var builder = GetTestInstance(dbType, query, metadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             // Act
-            Action act = () => generator.AddInsertQuery(context, new[]
+            Action act = () => builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
             {
-                _metadataGenerator.GetQueryOperation("BookID", ("BookID", Guid.NewGuid())),
-                _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
-                _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
-            });
+                QueryOperations = new[]
+                {
+                    _metadataGenerator.GetQueryOperation("BookID", ("BookID", Guid.NewGuid())),
+                    _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                    _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
+                }
+            }, null);
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("Value must be supplied for 'AuthorID'.");
@@ -208,25 +205,24 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var requiredMetadata = dbType == SupportedDatabases.SqlServer
-                ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
-                : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
-
             var defaultOperations = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var builder = GetTestInstance(dbType, query, metadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             // Act
-            Action act = () => generator.AddInsertQuery(context, new[]
+            Action act = () => builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
             {
-                _metadataGenerator.GetQueryOperation("BookID", ("BookID", Guid.NewGuid())),
-                _metadataGenerator.GetQueryOperation("BookID", ("BookID", Guid.NewGuid())),
-                _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
-                _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
-            });
+                QueryOperations = new[]
+                {
+                    _metadataGenerator.GetQueryOperation("BookID", ("BookID", Guid.NewGuid())),
+                    _metadataGenerator.GetQueryOperation("BookID", ("BookID", Guid.NewGuid())),
+                    _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                    _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
+                }
+            }, null);
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("Cannot have multiple inserts into the same column.");
@@ -259,15 +255,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var requiredMetadata = dbType == SupportedDatabases.SqlServer
-                ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
-                : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
-
             var defaultOperations = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var builder = GetTestInstance(dbType, query, metadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             var randomGenerator = new Random();
@@ -275,15 +267,18 @@ namespace Dapper.Wrappers.Tests.Builders
             var bookId = Guid.NewGuid();
 
             // Act
-            generator.AddInsertQuery(context, new[]
+            builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
             {
-                _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookId)),
-                _metadataGenerator.GetQueryOperation("Name", ("Name", name)),
-                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authors[authorIndex].AuthorID)),
-                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCount)),
-                _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
-                _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
-            });
+                QueryOperations = new[]
+                {
+                    _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookId)),
+                    _metadataGenerator.GetQueryOperation("Name", ("Name", name)),
+                    _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authors[authorIndex].AuthorID)),
+                    _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCount)),
+                    _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                    _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
+                }
+            }, null);
 
             await context.ExecuteCommands();
 
@@ -321,10 +316,6 @@ namespace Dapper.Wrappers.Tests.Builders
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
             var metadata = dbType == SupportedDatabases.SqlServer
-                ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
-                : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
-
-            var requiredMetadata = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
 
@@ -332,7 +323,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var builder = GetTestInstance(dbType, query, metadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             var randomGenerator = new Random();
@@ -340,14 +331,17 @@ namespace Dapper.Wrappers.Tests.Builders
             var bookId = Guid.NewGuid();
 
             // Act
-            generator.AddInsertQuery(context, new[]
+            builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
             {
-                _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookId)),
-                _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authors[authorIndex].AuthorID)),
-                _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCount)),
-                _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
-                _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
-            });
+                QueryOperations = new[]
+                {
+                    _metadataGenerator.GetQueryOperation("BookID", ("BookID", bookId)),
+                    _metadataGenerator.GetQueryOperation("AuthorID", ("AuthorID", authors[authorIndex].AuthorID)),
+                    _metadataGenerator.GetQueryOperation("PageCount", ("PageCount", pageCount)),
+                    _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
+                    _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
+                }
+            }, null);
 
             await context.ExecuteCommands();
 
@@ -388,15 +382,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var requiredMetadata = dbType == SupportedDatabases.SqlServer
-                ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
-                : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
-
             var defaultOperations = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var builder = GetTestInstance(dbType, query, metadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             var randomGenerator = new Random();
@@ -432,7 +422,10 @@ namespace Dapper.Wrappers.Tests.Builders
             }
 
             // Act
-            generator.AddMultipleInsertQuery(context, queryOperations);
+            builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
+            {
+                MultiQueryOperations = queryOperations
+            }, null);
 
             await context.ExecuteCommands();
 
@@ -482,15 +475,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var requiredMetadata = dbType == SupportedDatabases.SqlServer
-                ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
-                : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
-
             var defaultOperations = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var builder = GetTestInstance(dbType, query, metadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             var randomGenerator = new Random();
@@ -526,7 +515,10 @@ namespace Dapper.Wrappers.Tests.Builders
             }
 
             // Act
-            generator.AddMultipleInsertQuery(context, queryOperations);
+            builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
+            {
+                MultiQueryOperations = queryOperations
+            }, null);
 
             await context.ExecuteCommands();
 
@@ -576,15 +568,11 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var requiredMetadata = dbType == SupportedDatabases.SqlServer
-                ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
-                : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
-
             var defaultOperations = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var builder = GetTestInstance(dbType, query, metadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             var randomGenerator = new Random();
@@ -635,7 +623,10 @@ namespace Dapper.Wrappers.Tests.Builders
             }
 
             // Act
-            generator.AddMultipleInsertQuery(context, queryOperations);
+            builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
+            {
+                MultiQueryOperations = queryOperations
+            }, null);
 
             await context.ExecuteCommands();
 
@@ -686,10 +677,6 @@ namespace Dapper.Wrappers.Tests.Builders
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
             var metadata = dbType == SupportedDatabases.SqlServer
-                ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
-                : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
-
-            var requiredMetadata = dbType == SupportedDatabases.SqlServer
                 ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
 
@@ -697,7 +684,7 @@ namespace Dapper.Wrappers.Tests.Builders
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
-            var generator = GetTestInstance(dbType, query, metadata, requiredMetadata, defaultOperations);
+            var builder = GetTestInstance(dbType, query, metadata, defaultOperations);
             var context = GetQueryContext(dbType);
 
             var randomGenerator = new Random();
@@ -741,26 +728,33 @@ namespace Dapper.Wrappers.Tests.Builders
             }
 
             // Act
-            Action act = () => generator.AddMultipleInsertQuery(context, queryOperations);
+            Action act = () => builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
+            {
+                MultiQueryOperations = queryOperations
+            }, null);
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("Value must be supplied for 'AuthorID'.");
         }
     }
 
-    public class TestInsertQueryGenerator : QueryBuilder<object, object>
+    public class TestInsertQueryBuilderContext
+    {
+        public IEnumerable<string> OrderedColumnNames { get; set; }
+    }
+
+    public class TestInsertQueryBuilder : QueryBuilder<TestInsertQueryBuilderContext, object, object>
     {
         private readonly IInsertColumnsFormatter _insertColumnsFormatter;
         private readonly IValuesListFormatter _valuesListFormatter;
 
-        public TestInsertQueryGenerator(IQueryOperationFormatter queryFormatter, IInsertColumnsFormatter insertColumnsFormatter, IValuesListFormatter valuesListFormatter, string queryString,
+        public TestInsertQueryBuilder(IInsertColumnsFormatter insertColumnsFormatter,
+            IValuesListFormatter valuesListFormatter, string queryString,
             IDictionary<string, MergeOperationMetadata> metadata,
-            IDictionary<string, MergeOperationMetadata> requiredMetadata,
             IDictionary<string, QueryOperation> defaultOperations)
         {
             QueryFormat = queryString;
             _insertOperationMetadata = metadata;
-            _requiredMetadata = requiredMetadata;
             _defaultOperations = defaultOperations;
             _insertColumnsFormatter = insertColumnsFormatter;
             _valuesListFormatter = valuesListFormatter;
@@ -768,19 +762,39 @@ namespace Dapper.Wrappers.Tests.Builders
         
         private readonly IDictionary<string, MergeOperationMetadata> _insertOperationMetadata;
 
-        private readonly IDictionary<string, MergeOperationMetadata> _requiredMetadata;
-
         private readonly IDictionary<string, QueryOperation> _defaultOperations;
         public override string QueryFormat { get; }
+
+        public override TestInsertQueryBuilderContext InitializeContext()
+        {
+            return new TestInsertQueryBuilderContext();
+        }
 
         public override ParsedQueryOperations GetOperationsFromObject1(object operationObject)
         {
             throw new NotImplementedException();
         }
 
-        public override string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations)
+        public override string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations,
+            TestInsertQueryBuilderContext builderContext)
         {
-            return _insertColumnsFormatter.FormatInsertColumns(operations.QueryOperations, _insertOperationMetadata);
+            string formattedValuesLists;
+            IEnumerable<MergeOperationMetadata> orderedMetadata;
+
+            if (operations is ParsedValuesListsQueryOperations valuesListsOperations)
+            {
+                (formattedValuesLists, orderedMetadata) = _valuesListFormatter.FormatValuesLists(context,
+                    valuesListsOperations.MultiQueryOperations, _insertOperationMetadata, _defaultOperations);
+            }
+            else
+            {
+                (formattedValuesLists, orderedMetadata) = _valuesListFormatter.FormatValuesLists(context,
+                    new [] {operations.QueryOperations}, _insertOperationMetadata, _defaultOperations);
+            }
+
+            builderContext.OrderedColumnNames = orderedMetadata.Select(m => m.ReferencedColumn);
+
+            return formattedValuesLists;
         }
 
         public override ParsedQueryOperations GetOperationsFromObject2(object operationObject)
@@ -788,12 +802,15 @@ namespace Dapper.Wrappers.Tests.Builders
             throw new NotImplementedException();
         }
 
-        public override string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations)
+        public override string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations,
+            TestInsertQueryBuilderContext builderContext)
         {
-            if (operations is ParsedValuesListsQueryOperations valuesListsOperations)
+            if (builderContext?.OrderedColumnNames is null)
             {
-                return _valuesListFormatter.FormatValuesLists(context, valuesListsOperations.MultiQueryOperations, _insertOperationMetadata, _defaultOperations)
+                return _insertColumnsFormatter.FormatInsertColumns(operations.QueryOperations, _insertOperationMetadata);
             }
+
+            return _insertColumnsFormatter.FormatInsertColumns(builderContext.OrderedColumnNames);
         }
     }
 }

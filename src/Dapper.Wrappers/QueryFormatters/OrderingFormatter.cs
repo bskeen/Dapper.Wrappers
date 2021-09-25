@@ -20,14 +20,18 @@ namespace Dapper.Wrappers.QueryFormatters
             string formattedPagination = null;
             if (pagination != null)
             {
-                var skipVariable = context.AddVariable("skip", pagination.Skip, System.Data.DbType.Int32);
-                var takeVariable = context.AddVariable("take", pagination.Take, System.Data.DbType.Int32);
+                var skipVariable =
+                    _queryOperationFormatter.FormatVariable(context.AddVariable("skip", pagination.Skip,
+                        System.Data.DbType.Int32));
+                var takeVariable =
+                    _queryOperationFormatter.FormatVariable(context.AddVariable("take", pagination.Take,
+                        System.Data.DbType.Int32));
 
                 formattedPagination = _queryOperationFormatter.FormatPagination(skipVariable, takeVariable);
             }
 
             var formattedOrderItems = FormatOperations(context, orderOperations, operationMetadata,
-                _queryOperationFormatter.FormatOrderOperation, NoopOperationAction, true);
+                _queryOperationFormatter.FormatOrderOperation, NoopOperationAction, null, true);
 
             if (formattedOrderItems.Count == 0)
             {
