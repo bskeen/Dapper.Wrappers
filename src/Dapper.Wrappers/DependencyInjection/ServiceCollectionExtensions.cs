@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using Dapper.Wrappers.Builders;
 using Dapper.Wrappers.OperationFormatters;
+using Dapper.Wrappers.QueryFormatters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -22,7 +23,7 @@ namespace Dapper.Wrappers.DependencyInjection
         /// <summary>
         /// A map of supported databases to the type that should be used with that database.
         /// </summary>
-        private static readonly IDictionary<SupportedDatabases, Type> QueryFormatterTypes = new Dictionary<SupportedDatabases, Type>
+        private static readonly IDictionary<SupportedDatabases, Type> QueryOperationFormatterTypes = new Dictionary<SupportedDatabases, Type>
         {
             { SupportedDatabases.SqlServer, typeof(SqlServerQueryOperationFormatter) },
             { SupportedDatabases.PostgreSQL, typeof(PostgresQueryOperationFormatter) }
@@ -64,9 +65,9 @@ namespace Dapper.Wrappers.DependencyInjection
         /// <param name="options">The options configuring how the IServiceCollection will be updated.</param>
         private static void SetupDependencyInjection(IServiceCollection services, DapperWrappersOptions options)
         {
-            if (QueryFormatterTypes.ContainsKey(options.DatabaseEngine))
+            if (QueryOperationFormatterTypes.ContainsKey(options.DatabaseEngine))
             {
-                services.TryAddSingleton(typeof(IQueryOperationFormatter), QueryFormatterTypes[options.DatabaseEngine]);
+                services.TryAddSingleton(typeof(IQueryOperationFormatter), QueryOperationFormatterTypes[options.DatabaseEngine]);
             }
 
             services.TryAddScoped(typeof(IQueryContext), options.QueryContextType);
@@ -81,6 +82,8 @@ namespace Dapper.Wrappers.DependencyInjection
             {
                 RegisterQueryBuilders(services, options.QueryBuilderTypeAssembly);
             }
+
+            RegisterQueryFormatters(services);
         }
 
         /// <summary>
@@ -116,6 +119,19 @@ namespace Dapper.Wrappers.DependencyInjection
                     services.TryAddSingleton(interfaceToRegister, type);
                 }
             }
+        }
+
+        /// <summary>
+        /// Registers the default query formatters.
+        /// </summary>
+        /// <param name="services">The services collection with which to register the query formatter types.</param>
+        private static void RegisterQueryFormatters(IServiceCollection services)
+        {
+            services.TryAddSingleton<IFilterFormatter, FilterFormatter>();
+            services.TryAddSingleton<IInsertColumnsFormatter, InsertColumnsFormatter>();
+            services.TryAddSingleton<IOrderingFormatter, OrderingFormatter>();
+            services.TryAddSingleton<IUpdateFormatter, UpdateFormatter>();
+            services.TryAddSingleton<IValuesListFormatter, ValuesListFormatter>();
         }
     }
 }
