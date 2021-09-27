@@ -2,6 +2,8 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+
 namespace Dapper.Wrappers.Builders
 {
     /// <summary>
@@ -51,7 +53,7 @@ namespace Dapper.Wrappers.Builders
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <param name="builderContext">Any state that needs to be shared between calls to GetFormattedOperations.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
+        IEnumerable<string> GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
 
         /// <summary>
         /// Given a query operations object, constructs the query operations to be used.
@@ -67,6 +69,6 @@ namespace Dapper.Wrappers.Builders
         /// <param name="operations">The operations to include in the formatted query piece.</param>
         /// <param name="builderContext">Any state that needs to be shared between calls to GetFormattedOperations.</param>
         /// <returns>The formatted operations to be included in the finished query</returns>
-        string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
+        IEnumerable<string> GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations, TBuilderContext builderContext);
     }
 }

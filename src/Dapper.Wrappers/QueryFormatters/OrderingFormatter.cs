@@ -14,7 +14,7 @@ namespace Dapper.Wrappers.QueryFormatters
             _queryOperationFormatter = queryOperationFormatter;
         }
 
-        public string FormatOrderOperations(IQueryContext context, IDictionary<string, QueryOperationMetadata> operationMetadata, string defaultOrdering,
+        public (string orderOperations, string pagination) FormatOrderOperations(IQueryContext context, IDictionary<string, QueryOperationMetadata> operationMetadata, string defaultOrdering,
             IEnumerable<QueryOperation> orderOperations = null, Pagination pagination = null)
         {
             string formattedPagination = null;
@@ -35,12 +35,12 @@ namespace Dapper.Wrappers.QueryFormatters
 
             if (formattedOrderItems.Count == 0)
             {
-                return pagination is null
-                    ? string.Empty
-                    : _queryOperationFormatter.FormatOrderOperations(new[] {defaultOrdering}, formattedPagination);
+                return formattedPagination is null
+                    ? (string.Empty, string.Empty)
+                    : (_queryOperationFormatter.FormatOrderOperations(new[] {defaultOrdering}), formattedPagination);
             }
 
-            return _queryOperationFormatter.FormatOrderOperations(formattedOrderItems, formattedPagination);
+            return (_queryOperationFormatter.FormatOrderOperations(formattedOrderItems), formattedPagination);
         }
     }
 }

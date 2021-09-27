@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Dapper.Wrappers.QueryFormatters
 {
-    public interface IValuesListFormatter
+    public interface IInsertFormatter
     {
-        (string formattedValuesList, IEnumerable<MergeOperationMetadata> orderedMetadata) FormatValuesLists(
+        (string formattedColumnsList, string formattedValuesList) FormatInsertPieces(
             IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> valuesListOperations,
             IDictionary<string, MergeOperationMetadata> valuesListMetadata,
             IDictionary<string, QueryOperation> defaultOperations);

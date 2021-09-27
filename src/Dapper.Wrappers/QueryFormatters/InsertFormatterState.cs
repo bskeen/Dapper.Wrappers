@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Dapper.Wrappers.QueryFormatters
 {
-    public class ValuesListFormatterState
+    public class InsertFormatterState
     {
-        public List<MergeOperationMetadata> OrderedMetadata { get; set; }
+        public List<string> ColumnOrder { get; set; }
         public IDictionary<string, MergeOperationMetadata> RequiredMetadata { get; set; }
         public HashSet<string> AlreadyReferencedColumns { get; set; }
 

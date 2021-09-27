@@ -1027,22 +1027,26 @@ namespace Dapper.Wrappers.Tests.Builders
             throw new NotImplementedException();
         }
 
-        public override string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations, object builderContext)
+        public override IEnumerable<string> GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations, object builderContext)
         {
             if (operations is ParsedOrderingQueryOperations orderingOperations)
             {
-                return _orderingFormatter.FormatOrderOperations(context, _orderOperationMetadata, _defaultOrdering,
+                var paginatedResult = _orderingFormatter.FormatOrderOperations(context, _orderOperationMetadata, _defaultOrdering,
                     orderingOperations.QueryOperations, orderingOperations.Pagination);
+
+                return new[] {paginatedResult.orderOperations, paginatedResult.pagination};
             }
 
-            return _orderingFormatter.FormatOrderOperations(context, _orderOperationMetadata, _defaultOrdering,
+            var result = _orderingFormatter.FormatOrderOperations(context, _orderOperationMetadata, _defaultOrdering,
                 operations.QueryOperations);
+
+            return new[] {result.orderOperations, string.Empty};
         }
 
-        public override string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations, object builderContext)
+        public override IEnumerable<string> GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations, object builderContext)
         {
-            return _filterFormatter.FormatFilterOperations(context, _filterOperationMetadata,
-                operations.QueryOperations);
+            return new [] {_filterFormatter.FormatFilterOperations(context, _filterOperationMetadata,
+                operations.QueryOperations)};
         }
     }
 }

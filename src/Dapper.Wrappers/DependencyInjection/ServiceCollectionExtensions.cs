@@ -128,10 +128,9 @@ namespace Dapper.Wrappers.DependencyInjection
         private static void RegisterQueryFormatters(IServiceCollection services)
         {
             services.TryAddSingleton<IFilterFormatter, FilterFormatter>();
-            services.TryAddSingleton<IInsertColumnsFormatter, InsertColumnsFormatter>();
+            services.TryAddSingleton<IInsertFormatter, InsertFormatter>();
             services.TryAddSingleton<IOrderingFormatter, OrderingFormatter>();
             services.TryAddSingleton<IUpdateFormatter, UpdateFormatter>();
-            services.TryAddSingleton<IValuesListFormatter, ValuesListFormatter>();
         }
     }
 }
