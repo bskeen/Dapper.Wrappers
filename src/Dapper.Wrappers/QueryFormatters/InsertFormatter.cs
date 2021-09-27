@@ -5,16 +5,16 @@ using Dapper.Wrappers.OperationFormatters;
 
 namespace Dapper.Wrappers.QueryFormatters
 {
-    public class ValuesListFormatter : QueryFormatter<ValuesListFormatterState>, IValuesListFormatter
+    public class InsertFormatter : QueryFormatter<InsertFormatterState>, IInsertFormatter
     {
         private readonly IQueryOperationFormatter _queryOperationFormatter;
 
-        public ValuesListFormatter(IQueryOperationFormatter queryOperationFormatter)
+        public InsertFormatter(IQueryOperationFormatter queryOperationFormatter)
         {
             _queryOperationFormatter = queryOperationFormatter;
         }
 
-        public (string formattedValuesList, IEnumerable<MergeOperationMetadata> orderedMetadata) FormatValuesLists(
+        public (string formattedColumnsList, string formattedValuesList) FormatInsertPieces(
             IQueryContext context, IEnumerable<IEnumerable<QueryOperation>> valuesListOperations,
             IDictionary<string, MergeOperationMetadata> valuesListMetadata,
             IDictionary<string, QueryOperation> defaultOperations)
@@ -33,13 +33,13 @@ namespace Dapper.Wrappers.QueryFormatters
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             var currentColumns = new HashSet<string>();
-            var operationOrder = new List<MergeOperationMetadata>();
+            var columnOrder = new List<string>();
             var valuesLists = new List<string>();
 
-            var state = new ValuesListFormatterState
+            var state = new InsertFormatterState
             {
                 RequiredMetadata = requiredOperations,
-                OrderedMetadata = operationOrder,
+                ColumnOrder = columnOrder,
                 AlreadyReferencedColumns = currentColumns,
                 IsFirstList = true
             };
@@ -60,7 +60,7 @@ namespace Dapper.Wrappers.QueryFormatters
 
             foreach (var operationsList in operationsLists.Skip(1))
             {
-                var orderedOperations = GetOrderedOperations(operationsList, state.OrderedMetadata, valuesListMetadata,
+                var orderedOperations = GetOrderedOperations(operationsList, state.ColumnOrder, valuesListMetadata,
                     defaultOperations);
 
                 formattedOperations = FormatOperations(context, orderedOperations, valuesListMetadata,
@@ -70,12 +70,14 @@ namespace Dapper.Wrappers.QueryFormatters
                 valuesLists.Add(_queryOperationFormatter.FormatInsertOperations(formattedOperations));
             }
 
+            var columns = columnOrder.Select(_queryOperationFormatter.FormatInsertColumn);
+            var formattedColumns = _queryOperationFormatter.FormatInsertColumns(columns);
             var combinedOperationsLists = _queryOperationFormatter.FormatMultipleInsertValuesLists(valuesLists);
 
-            return (combinedOperationsLists, state.OrderedMetadata);
+            return (formattedColumns, combinedOperationsLists);
         }
 
-        private void InsertOperationAction(MergeOperationMetadata metadata, int index, ValuesListFormatterState state)
+        private void InsertOperationAction(MergeOperationMetadata metadata, int index, InsertFormatterState state)
         {
             if (state.IsFirstList)
             {
@@ -90,11 +92,11 @@ namespace Dapper.Wrappers.QueryFormatters
                 }
 
                 state.AlreadyReferencedColumns.Add(metadata.ReferencedColumn);
-                state.OrderedMetadata.Add(metadata);
+                state.ColumnOrder.Add(metadata.ReferencedColumn);
             }
             else
             {
-                if (state.OrderedMetadata[index].ReferencedColumn != metadata.ReferencedColumn)
+                if (state.ColumnOrder[index] != metadata.ReferencedColumn)
                 {
                     throw new ArgumentException("Columns must be created in the same order.");
                 }
@@ -111,7 +113,7 @@ namespace Dapper.Wrappers.QueryFormatters
         /// <param name="requiredOperations">The dictionary of required insert operations, if any.</param>
         /// <param name="formattedColumnNames">The list of columns into which values will be inserted.</param>
         /// <param name="formattedOperations">The list of insert operations.</param>
-        private void AddRequiredInsertOperations(IQueryContext context, ValuesListFormatterState state,
+        private void AddRequiredInsertOperations(IQueryContext context, InsertFormatterState state,
             List<string> formattedOperations)
         {
             foreach (var requiredOperation in state.RequiredMetadata)
@@ -129,14 +131,14 @@ namespace Dapper.Wrappers.QueryFormatters
 
                     parameterNames.Add(variableName);
                 }
-
-                state.OrderedMetadata.Add(requiredOperation.Value);
+                
+                state.ColumnOrder.Add(requiredOperation.Value.ReferencedColumn);
                 formattedOperations.Add(_queryOperationFormatter.FormatInsertOperation(requiredOperation.Value.BaseQueryString, parameterNames));
             }
         }
 
         private IEnumerable<QueryOperation> GetOrderedOperations(IEnumerable<QueryOperation> operations,
-            List<MergeOperationMetadata> columnOrder, IDictionary<string, MergeOperationMetadata> valuesListMetadata,
+            List<string> columnOrder, IDictionary<string, MergeOperationMetadata> valuesListMetadata,
             IDictionary<string, QueryOperation> defaultOperations)
         {
             if (operations is null)
@@ -159,17 +161,17 @@ namespace Dapper.Wrappers.QueryFormatters
 
             foreach (var column in columnOrder)
             {
-                if (operationLookup.TryGetValue(column.ReferencedColumn, out var operation))
+                if (operationLookup.TryGetValue(column, out var operation))
                 {
                     yield return operation;
                 }
-                else if (defaultOperations.TryGetValue(column.ReferencedColumn, out var defaultOperation))
+                else if (defaultOperations.TryGetValue(column, out var defaultOperation))
                 {
                     yield return defaultOperation;
                 }
                 else
                 {
-                    throw new ArgumentException($"Value must be supplied for '{column.ReferencedColumn}'.");
+                    throw new ArgumentException($"Value must be supplied for '{column}'.");
                 }
             }
         }

@@ -40,10 +40,9 @@ namespace Dapper.Wrappers.Tests.Builders
             IDictionary<string, QueryOperation> defaultOperations)
         {
             var formatter = _databaseFixture.GetFormatter(dbType);
-            var insertColumnsFormatter = new InsertColumnsFormatter(formatter);
-            var valuesListFormatter = new ValuesListFormatter(formatter);
+            var insertFormatter = new InsertFormatter(formatter);
 
-            return new TestInsertQueryBuilder(insertColumnsFormatter, valuesListFormatter, query, metadata,
+            return new TestInsertQueryBuilder(insertFormatter, query, metadata,
                 defaultOperations);
         }
 
@@ -79,7 +78,7 @@ namespace Dapper.Wrappers.Tests.Builders
             var context = GetQueryContext(dbType);
 
             // Act
-            Action act = () => builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations(), null);
+            Action act = () => builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations());
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("Insert operations cannot be empty.");
@@ -110,7 +109,7 @@ namespace Dapper.Wrappers.Tests.Builders
             Action act = () => builder.AddQueryToContext(context, new ParsedQueryOperations
             {
                 QueryOperations = new QueryOperation[] { }
-            }, null);
+            });
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("No values list operations specified.");
@@ -145,7 +144,7 @@ namespace Dapper.Wrappers.Tests.Builders
                     _metadataGenerator.GetQueryOperation("Bogus1"),
                     _metadataGenerator.GetQueryOperation("Bogus2")
                 }
-            }, null);
+            });
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("No values list operations specified.");
@@ -183,7 +182,7 @@ namespace Dapper.Wrappers.Tests.Builders
                     _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
                     _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
                 }
-            }, null);
+            });
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("Value must be supplied for 'AuthorID'.");
@@ -222,7 +221,7 @@ namespace Dapper.Wrappers.Tests.Builders
                     _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
                     _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
                 }
-            }, null);
+            });
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("Cannot have multiple inserts into the same column.");
@@ -278,7 +277,7 @@ namespace Dapper.Wrappers.Tests.Builders
                     _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
                     _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
                 }
-            }, null);
+            });
 
             await context.ExecuteCommands();
 
@@ -341,7 +340,7 @@ namespace Dapper.Wrappers.Tests.Builders
                     _metadataGenerator.GetQueryOperation("TestScope", ("TestScope", _databaseFixture.TestScope)),
                     _metadataGenerator.GetQueryOperation("TestID", ("TestID", testId))
                 }
-            }, null);
+            });
 
             await context.ExecuteCommands();
 
@@ -425,7 +424,7 @@ namespace Dapper.Wrappers.Tests.Builders
             builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
             {
                 MultiQueryOperations = queryOperations
-            }, null);
+            });
 
             await context.ExecuteCommands();
 
@@ -518,7 +517,7 @@ namespace Dapper.Wrappers.Tests.Builders
             builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
             {
                 MultiQueryOperations = queryOperations
-            }, null);
+            });
 
             await context.ExecuteCommands();
 
@@ -626,7 +625,7 @@ namespace Dapper.Wrappers.Tests.Builders
             builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
             {
                 MultiQueryOperations = queryOperations
-            }, null);
+            });
 
             await context.ExecuteCommands();
 
@@ -731,7 +730,7 @@ namespace Dapper.Wrappers.Tests.Builders
             Action act = () => builder.AddQueryToContext(context, new ParsedValuesListsQueryOperations
             {
                 MultiQueryOperations = queryOperations
-            }, null);
+            });
 
             // Assert
             act.Should().Throw<ArgumentException>().WithMessage("Value must be supplied for 'AuthorID'.");
@@ -743,21 +742,17 @@ namespace Dapper.Wrappers.Tests.Builders
         public IEnumerable<string> OrderedColumnNames { get; set; }
     }
 
-    public class TestInsertQueryBuilder : QueryBuilder<TestInsertQueryBuilderContext, object, object>
+    public class TestInsertQueryBuilder : QueryBuilder<object, object>
     {
-        private readonly IInsertColumnsFormatter _insertColumnsFormatter;
-        private readonly IValuesListFormatter _valuesListFormatter;
+        private readonly IInsertFormatter _insertFormatter;
 
-        public TestInsertQueryBuilder(IInsertColumnsFormatter insertColumnsFormatter,
-            IValuesListFormatter valuesListFormatter, string queryString,
-            IDictionary<string, MergeOperationMetadata> metadata,
-            IDictionary<string, QueryOperation> defaultOperations)
+        public TestInsertQueryBuilder(IInsertFormatter insertFormatter, string queryString,
+            IDictionary<string, MergeOperationMetadata> metadata, IDictionary<string, QueryOperation> defaultOperations)
         {
             QueryFormat = queryString;
             _insertOperationMetadata = metadata;
             _defaultOperations = defaultOperations;
-            _insertColumnsFormatter = insertColumnsFormatter;
-            _valuesListFormatter = valuesListFormatter;
+            _insertFormatter = insertFormatter;
         }
         
         private readonly IDictionary<string, MergeOperationMetadata> _insertOperationMetadata;
@@ -765,52 +760,34 @@ namespace Dapper.Wrappers.Tests.Builders
         private readonly IDictionary<string, QueryOperation> _defaultOperations;
         public override string QueryFormat { get; }
 
-        public override TestInsertQueryBuilderContext InitializeContext()
+        public override object InitializeContext()
         {
-            return new TestInsertQueryBuilderContext();
+            return default;
         }
 
-        public override ParsedQueryOperations GetOperationsFromObject1(object operationObject)
+        public override ParsedQueryOperations GetOperationsFromObject(object operationObject)
         {
             throw new NotImplementedException();
         }
 
-        public override string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations,
-            TestInsertQueryBuilderContext builderContext)
+        public override IEnumerable<string> GetFormattedOperations(IQueryContext context, ParsedQueryOperations operations,
+            object builderContext)
         {
+            string formattedColumnsList;
             string formattedValuesLists;
-            IEnumerable<MergeOperationMetadata> orderedMetadata;
 
             if (operations is ParsedValuesListsQueryOperations valuesListsOperations)
             {
-                (formattedValuesLists, orderedMetadata) = _valuesListFormatter.FormatValuesLists(context,
+                (formattedColumnsList, formattedValuesLists) = _insertFormatter.FormatInsertPieces(context,
                     valuesListsOperations.MultiQueryOperations, _insertOperationMetadata, _defaultOperations);
             }
             else
             {
-                (formattedValuesLists, orderedMetadata) = _valuesListFormatter.FormatValuesLists(context,
+                (formattedColumnsList, formattedValuesLists) = _insertFormatter.FormatInsertPieces(context,
                     new [] {operations.QueryOperations}, _insertOperationMetadata, _defaultOperations);
             }
 
-            builderContext.OrderedColumnNames = orderedMetadata.Select(m => m.ReferencedColumn);
-
-            return formattedValuesLists;
-        }
-
-        public override ParsedQueryOperations GetOperationsFromObject2(object operationObject)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations,
-            TestInsertQueryBuilderContext builderContext)
-        {
-            if (builderContext?.OrderedColumnNames is null)
-            {
-                return _insertColumnsFormatter.FormatInsertColumns(operations.QueryOperations, _insertOperationMetadata);
-            }
-
-            return _insertColumnsFormatter.FormatInsertColumns(builderContext.OrderedColumnNames);
+            return new[] {formattedColumnsList, formattedValuesLists};
         }
     }
 }

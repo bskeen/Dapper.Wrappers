@@ -667,9 +667,10 @@ namespace Dapper.Wrappers.Tests.Builders
             return null;
         }
 
-        public override string GetFormattedOperations(IQueryContext context, ParsedQueryOperations operations, object builderContext)
+        public override IEnumerable<string> GetFormattedOperations(IQueryContext context,
+            ParsedQueryOperations operations, object builderContext)
         {
-            return _filterFormatter.FormatFilterOperations(context, _filterOperationMetadata, operations.QueryOperations);
+            return new []{_filterFormatter.FormatFilterOperations(context, _filterOperationMetadata, operations.QueryOperations)};
         }
 
         public override ParsedQueryOperations GetOperationsFromObject(object operationObject)

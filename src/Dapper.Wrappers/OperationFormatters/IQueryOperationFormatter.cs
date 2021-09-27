@@ -108,7 +108,7 @@ namespace Dapper.Wrappers.OperationFormatters
         /// </summary>
         /// <param name="orderOperations">Formatted order operations to combine into a get query's order by statement.</param>
         /// <returns>The formatted order by statement.</returns>
-        string FormatOrderOperations(IEnumerable<string> orderOperations, string pagination = null);
+        string FormatOrderOperations(IEnumerable<string> orderOperations);
 
         /// <summary>
         /// Formats the variables containing the skip and take parameters into a pagination statement.

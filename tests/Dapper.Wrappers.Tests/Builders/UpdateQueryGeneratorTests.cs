@@ -917,10 +917,10 @@ namespace Dapper.Wrappers.Tests.Builders
             throw new NotImplementedException();
         }
 
-        public override string GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations, object builderContext)
+        public override IEnumerable<string> GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations, object builderContext)
         {
-            return _updateFormatter.FormatUpdateOperations(context, operations.QueryOperations,
-                _updateOperationMetadata);
+            return new []{_updateFormatter.FormatUpdateOperations(context, operations.QueryOperations,
+                _updateOperationMetadata)};
         }
 
         public override ParsedQueryOperations GetOperationsFromObject2(object operationObject)
@@ -928,10 +928,10 @@ namespace Dapper.Wrappers.Tests.Builders
             throw new NotImplementedException();
         }
 
-        public override string GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations, object builderContext)
+        public override IEnumerable<string> GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations, object builderContext)
         {
-            return _filterFormatter.FormatFilterOperations(context, _filterOperationMetadata,
-                operations.QueryOperations);
+            return new []{_filterFormatter.FormatFilterOperations(context, _filterOperationMetadata,
+                operations.QueryOperations)};
         }
     }
 }

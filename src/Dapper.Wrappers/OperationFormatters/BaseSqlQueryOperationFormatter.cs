@@ -2,6 +2,7 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -155,9 +156,15 @@ namespace Dapper.Wrappers.OperationFormatters
         /// </summary>
         /// <param name="orderOperations">Formatted order operations to combine into a get query's order by statement.</param>
         /// <returns>The formatted order by statement.</returns>
-        public string FormatOrderOperations(IEnumerable<string> orderOperations, string pagination = null)
+        public string FormatOrderOperations(IEnumerable<string> orderOperations)
         {
-            return $"ORDER BY {string.Join(", ", orderOperations)} {pagination}";
+            var operations = string.Join(", ", orderOperations);
+            if (string.IsNullOrWhiteSpace(operations))
+            {
+                return String.Empty;
+            }
+
+            return $"ORDER BY {operations}";
         }
 
         /// <summary>
