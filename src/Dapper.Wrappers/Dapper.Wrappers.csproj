@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net5.0</TargetFrameworks>
     <PackageTags>orm sql micro-orm dapper</PackageTags>
-    <Version>2.0.1-beta</Version>
+    <Version>2.0.2-beta</Version>
     <Authors>Benjamin Skeen</Authors>
     <Description>A thin wrapper around Dapper.Net that helps with runtime customization of queries.</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>

@@ -30,7 +30,7 @@ namespace Dapper.Wrappers.QueryFormatters
             }
 
             var requiredOperations = valuesListMetadata.Where(kvp => kvp.Value.IsRequired)
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                .ToDictionary(kvp => kvp.Value.ReferencedColumn, kvp => kvp.Value);
 
             var currentColumns = new HashSet<string>();
             var columnOrder = new List<string>();
