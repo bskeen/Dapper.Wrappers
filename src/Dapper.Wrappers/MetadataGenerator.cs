@@ -73,7 +73,18 @@ namespace Dapper.Wrappers
             {typeof(float), DbType.Single},
             {typeof(short), DbType.Int16},
             {typeof(TimeSpan), DbType.Time},
-            {typeof(Guid), DbType.Guid}
+            {typeof(Guid), DbType.Guid},
+            {typeof(long?), DbType.Int64},
+            {typeof(bool?), DbType.Boolean},
+            {typeof(DateTime?), DbType.DateTime2},
+            {typeof(DateTimeOffset?), DbType.DateTimeOffset},
+            {typeof(decimal?), DbType.Decimal},
+            {typeof(double?), DbType.Double},
+            {typeof(int?), DbType.Int32},
+            {typeof(float?), DbType.Single},
+            {typeof(short?), DbType.Int16},
+            {typeof(TimeSpan?), DbType.Time},
+            {typeof(Guid?), DbType.Guid}
         };
 
         public QueryParameterMetadata GetParameter<T>(string name, object defaultValue = null, bool hasDefault = false)
