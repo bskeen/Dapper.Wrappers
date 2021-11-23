@@ -97,6 +97,7 @@ namespace Dapper.Wrappers.DependencyInjection
 
             var genericQueryBuilders = new HashSet<Type>(new[]
             {
+                typeof(IQueryBuilder<>),
                 typeof(IQueryBuilder<,>),
                 typeof(IQueryBuilder<,,>),
                 typeof(IQueryBuilder<,,,>),
@@ -105,8 +106,7 @@ namespace Dapper.Wrappers.DependencyInjection
                 typeof(IQueryBuilder<,,,,,,>),
                 typeof(IQueryBuilder<,,,,,,,>),
                 typeof(IQueryBuilder<,,,,,,,,>),
-                typeof(IQueryBuilder<,,,,,,,,,>),
-                typeof(IQueryBuilder<,,,,,,,,,,>)
+                typeof(IQueryBuilder<,,,,,,,,,>)
             });
 
             foreach (var type in types.Where(t => t.IsClass && !t.IsAbstract))

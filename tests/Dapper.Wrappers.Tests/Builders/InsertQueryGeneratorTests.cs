@@ -742,7 +742,7 @@ namespace Dapper.Wrappers.Tests.Builders
         public IEnumerable<string> OrderedColumnNames { get; set; }
     }
 
-    public class TestInsertQueryBuilder : QueryBuilder<object, object>
+    public class TestInsertQueryBuilder : QueryBuilder<object>
     {
         private readonly IInsertFormatter _insertFormatter;
 
@@ -760,18 +760,12 @@ namespace Dapper.Wrappers.Tests.Builders
         private readonly IDictionary<string, QueryOperation> _defaultOperations;
         public override string QueryFormat { get; }
 
-        public override object InitializeContext()
-        {
-            return default;
-        }
-
         public override ParsedQueryOperations GetOperationsFromObject(object operationObject)
         {
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<string> GetFormattedOperations(IQueryContext context, ParsedQueryOperations operations,
-            object builderContext)
+        public override IEnumerable<string> GetFormattedOperations(IQueryContext context, ParsedQueryOperations operations)
         {
             string formattedColumnsList;
             string formattedValuesLists;

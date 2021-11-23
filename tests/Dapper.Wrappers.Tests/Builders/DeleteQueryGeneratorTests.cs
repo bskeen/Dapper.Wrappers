@@ -647,7 +647,7 @@ namespace Dapper.Wrappers.Tests.Builders
         public HashSet<string> UpdatedProperties { get; } = new HashSet<string>();
     }
 
-    public class TestDeleteQueryBuilder : QueryBuilder<object, object>
+    public class TestDeleteQueryBuilder : QueryBuilder<object>
     {
         public TestDeleteQueryBuilder(IFilterFormatter filterFormatter,
             string deleteQueryString, IDictionary<string, QueryOperationMetadata> filterOperationMetadata)
@@ -662,13 +662,7 @@ namespace Dapper.Wrappers.Tests.Builders
 
         public override string QueryFormat { get; }
 
-        public override object InitializeContext()
-        {
-            return null;
-        }
-
-        public override IEnumerable<string> GetFormattedOperations(IQueryContext context,
-            ParsedQueryOperations operations, object builderContext)
+        public override IEnumerable<string> GetFormattedOperations(IQueryContext context, ParsedQueryOperations operations)
         {
             return new []{_filterFormatter.FormatFilterOperations(context, _filterOperationMetadata, operations.QueryOperations)};
         }

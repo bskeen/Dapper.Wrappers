@@ -887,7 +887,7 @@ namespace Dapper.Wrappers.Tests.Builders
         }
     }
 
-    public class TestUpdateQueryBuilder : QueryBuilder<object, object, object>
+    public class TestUpdateQueryBuilder : QueryBuilder<object, object>
     {
         private readonly IUpdateFormatter _updateFormatter;
         private readonly IFilterFormatter _filterFormatter;
@@ -907,17 +907,12 @@ namespace Dapper.Wrappers.Tests.Builders
         private readonly IDictionary<string, MergeOperationMetadata> _updateOperationMetadata;
         public override string QueryFormat { get; }
 
-        public override object InitializeContext()
-        {
-            return null;
-        }
-
         public override ParsedQueryOperations GetOperationsFromObject1(object operationObject)
         {
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<string> GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations, object builderContext)
+        public override IEnumerable<string> GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations)
         {
             return new []{_updateFormatter.FormatUpdateOperations(context, operations.QueryOperations,
                 _updateOperationMetadata)};
@@ -928,7 +923,7 @@ namespace Dapper.Wrappers.Tests.Builders
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<string> GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations, object builderContext)
+        public override IEnumerable<string> GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations)
         {
             return new []{_filterFormatter.FormatFilterOperations(context, _filterOperationMetadata,
                 operations.QueryOperations)};

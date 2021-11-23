@@ -46,11 +46,9 @@ namespace Dapper.Wrappers.Tests.QueryFormatters
         }
 
         [Theory]
-        [InlineData(true, SupportedDatabases.SqlServer)]
-        [InlineData(false, SupportedDatabases.SqlServer)]
-        [InlineData(true, SupportedDatabases.PostgreSQL)]
-        [InlineData(false, SupportedDatabases.PostgreSQL)]
-        public void FormatOperations_WithNullOrEmptyInputs_ShouldReturnAnEmptyList(bool isNull, SupportedDatabases dbType)
+        [InlineData(true)]
+        [InlineData(false)]
+        public void FormatOperations_WithNullOrEmptyInputs_ShouldReturnAnEmptyList(bool isNull)
         {
             // Arrange
             var queryFormatter = GetDefaultTestInstance();
@@ -70,10 +68,8 @@ namespace Dapper.Wrappers.Tests.QueryFormatters
                     It.IsAny<bool>()), Times.Never);
         }
 
-        [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public void FormatOperations_WithBogusOperators_ShouldReturnAnEmptyList(SupportedDatabases dbType)
+        [Fact]
+        public void FormatOperations_WithBogusOperators_ShouldReturnAnEmptyList()
         {
             // Arrange
             var queryFormatter = GetDefaultTestInstance();

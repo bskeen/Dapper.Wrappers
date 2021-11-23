@@ -987,7 +987,7 @@ namespace Dapper.Wrappers.Tests.Builders
         }
     }
 
-    public class TestGetQueryBuilder : QueryBuilder<object, object, object>
+    public class TestGetQueryBuilder : QueryBuilder<object, object>
     {
         private readonly IFilterFormatter _filterFormatter;
         private readonly IOrderingFormatter _orderingFormatter;
@@ -1012,11 +1012,6 @@ namespace Dapper.Wrappers.Tests.Builders
 
         public override string QueryFormat { get; }
 
-        public override object InitializeContext()
-        {
-            return null;
-        }
-
         public override ParsedQueryOperations GetOperationsFromObject1(object operationObject)
         {
             throw new NotImplementedException();
@@ -1027,7 +1022,7 @@ namespace Dapper.Wrappers.Tests.Builders
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<string> GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations, object builderContext)
+        public override IEnumerable<string> GetFormattedOperations2(IQueryContext context, ParsedQueryOperations operations)
         {
             if (operations is ParsedOrderingQueryOperations orderingOperations)
             {
@@ -1043,7 +1038,7 @@ namespace Dapper.Wrappers.Tests.Builders
             return new[] {result.orderOperations, string.Empty};
         }
 
-        public override IEnumerable<string> GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations, object builderContext)
+        public override IEnumerable<string> GetFormattedOperations1(IQueryContext context, ParsedQueryOperations operations)
         {
             return new [] {_filterFormatter.FormatFilterOperations(context, _filterOperationMetadata,
                 operations.QueryOperations)};
