@@ -12,7 +12,7 @@
     <PackageReference Include="FluentMigrator.Runner" Version="3.2.17" />
     <PackageReference Include="FluentMigrator.Runner.Postgres" Version="3.2.17" />
     <PackageReference Include="FluentMigrator.Runner.SqlServer" Version="3.2.17" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Include="Npgsql" Version="5.0.7" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Dapper.Wrappers.Postgres.Core\Dapper.Wrappers.Postgres.Core.csproj" />
     <ProjectReference Include="..\..\src\Dapper.Wrappers\Dapper.Wrappers.csproj" />
   </ItemGroup>
 

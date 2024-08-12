@@ -31,7 +31,7 @@ namespace Dapper.Wrappers.Tests.Builders
             _metadataGenerator = metadataGenerator;
         }
 
-        private TestUpdateQueryBuilder GetTestInstance(SupportedDatabases dbType, string updateQueryString,
+        private TestUpdateQueryBuilder GetTestInstance(string dbType, string updateQueryString,
             IDictionary<string, MergeOperationMetadata> updateMetadata,
             IDictionary<string, QueryOperationMetadata> filterMetadata)
         {
@@ -43,10 +43,10 @@ namespace Dapper.Wrappers.Tests.Builders
                 filterMetadata);
         }
 
-        private IDbConnection GetConnection(SupportedDatabases dbType) =>
-            dbType == SupportedDatabases.SqlServer ? _sqlConnection : _postgresConnection;
+        private IDbConnection GetConnection(string dbType) =>
+            dbType == DatabaseFixture.SQL_SERVER_NAME ? _sqlConnection : _postgresConnection;
 
-        private IQueryContext GetQueryContext(SupportedDatabases dbType)
+        private IQueryContext GetQueryContext(string dbType)
         {
             var connection = GetConnection(dbType);
 
@@ -54,21 +54,21 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson")]
-        [InlineData(SupportedDatabases.SqlServer, "Arcanum Unbounded", 672, "Brandon Sanderson")]
-        [InlineData(SupportedDatabases.SqlServer, "The Sign of the Four", 122, "Arthur Conan Doyle")]
-        [InlineData(SupportedDatabases.SqlServer, "The Memoirs of Sherlock Holmes", 208, "Arthur Conan Doyle")]
-        [InlineData(SupportedDatabases.SqlServer, "One Fish Two Fish Red Fish Blue Fish", 62, "Dr. Seuss")]
-        [InlineData(SupportedDatabases.SqlServer, "Green Eggs and Ham", 62, "Dr. Seuss")]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Arcanum Unbounded", 672, "Brandon Sanderson")]
-        [InlineData(SupportedDatabases.PostgreSQL, "The Sign of the Four", 122, "Arthur Conan Doyle")]
-        [InlineData(SupportedDatabases.PostgreSQL, "The Memoirs of Sherlock Holmes", 208, "Arthur Conan Doyle")]
-        [InlineData(SupportedDatabases.PostgreSQL, "One Fish Two Fish Red Fish Blue Fish", 62, "Dr. Seuss")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Green Eggs and Ham", 62, "Dr. Seuss")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson")]
-        public async Task AddUpdateQuery_WithoutFilters_UpdatesAllRows(SupportedDatabases dbType, string nameValue,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Arcanum Unbounded", 672, "Brandon Sanderson")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "The Sign of the Four", 122, "Arthur Conan Doyle")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "The Memoirs of Sherlock Holmes", 208, "Arthur Conan Doyle")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "One Fish Two Fish Red Fish Blue Fish", 62, "Dr. Seuss")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Green Eggs and Ham", 62, "Dr. Seuss")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Arcanum Unbounded", 672, "Brandon Sanderson")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "The Sign of the Four", 122, "Arthur Conan Doyle")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "The Memoirs of Sherlock Holmes", 208, "Arthur Conan Doyle")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "One Fish Two Fish Red Fish Blue Fish", 62, "Dr. Seuss")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Green Eggs and Ham", 62, "Dr. Seuss")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson")]
+        public async Task AddUpdateQuery_WithoutFilters_UpdatesAllRows(string dbType, string nameValue,
             int? pageCountValue, string authorName)
         {
             // Arrange
@@ -85,15 +85,15 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
                 : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
+            var operationMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -133,22 +133,22 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, true)]
-        [InlineData(SupportedDatabases.SqlServer, false)]
-        [InlineData(SupportedDatabases.PostgreSQL, true)]
-        [InlineData(SupportedDatabases.PostgreSQL, false)]
-        public void AddUpdateQuery_WithNoUpdateOperations_ShouldThrowException(SupportedDatabases dbType, bool isEmpty)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, true)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, false)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, true)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, false)]
+        public void AddUpdateQuery_WithNoUpdateOperations_ShouldThrowException(string dbType, bool isEmpty)
         {
             // Arrange
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
                 : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
+            var operationMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -171,20 +171,20 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public void AddUpdateQuery_WithOnlyBogusOperations_ShouldThrowException(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public void AddUpdateQuery_WithOnlyBogusOperations_ShouldThrowException(string dbType)
         {
             // Arrange
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
                 : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
+            var operationMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -211,20 +211,20 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public void AddUpdateQuery_WithDuplicateOperations_ShouldThrowException(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public void AddUpdateQuery_WithDuplicateOperations_ShouldThrowException(string dbType)
         {
             // Arrange
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
                 : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
+            var operationMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -251,15 +251,15 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "BookIDEquals")]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "BookIDNotEquals")]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "BookIDEquals")]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "BookIDNotEquals")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "BookIDEquals")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "BookIDNotEquals")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "BookIDEquals")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "BookIDNotEquals")]
-        public async Task AddUpdateQuery_WithBookIDFilters_UpdatesExpectedRows(SupportedDatabases dbType, string nameValue,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "BookIDEquals")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "BookIDNotEquals")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "BookIDEquals")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "BookIDNotEquals")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "BookIDEquals")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "BookIDNotEquals")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "BookIDEquals")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "BookIDNotEquals")]
+        public async Task AddUpdateQuery_WithBookIDFilters_UpdatesExpectedRows(string dbType, string nameValue,
             int? pageCountValue, string authorName, string filterOperationName)
         {
             // Arrange
@@ -276,15 +276,15 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
                 : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
+            var operationMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -335,31 +335,31 @@ namespace Dapper.Wrappers.Tests.Builders
         }
         
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 1)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 3, 7)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 5, 8)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 9, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 1)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", 3, 7)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", 5, 8)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", 9, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 3, 7)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 5, 8)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 9, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", 3, 7)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", 5, 8)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", 9, 10)]
-        public async Task AddUpdateQuery_WithBookIDInFilters_UpdatesExpectedRows(SupportedDatabases dbType, string nameValue,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 3, 7)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 5, 8)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 9, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 3, 7)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 5, 8)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 9, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 3, 7)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 5, 8)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 9, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 3, 7)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 5, 8)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 9, 10)]
+        public async Task AddUpdateQuery_WithBookIDInFilters_UpdatesExpectedRows(string dbType, string nameValue,
             int? pageCountValue, string authorName, int startIndex, int endIndex)
         {
             // Arrange
@@ -376,15 +376,15 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
                 : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
+            var operationMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -429,55 +429,55 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "The Hound of the Baskervilles", 1)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "BogusName", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", null, 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "The Hound of the Baskervilles", 9)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "BogusName", 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "", 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", null, 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "s%a%", 2)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "The%", 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", null, 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "The Hound of the Baskervilles", 1)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "BogusName", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", null, 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "The Hound of the Baskervilles", 9)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "BogusName", 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "", 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", null, 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "s%a%", 2)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "The%", 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", null, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "The Hound of the Baskervilles", 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "BogusName", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", null, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "The Hound of the Baskervilles", 9)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "BogusName", 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "", 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", null, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "s%a%", 2)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "The%", 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", null, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "The Hound of the Baskervilles", 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "BogusName", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", null, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "The Hound of the Baskervilles", 9)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "BogusName", 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "", 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", null, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "s%a%", 2)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "The%", 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", null, 0)]
-        public async Task AddUpdateQuery_WithBookNameFilters_UpdatesExpectedRows(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "The Hound of the Baskervilles", 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "BogusName", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", null, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "The Hound of the Baskervilles", 9)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "BogusName", 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "", 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", null, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "s%a%", 2)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "The%", 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", null, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "The Hound of the Baskervilles", 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "BogusName", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", null, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "The Hound of the Baskervilles", 9)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "BogusName", 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "", 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", null, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "s%a%", 2)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "The%", 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", null, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "The Hound of the Baskervilles", 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "BogusName", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", "", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameEquals", null, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "The Hound of the Baskervilles", 9)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "BogusName", 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", "", 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameNotEquals", null, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "s%a%", 2)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "The%", 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", "", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "NameLike", null, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "The Hound of the Baskervilles", 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "BogusName", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", "", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameEquals", null, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "The Hound of the Baskervilles", 9)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "BogusName", 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", "", 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameNotEquals", null, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "s%a%", 2)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "The%", 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", "", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "NameLike", null, 0)]
+        public async Task AddUpdateQuery_WithBookNameFilters_UpdatesExpectedRows(string dbType,
             string nameValue, int? pageCountValue, string authorName, string filterOperationName,
             string filterOperationValue, int updatedCount)
         {
@@ -495,15 +495,15 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
                 : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
+            var operationMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -544,31 +544,31 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountEquals", 513, 1)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountEquals", 42, 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotEquals", 513, 8)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotEquals", 42, 9)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountGreater", 307, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountLess", 307, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountEquals", 513, 1)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountEquals", 42, 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotEquals", 513, 8)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotEquals", 42, 9)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountGreater", 307, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountLess", 307, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountEquals", 513, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountEquals", 42, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotEquals", 513, 8)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotEquals", 42, 9)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountGreater", 307, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountLess", 307, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountEquals", 513, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountEquals", 42, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotEquals", 513, 8)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotEquals", 42, 9)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountGreater", 307, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountLess", 307, 5)]
-        public async Task AddUpdateQuery_WithPageCountFilters_UpdatesExpectedRows(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountEquals", 513, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountEquals", 42, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotEquals", 513, 8)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotEquals", 42, 9)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountGreater", 307, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountLess", 307, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountEquals", 513, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountEquals", 42, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotEquals", 513, 8)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotEquals", 42, 9)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountGreater", 307, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountLess", 307, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountEquals", 513, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountEquals", 42, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotEquals", 513, 8)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotEquals", 42, 9)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountGreater", 307, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountLess", 307, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountEquals", 513, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountEquals", 42, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotEquals", 513, 8)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotEquals", 42, 9)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountGreater", 307, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountLess", 307, 5)]
+        public async Task AddUpdateQuery_WithPageCountFilters_UpdatesExpectedRows(string dbType,
             string nameValue, int? pageCountValue, string authorName, string filterOperationName,
             int filterOperationValue, int updatedCount)
         {
@@ -586,15 +586,15 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
                 : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
+            var operationMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -635,23 +635,23 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 0, 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 1, 2000, 9)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 1, 100, 2)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 200, 500, 4)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 0, 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", 1, 2000, 9)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", 1, 100, 2)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", 200, 500, 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 1, 2000, 9)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 1, 100, 2)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 200, 500, 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", 1, 2000, 9)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", 1, 100, 2)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", 200, 500, 4)]
-        public async Task AddUpdateQuery_WithPageCountBetweenFilters_UpdatesExpectedRows(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 0, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 1, 2000, 9)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 1, 100, 2)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 200, 500, 4)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 0, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 1, 2000, 9)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 1, 100, 2)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 200, 500, 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 0, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 1, 2000, 9)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 1, 100, 2)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", 200, 500, 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 0, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 1, 2000, 9)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 1, 100, 2)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", 200, 500, 4)]
+        public async Task AddUpdateQuery_WithPageCountBetweenFilters_UpdatesExpectedRows(string dbType,
             string nameValue, int? pageCountValue, string authorName, int start, int end, int updatedCount)
         {
             // Arrange
@@ -668,15 +668,15 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
                 : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
+            var operationMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -718,15 +718,15 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNull")]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotNull")]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNull")]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotNull")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNull")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotNull")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNull")]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotNull")]
-        public async Task AddUpdateQuery_WithPageCountNullFilters_UpdatesExpectedRows(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNull")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotNull")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNull")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotNull")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNull")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "PageCountNotNull")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNull")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "PageCountNotNull")]
+        public async Task AddUpdateQuery_WithPageCountNullFilters_UpdatesExpectedRows(string dbType,
             string nameValue, int? pageCountValue, string authorName, string filterOperationName)
         {
             // Arrange
@@ -743,15 +743,15 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
                 : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
+            var operationMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -803,19 +803,19 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Romance", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Fantasy Fiction", 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Novel", 4)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Romance", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Fantasy Fiction", 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Novel", 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Romance", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Fantasy Fiction", 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Novel", 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Romance", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Fantasy Fiction", 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Novel", 4)]
-        public async Task AddUpdateQuery_WithHasGenreFilter_UpdatesExpectedRows(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Romance", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Fantasy Fiction", 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Novel", 4)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Romance", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Fantasy Fiction", 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Novel", 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Romance", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Fantasy Fiction", 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", 647, "Brandon Sanderson", "Novel", 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Romance", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Fantasy Fiction", 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Mistborn: The Final Empire", null, "Brandon Sanderson", "Novel", 4)]
+        public async Task AddUpdateQuery_WithHasGenreFilter_UpdatesExpectedRows(string dbType,
             string nameValue, int? pageCountValue, string authorName, string genreName, int updatedCount)
         {
             // Arrange
@@ -832,15 +832,15 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.UpdateQuery
                 : SqlQueryFormatConstants.Postgres.Books.UpdateQuery;
 
-            var operationMetadata = dbType == SupportedDatabases.SqlServer
+            var operationMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookUpdateMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookUpdateMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 

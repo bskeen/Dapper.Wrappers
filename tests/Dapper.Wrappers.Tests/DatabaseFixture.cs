@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.OperationFormatters;
+using Dapper.Wrappers.Postgres;
 using Dapper.Wrappers.Tests.DbModels;
 using Microsoft.Data.SqlClient;
 using Npgsql;
@@ -19,6 +20,9 @@ namespace Dapper.Wrappers.Tests
 {
     public class DatabaseFixture : IDisposable
     {
+        public const string SQL_SERVER_NAME = "SqlServer";
+        public const string POSTGRES_NAME = "PostgreSQL";
+
         private IDbConnection _sqlConnection;
         private readonly IQueryOperationFormatter _sqlQueryFormatter;
 
@@ -40,7 +44,7 @@ namespace Dapper.Wrappers.Tests
             TestScope = Guid.NewGuid();
         }
 
-        public IQueryOperationFormatter GetFormatter(SupportedDatabases dbType) => dbType == SupportedDatabases.SqlServer
+        public IQueryOperationFormatter GetFormatter(string dbType) => dbType == "SqlServer"
             ? _sqlQueryFormatter
             : _postgresQueryFormatter;
 
@@ -58,7 +62,7 @@ namespace Dapper.Wrappers.Tests
             }
         }
 
-        public async Task AddAuthors(IDbConnection connection, SupportedDatabases dbType, Guid testId, IEnumerable<Author> authors)
+        public async Task AddAuthors(IDbConnection connection, string dbType, Guid testId, IEnumerable<Author> authors)
         {
             EnsureConnectionOpen(connection);
             var queryParams = authors.Select(a => new
@@ -70,7 +74,7 @@ namespace Dapper.Wrappers.Tests
                 TestID = testId
             });
 
-            string rawQuery = dbType == SupportedDatabases.SqlServer
+            string rawQuery = dbType == SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Authors.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Authors.InsertQuery;
 
@@ -81,10 +85,10 @@ namespace Dapper.Wrappers.Tests
             transaction.Commit();
         }
 
-        public async Task<IEnumerable<Author>> GetAuthors(IDbConnection connection, SupportedDatabases dbType, Guid testId)
+        public async Task<IEnumerable<Author>> GetAuthors(IDbConnection connection, string dbType, Guid testId)
         {
             EnsureConnectionOpen(connection);
-            string rawQuery = dbType == SupportedDatabases.SqlServer
+            string rawQuery = dbType == SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 
@@ -93,7 +97,7 @@ namespace Dapper.Wrappers.Tests
             return await connection.QueryAsync<Author>(query, new {TestID = testId});
         }
 
-        public async Task AddBooks(IDbConnection connection, SupportedDatabases dbType, Guid testId, IEnumerable<Book> books)
+        public async Task AddBooks(IDbConnection connection, string dbType, Guid testId, IEnumerable<Book> books)
         {
             EnsureConnectionOpen(connection);
             var queryParams = books.Select(b => new
@@ -106,7 +110,7 @@ namespace Dapper.Wrappers.Tests
                 TestID = testId
             });
 
-            string rawQuery = dbType == SupportedDatabases.SqlServer
+            string rawQuery = dbType == SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.DefaultInsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.DefaultInsertQuery;
 
@@ -118,10 +122,10 @@ namespace Dapper.Wrappers.Tests
             transaction.Commit();
         }
 
-        public async Task<IEnumerable<Book>> GetBooks(IDbConnection connection, SupportedDatabases dbType, Guid testId)
+        public async Task<IEnumerable<Book>> GetBooks(IDbConnection connection, string dbType, Guid testId)
         {
             EnsureConnectionOpen(connection);
-            string rawQuery = dbType == SupportedDatabases.SqlServer
+            string rawQuery = dbType == SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.BasicSelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.BasicSelectQuery;
 
@@ -130,7 +134,7 @@ namespace Dapper.Wrappers.Tests
             return await connection.QueryAsync<Book>(query, new { TestID = testId });
         }
 
-        public async Task AddGenres(IDbConnection connection, SupportedDatabases dbType, Guid testId, IEnumerable<Genre> genres)
+        public async Task AddGenres(IDbConnection connection, string dbType, Guid testId, IEnumerable<Genre> genres)
         {
             EnsureConnectionOpen(connection);
             var queryParams = genres.Select(g => new
@@ -141,7 +145,7 @@ namespace Dapper.Wrappers.Tests
                 TestID = testId
             });
 
-            string rawQuery = dbType == SupportedDatabases.SqlServer
+            string rawQuery = dbType == SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Genres.InsertQuery;
 
@@ -152,10 +156,10 @@ namespace Dapper.Wrappers.Tests
             transaction.Commit();
         }
 
-        public async Task<IEnumerable<Genre>> GetGenres(IDbConnection connection, SupportedDatabases dbType, Guid testId)
+        public async Task<IEnumerable<Genre>> GetGenres(IDbConnection connection, string dbType, Guid testId)
         {
             EnsureConnectionOpen(connection);
-            string rawQuery = dbType == SupportedDatabases.SqlServer
+            string rawQuery = dbType == SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
@@ -164,7 +168,7 @@ namespace Dapper.Wrappers.Tests
             return await connection.QueryAsync<Genre>(query, new { TestID = testId });
         }
 
-        public async Task AddBookGenres(IDbConnection connection, SupportedDatabases dbType, Guid testId, IEnumerable<BookGenre> ids)
+        public async Task AddBookGenres(IDbConnection connection, string dbType, Guid testId, IEnumerable<BookGenre> ids)
         {
             EnsureConnectionOpen(connection);
             var queryParams = ids.Select(id => new
@@ -175,7 +179,7 @@ namespace Dapper.Wrappers.Tests
                 TestID = testId
             });
 
-            string rawQuery = dbType == SupportedDatabases.SqlServer
+            string rawQuery = dbType == SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.BookGenres.InsertQuery
                 : SqlQueryFormatConstants.Postgres.BookGenres.InsertQuery;
 
@@ -186,10 +190,10 @@ namespace Dapper.Wrappers.Tests
             transaction.Commit();
         }
 
-        public async Task<IEnumerable<BookGenre>> GetBookGenres(IDbConnection connection, SupportedDatabases dbType, Guid testId)
+        public async Task<IEnumerable<BookGenre>> GetBookGenres(IDbConnection connection, string dbType, Guid testId)
         {
             EnsureConnectionOpen(connection);
-            string rawQuery = dbType == SupportedDatabases.SqlServer
+            string rawQuery = dbType == SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.BookGenres.SelectQuery
                 : SqlQueryFormatConstants.Postgres.BookGenres.SelectQuery;
 

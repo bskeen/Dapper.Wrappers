@@ -35,7 +35,7 @@ namespace Dapper.Wrappers.Tests.Builders
             _metadataGenerator = metadataGenerator;
         }
 
-        private TestDeleteQueryBuilder GetTestInstance(SupportedDatabases dbType, string deleteQueryString,
+        private TestDeleteQueryBuilder GetTestInstance(string dbType, string deleteQueryString,
             IDictionary<string, QueryOperationMetadata> filterOperationMetadata)
         {
             var operationFormatter = _databaseFixture.GetFormatter(dbType);
@@ -45,10 +45,10 @@ namespace Dapper.Wrappers.Tests.Builders
             return new TestDeleteQueryBuilder(filterFormatter, deleteQueryString, filterOperationMetadata);
         }
 
-        private IDbConnection GetConnection(SupportedDatabases dbType) =>
-            dbType == SupportedDatabases.SqlServer ? _sqlConnection : _postgresConnection;
+        private IDbConnection GetConnection(string dbType) =>
+            dbType == DatabaseFixture.SQL_SERVER_NAME ? _sqlConnection : _postgresConnection;
 
-        private IQueryContext GetQueryContext(SupportedDatabases dbType)
+        private IQueryContext GetQueryContext(string dbType)
         {
             var connection = GetConnection(dbType);
 
@@ -56,12 +56,12 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "GenreIDEquals")]
-        [InlineData(SupportedDatabases.SqlServer, "GenreIDNotEquals")]
-        [InlineData(SupportedDatabases.PostgreSQL, "GenreIDEquals")]
-        [InlineData(SupportedDatabases.PostgreSQL, "GenreIDNotEquals")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "GenreIDEquals")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "GenreIDNotEquals")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "GenreIDEquals")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "GenreIDNotEquals")]
         public async Task AddDeleteQuery_WithGenreIDOperations_ShouldDeleteExpectedRowsFromDatabase(
-            SupportedDatabases dbType, string operationName)
+            string dbType, string operationName)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -74,11 +74,11 @@ namespace Dapper.Wrappers.Tests.Builders
 
             await _databaseFixture.AddGenres(connection, dbType, testId, genres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.DeleteQuery
                 : SqlQueryFormatConstants.Postgres.Genres.DeleteQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultGenreFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultGenreFilterMetadata;
 
@@ -118,19 +118,19 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, 0, 1)]
-        [InlineData(SupportedDatabases.SqlServer, 0, 0)]
-        [InlineData(SupportedDatabases.SqlServer, 0, 20)]
-        [InlineData(SupportedDatabases.SqlServer, 3, 11)]
-        [InlineData(SupportedDatabases.SqlServer, 5, 17)]
-        [InlineData(SupportedDatabases.SqlServer, 19, 20)]
-        [InlineData(SupportedDatabases.PostgreSQL, 0, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, 0, 20)]
-        [InlineData(SupportedDatabases.PostgreSQL, 3, 11)]
-        [InlineData(SupportedDatabases.PostgreSQL, 5, 17)]
-        [InlineData(SupportedDatabases.PostgreSQL, 19, 20)]
-        public async Task AddDeleteQuery_WithGenreIDInOperation_ShouldDeleteTheExpectedRows(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 0, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 0, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 0, 20)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 3, 11)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 5, 17)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 19, 20)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 0, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 0, 20)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 3, 11)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 5, 17)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 19, 20)]
+        public async Task AddDeleteQuery_WithGenreIDInOperation_ShouldDeleteTheExpectedRows(string dbType,
             int startIndex, int endIndex)
         {
             // Arrange
@@ -144,11 +144,11 @@ namespace Dapper.Wrappers.Tests.Builders
 
             await _databaseFixture.AddGenres(connection, dbType, testId, genres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.DeleteQuery
                 : SqlQueryFormatConstants.Postgres.Genres.DeleteQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultGenreFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultGenreFilterMetadata;
 
@@ -180,43 +180,43 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "NameEquals", "High Fantasy", 19)]
-        [InlineData(SupportedDatabases.SqlServer, "NameEquals", "Detective Novel", 19)]
-        [InlineData(SupportedDatabases.SqlServer, "NameEquals", "History", 19)]
-        [InlineData(SupportedDatabases.SqlServer, "NameEquals", "Fake Genre", 20)]
-        [InlineData(SupportedDatabases.SqlServer, "NameEquals", "", 20)]
-        [InlineData(SupportedDatabases.SqlServer, "NameEquals", null, 20)]
-        [InlineData(SupportedDatabases.SqlServer, "NameNotEquals", "High Fantasy", 1)]
-        [InlineData(SupportedDatabases.SqlServer, "NameNotEquals", "Detective Novel", 1)]
-        [InlineData(SupportedDatabases.SqlServer, "NameNotEquals", "History", 1)]
-        [InlineData(SupportedDatabases.SqlServer, "NameNotEquals", "Fake Genre", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "NameNotEquals", "", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "NameNotEquals", null, 20)]
-        [InlineData(SupportedDatabases.SqlServer, "NameLike", "Fantasy%", 19)]
-        [InlineData(SupportedDatabases.SqlServer, "NameLike", "%Fantasy%", 18)]
-        [InlineData(SupportedDatabases.SqlServer, "NameLike", "%Fiction%", 12)]
-        [InlineData(SupportedDatabases.SqlServer, "NameLike", "%Not%Here%", 20)]
-        [InlineData(SupportedDatabases.SqlServer, "NameLike", "", 20)]
-        [InlineData(SupportedDatabases.SqlServer, "NameLike", null, 20)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameEquals", "High Fantasy", 19)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameEquals", "Detective Novel", 19)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameEquals", "History", 19)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameEquals", "Fake Genre", 20)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameEquals", "", 20)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameEquals", null, 20)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameNotEquals", "High Fantasy", 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameNotEquals", "Detective Novel", 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameNotEquals", "History", 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameNotEquals", "Fake Genre", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameNotEquals", "", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameNotEquals", null, 20)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameLike", "Fantasy%", 19)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameLike", "%Fantasy%", 18)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameLike", "%Fiction%", 12)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameLike", "%Not%Here%", 20)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameLike", "", 20)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameLike", null, 20)]
-        public async Task AddDeleteQuery_WithGenreNameOperations_ShouldDeleteTheExpectedRows(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameEquals", "High Fantasy", 19)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameEquals", "Detective Novel", 19)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameEquals", "History", 19)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameEquals", "Fake Genre", 20)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameEquals", "", 20)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameEquals", null, 20)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameNotEquals", "High Fantasy", 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameNotEquals", "Detective Novel", 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameNotEquals", "History", 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameNotEquals", "Fake Genre", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameNotEquals", "", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameNotEquals", null, 20)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameLike", "Fantasy%", 19)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameLike", "%Fantasy%", 18)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameLike", "%Fiction%", 12)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameLike", "%Not%Here%", 20)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameLike", "", 20)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameLike", null, 20)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameEquals", "High Fantasy", 19)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameEquals", "Detective Novel", 19)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameEquals", "History", 19)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameEquals", "Fake Genre", 20)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameEquals", "", 20)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameEquals", null, 20)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameNotEquals", "High Fantasy", 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameNotEquals", "Detective Novel", 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameNotEquals", "History", 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameNotEquals", "Fake Genre", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameNotEquals", "", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameNotEquals", null, 20)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameLike", "Fantasy%", 19)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameLike", "%Fantasy%", 18)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameLike", "%Fiction%", 12)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameLike", "%Not%Here%", 20)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameLike", "", 20)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameLike", null, 20)]
+        public async Task AddDeleteQuery_WithGenreNameOperations_ShouldDeleteTheExpectedRows(string dbType,
             string operationName, string operationValue, int expectedCount)
         {
             // Arrange
@@ -230,11 +230,11 @@ namespace Dapper.Wrappers.Tests.Builders
 
             await _databaseFixture.AddGenres(connection, dbType, testId, genres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.DeleteQuery
                 : SqlQueryFormatConstants.Postgres.Genres.DeleteQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultGenreFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultGenreFilterMetadata;
 
@@ -262,19 +262,19 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, 0, 1)]
-        [InlineData(SupportedDatabases.SqlServer, 0, 0)]
-        [InlineData(SupportedDatabases.SqlServer, 0, 20)]
-        [InlineData(SupportedDatabases.SqlServer, 3, 11)]
-        [InlineData(SupportedDatabases.SqlServer, 5, 17)]
-        [InlineData(SupportedDatabases.SqlServer, 19, 20)]
-        [InlineData(SupportedDatabases.PostgreSQL, 0, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, 0, 20)]
-        [InlineData(SupportedDatabases.PostgreSQL, 3, 11)]
-        [InlineData(SupportedDatabases.PostgreSQL, 5, 17)]
-        [InlineData(SupportedDatabases.PostgreSQL, 19, 20)]
-        public async Task AddDeleteQuery_WithGenreNameInOperations_ShouldReturnExpectedCount(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 0, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 0, 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 0, 20)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 3, 11)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 5, 17)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 19, 20)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 0, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 0, 20)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 3, 11)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 5, 17)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 19, 20)]
+        public async Task AddDeleteQuery_WithGenreNameInOperations_ShouldReturnExpectedCount(string dbType,
             int startIndex, int endIndex)
         {
 
@@ -289,11 +289,11 @@ namespace Dapper.Wrappers.Tests.Builders
 
             await _databaseFixture.AddGenres(connection, dbType, testId, genres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.DeleteQuery
                 : SqlQueryFormatConstants.Postgres.Genres.DeleteQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultGenreFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultGenreFilterMetadata;
 
@@ -325,11 +325,11 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "BookIDEquals")]
-        [InlineData(SupportedDatabases.SqlServer, "BookIDNotEquals")]
-        [InlineData(SupportedDatabases.PostgreSQL, "BookIDEquals")]
-        [InlineData(SupportedDatabases.PostgreSQL, "BookIDNotEquals")]
-        public async Task AddDeleteQuery_WithBookIdOperations_DeletesTheExpectedRows(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "BookIDEquals")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "BookIDNotEquals")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "BookIDEquals")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "BookIDNotEquals")]
+        public async Task AddDeleteQuery_WithBookIdOperations_DeletesTheExpectedRows(string dbType,
             string operationName)
         {
             // Arrange
@@ -346,11 +346,11 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddGenres(connection, dbType, testId, testData.Genres);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.DeleteQuery
                 : SqlQueryFormatConstants.Postgres.Books.DeleteQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -390,19 +390,19 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "PageCountEquals", 513, 9)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCountEquals", 42, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCountNotEquals", 513, 2)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCountNotEquals", 42, 1)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCountGreater", 307, 7)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCountLess", 307, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCountEquals", 513, 9)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCountEquals", 42, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCountNotEquals", 513, 2)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCountNotEquals", 42, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCountGreater", 307, 7)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCountLess", 307, 5)]
-        public async Task AddDeleteQuery_WithPageCountFilters_ShouldDeleteExpectedRows(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCountEquals", 513, 9)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCountEquals", 42, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCountNotEquals", 513, 2)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCountNotEquals", 42, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCountGreater", 307, 7)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCountLess", 307, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCountEquals", 513, 9)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCountEquals", 42, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCountNotEquals", 513, 2)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCountNotEquals", 42, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCountGreater", 307, 7)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCountLess", 307, 5)]
+        public async Task AddDeleteQuery_WithPageCountFilters_ShouldDeleteExpectedRows(string dbType,
             string operationName, int value, int expectedCount)
         {
             // Arrange
@@ -419,11 +419,11 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddGenres(connection, dbType, testId, testData.Genres);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.DeleteQuery
                 : SqlQueryFormatConstants.Postgres.Books.DeleteQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -451,11 +451,11 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "PageCountNull", 9)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCountNotNull", 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCountNull", 9)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCountNotNull", 1)]
-        public async Task AddDeleteQuery_WithPageCountNullFilters_ShouldDeleteExpectedRows(SupportedDatabases dbType, string operationName, int expectedCount)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCountNull", 9)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCountNotNull", 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCountNull", 9)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCountNotNull", 1)]
+        public async Task AddDeleteQuery_WithPageCountNullFilters_ShouldDeleteExpectedRows(string dbType, string operationName, int expectedCount)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -471,11 +471,11 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddGenres(connection, dbType, testId, testData.Genres);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.DeleteQuery
                 : SqlQueryFormatConstants.Postgres.Books.DeleteQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -514,16 +514,16 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, 0, 0, 10)]
-        [InlineData(SupportedDatabases.SqlServer, 1, 2000, 1)]
-        [InlineData(SupportedDatabases.SqlServer, 1, 100, 8)]
-        [InlineData(SupportedDatabases.SqlServer, 200, 500, 6)]
-        [InlineData(SupportedDatabases.PostgreSQL, 0, 0, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, 1, 2000, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, 1, 100, 8)]
-        [InlineData(SupportedDatabases.PostgreSQL, 200, 500, 6)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 0, 0, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 1, 2000, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 1, 100, 8)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 200, 500, 6)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 0, 0, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 1, 2000, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 1, 100, 8)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 200, 500, 6)]
         public async Task AddDeleteQuery_WithPageCountBetweenOperator_ShouldDeleteExpectedRows(
-            SupportedDatabases dbType, int start, int end, int expectedCount)
+            string dbType, int start, int end, int expectedCount)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -539,11 +539,11 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddGenres(connection, dbType, testId, testData.Genres);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.DeleteQuery
                 : SqlQueryFormatConstants.Postgres.Books.DeleteQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -573,13 +573,13 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Romance", 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantasy Fiction", 7)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", 6)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Romance", 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantasy Fiction", 7)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", 6)]
-        public async Task AddDeleteQuery_WithHasGenreOperation_DeletesExpectedRows(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Romance", 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantasy Fiction", 7)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", 6)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Romance", 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantasy Fiction", 7)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", 6)]
+        public async Task AddDeleteQuery_WithHasGenreOperation_DeletesExpectedRows(string dbType,
             string genreName, int expectedCount)
         {
             // Arrange
@@ -597,11 +597,11 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddGenres(connection, dbType, testId, genres);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.DeleteQuery
                 : SqlQueryFormatConstants.Postgres.Books.DeleteQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 

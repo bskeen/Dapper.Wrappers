@@ -2,7 +2,9 @@
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Dapper.Wrappers.OperationFormatters
+using Dapper.Wrappers.OperationFormatters;
+
+namespace Dapper.Wrappers.Postgres
 {
     /// <summary>
     /// Provides methods to format a PostgreSQL query given the operations.

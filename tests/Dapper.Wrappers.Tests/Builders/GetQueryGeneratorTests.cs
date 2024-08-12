@@ -35,7 +35,7 @@ namespace Dapper.Wrappers.Tests.Builders
             _metadataGenerator = metadataGenerator;
         }
 
-        private TestGetQueryBuilder GetTestInstance(SupportedDatabases dbType, string queryString,
+        private TestGetQueryBuilder GetTestInstance(string dbType, string queryString,
             string defaultOrdering, IDictionary<string, QueryOperationMetadata> filterMetadata,
             IDictionary<string, QueryOperationMetadata> orderMetadata)
         {
@@ -47,10 +47,10 @@ namespace Dapper.Wrappers.Tests.Builders
                 filterMetadata, orderMetadata);
         }
 
-        private IDbConnection GetConnection(SupportedDatabases dbType) =>
-            dbType == SupportedDatabases.SqlServer ? _sqlConnection : _postgresConnection;
+        private IDbConnection GetConnection(string dbType) =>
+            dbType == DatabaseFixture.SQL_SERVER_NAME ? _sqlConnection : _postgresConnection;
 
-        private IQueryContext GetQueryContext(SupportedDatabases dbType)
+        private IQueryContext GetQueryContext(string dbType)
         {
             var connection = GetConnection(dbType);
 
@@ -58,10 +58,10 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
         public async Task AddGetQuery_WithoutFiltersOrderingOrPagination_ShouldReturnAllResults(
-            SupportedDatabases dbType)
+            string dbType)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -76,19 +76,19 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
 
-            var defaultOrdering = dbType == SupportedDatabases.SqlServer
+            var defaultOrdering = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrdering
                 : GeneratorTestConstants.Postgres.DefaultBookOrdering;
 
-            var orderMetadata = dbType == SupportedDatabases.SqlServer
+            var orderMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrderMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookOrderMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -119,15 +119,15 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Desc)]
-        public async Task AddGetQuery_WithOrderingSpecified_CorrectlySortsTheOutput(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Desc)]
+        public async Task AddGetQuery_WithOrderingSpecified_CorrectlySortsTheOutput(string dbType,
             string operationName, OrderDirections direction)
         {
             // Arrange
@@ -143,19 +143,19 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
 
-            var defaultOrdering = dbType == SupportedDatabases.SqlServer
+            var defaultOrdering = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrdering
                 : GeneratorTestConstants.Postgres.DefaultBookOrdering;
 
-            var orderMetadata = dbType == SupportedDatabases.SqlServer
+            var orderMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrderMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookOrderMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -197,7 +197,7 @@ namespace Dapper.Wrappers.Tests.Builders
                     break;
                 case "PageCount":
                     // This is necessary, since Postgres and SQL Server handle null values differently when ordering.
-                    var defaultPageCount = dbType == SupportedDatabases.SqlServer ? -10000 : 10000;
+                    var defaultPageCount = dbType == DatabaseFixture.SQL_SERVER_NAME ? -10000 : 10000;
                     orderedBooks = direction == OrderDirections.Asc
                         ? books.OrderBy(b => b.PageCount ?? defaultPageCount).ToList()
                         : books.OrderByDescending(b => b.PageCount ?? defaultPageCount).ToList();
@@ -214,59 +214,59 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Asc, 0, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Asc, 0, 12)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Asc, 5, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Asc, 10, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Asc, 12, 1)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Asc, 8, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Asc, 0, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Asc, 0, 12)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Asc, 5, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Asc, 10, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Asc, 12, 1)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Asc, 8, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Desc, 0, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Desc, 0, 12)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Desc, 5, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Desc, 10, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Desc, 12, 1)]
-        [InlineData(SupportedDatabases.SqlServer, "Name", OrderDirections.Desc, 8, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Desc, 0, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Desc, 0, 12)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Desc, 5, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Desc, 10, 10)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Desc, 12, 1)]
-        [InlineData(SupportedDatabases.SqlServer, "PageCount", OrderDirections.Desc, 8, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Asc, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Asc, 0, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Asc, 0, 12)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Asc, 5, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Asc, 10, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Asc, 12, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Asc, 8, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Asc, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Asc, 0, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Asc, 0, 12)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Asc, 5, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Asc, 10, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Asc, 12, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Asc, 8, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Desc, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Desc, 0, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Desc, 0, 12)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Desc, 5, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Desc, 10, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Desc, 12, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Name", OrderDirections.Desc, 8, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Desc, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Desc, 0, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Desc, 0, 12)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Desc, 5, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Desc, 10, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Desc, 12, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "PageCount", OrderDirections.Desc, 8, 5)]
-        public async Task AddGetQuery_WithOrderingAndPagination_ReturnsCorrectResults(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Asc, 0, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Asc, 0, 12)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Asc, 5, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Asc, 10, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Asc, 12, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Asc, 8, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Asc, 0, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Asc, 0, 12)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Asc, 5, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Asc, 10, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Asc, 12, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Asc, 8, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Desc, 0, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Desc, 0, 12)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Desc, 5, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Desc, 10, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Desc, 12, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Name", OrderDirections.Desc, 8, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Desc, 0, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Desc, 0, 12)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Desc, 5, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Desc, 10, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Desc, 12, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "PageCount", OrderDirections.Desc, 8, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Asc, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Asc, 0, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Asc, 0, 12)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Asc, 5, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Asc, 10, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Asc, 12, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Asc, 8, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Asc, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Asc, 0, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Asc, 0, 12)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Asc, 5, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Asc, 10, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Asc, 12, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Asc, 8, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Desc, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Desc, 0, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Desc, 0, 12)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Desc, 5, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Desc, 10, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Desc, 12, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Name", OrderDirections.Desc, 8, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Desc, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Desc, 0, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Desc, 0, 12)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Desc, 5, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Desc, 10, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Desc, 12, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "PageCount", OrderDirections.Desc, 8, 5)]
+        public async Task AddGetQuery_WithOrderingAndPagination_ReturnsCorrectResults(string dbType,
             string orderOperation, OrderDirections direction, int skip, int take)
         {
             // Arrange
@@ -282,19 +282,19 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
 
-            var defaultOrdering = dbType == SupportedDatabases.SqlServer
+            var defaultOrdering = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrdering
                 : GeneratorTestConstants.Postgres.DefaultBookOrdering;
 
-            var orderMetadata = dbType == SupportedDatabases.SqlServer
+            var orderMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrderMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookOrderMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -339,7 +339,7 @@ namespace Dapper.Wrappers.Tests.Builders
                     break;
                 case "PageCount":
                     // This is necessary, since Postgres and SQL Server handle null values differently when ordering.
-                    var defaultPageCount = dbType == SupportedDatabases.SqlServer ? -10000 : 10000;
+                    var defaultPageCount = dbType == DatabaseFixture.SQL_SERVER_NAME ? -10000 : 10000;
                     orderedBooks = direction == OrderDirections.Asc
                         ? books.OrderBy(b => b.PageCount ?? defaultPageCount).ToList()
                         : books.OrderByDescending(b => b.PageCount ?? defaultPageCount).ToList();
@@ -360,21 +360,21 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, 0, 10)]
-        [InlineData(SupportedDatabases.SqlServer, 0, 12)]
-        [InlineData(SupportedDatabases.SqlServer, 5, 5)]
-        [InlineData(SupportedDatabases.SqlServer, 10, 10)]
-        [InlineData(SupportedDatabases.SqlServer, 12, 1)]
-        [InlineData(SupportedDatabases.SqlServer, 8, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, 0, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, 0, 12)]
-        [InlineData(SupportedDatabases.PostgreSQL, 5, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, 10, 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, 12, 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, 8, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 0, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 0, 12)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 5, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 10, 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 12, 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 8, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 0, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 0, 12)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 5, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 10, 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 12, 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 8, 5)]
         public async Task AddGetQuery_WithPaginationAndNoOrdering_AppliesDefaultOrderingToResults(
-            SupportedDatabases dbType, int skip, int take)
+            string dbType, int skip, int take)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -389,19 +389,19 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
 
-            var defaultOrdering = dbType == SupportedDatabases.SqlServer
+            var defaultOrdering = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrdering
                 : GeneratorTestConstants.Postgres.DefaultBookOrdering;
 
-            var orderMetadata = dbType == SupportedDatabases.SqlServer
+            var orderMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrderMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookOrderMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -443,11 +443,11 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "BookIDEquals")]
-        [InlineData(SupportedDatabases.SqlServer, "BookIDNotEquals")]
-        [InlineData(SupportedDatabases.PostgreSQL, "BookIDEquals")]
-        [InlineData(SupportedDatabases.PostgreSQL, "BookIDNotEquals")]
-        public async Task AddGetQuery_WithBookIDFilters_ShouldOnlyReturnExpectedResults(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "BookIDEquals")]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "BookIDNotEquals")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "BookIDEquals")]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "BookIDNotEquals")]
+        public async Task AddGetQuery_WithBookIDFilters_ShouldOnlyReturnExpectedResults(string dbType,
             string operationName)
         {
             // Arrange
@@ -463,19 +463,19 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
 
-            var defaultOrdering = dbType == SupportedDatabases.SqlServer
+            var defaultOrdering = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrdering
                 : GeneratorTestConstants.Postgres.DefaultBookOrdering;
 
-            var orderMetadata = dbType == SupportedDatabases.SqlServer
+            var orderMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrderMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookOrderMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -518,23 +518,23 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "NameEquals", "The Cat in the Hat", 1)]
-        [InlineData(SupportedDatabases.SqlServer, "NameEquals", "Green Eggs and Ham", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "NameNotEquals", "The Cat in the Hat", 9)]
-        [InlineData(SupportedDatabases.SqlServer, "NameNotEquals", "Green Eggs and Ham", 10)]
-        [InlineData(SupportedDatabases.SqlServer, "NameLike", "%ea%", 2)]
-        [InlineData(SupportedDatabases.SqlServer, "NameLike", "%blah%", 0)]
-        [InlineData(SupportedDatabases.SqlServer, "NameLike", "The%", 5)]
-        [InlineData(SupportedDatabases.SqlServer, "NameLike", "%of%", 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameEquals", "The Cat in the Hat", 1)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameEquals", "Green Eggs and Ham", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameNotEquals", "The Cat in the Hat", 9)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameNotEquals", "Green Eggs and Ham", 10)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameLike", "%ea%", 2)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameLike", "%blah%", 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameLike", "The%", 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "NameLike", "%of%", 4)]
-        public async Task AddGetQuery_WithNameFilters_ReturnsExpectedRows(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameEquals", "The Cat in the Hat", 1)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameEquals", "Green Eggs and Ham", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameNotEquals", "The Cat in the Hat", 9)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameNotEquals", "Green Eggs and Ham", 10)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameLike", "%ea%", 2)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameLike", "%blah%", 0)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameLike", "The%", 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "NameLike", "%of%", 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameEquals", "The Cat in the Hat", 1)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameEquals", "Green Eggs and Ham", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameNotEquals", "The Cat in the Hat", 9)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameNotEquals", "Green Eggs and Ham", 10)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameLike", "%ea%", 2)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameLike", "%blah%", 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameLike", "The%", 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "NameLike", "%of%", 4)]
+        public async Task AddGetQuery_WithNameFilters_ReturnsExpectedRows(string dbType,
             string operationName, string filterValue, int expectedCount)
         {
             // Arrange
@@ -550,19 +550,19 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
 
-            var defaultOrdering = dbType == SupportedDatabases.SqlServer
+            var defaultOrdering = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrdering
                 : GeneratorTestConstants.Postgres.DefaultBookOrdering;
 
-            var orderMetadata = dbType == SupportedDatabases.SqlServer
+            var orderMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrderMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookOrderMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -593,47 +593,47 @@ namespace Dapper.Wrappers.Tests.Builders
         }
         
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "Science Fiction", "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantasy Fiction", "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "Science Fiction", "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantasy Fiction", "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.SqlServer, "Science Fiction", "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantasy Fiction", "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "PageCount", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "PageCount", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "PageCount", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.SqlServer, "Science Fiction", "PageCount", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantasy Fiction", "PageCount", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Science Fiction", "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantasy Fiction", "Name", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Science Fiction", "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantasy Fiction", "PageCount", OrderDirections.Asc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Science Fiction", "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantasy Fiction", "Name", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "PageCount", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "PageCount", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "PageCount", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Science Fiction", "PageCount", OrderDirections.Desc)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantasy Fiction", "PageCount", OrderDirections.Desc)]
-        public async Task AddGetQuery_WithFilteringAndOrdering_ReturnsExpectedOrderedResults(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Science Fiction", "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantasy Fiction", "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Science Fiction", "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantasy Fiction", "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Science Fiction", "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantasy Fiction", "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "PageCount", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "PageCount", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "PageCount", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Science Fiction", "PageCount", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantasy Fiction", "PageCount", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Science Fiction", "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantasy Fiction", "Name", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Science Fiction", "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantasy Fiction", "PageCount", OrderDirections.Asc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Science Fiction", "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantasy Fiction", "Name", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "PageCount", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "PageCount", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "PageCount", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Science Fiction", "PageCount", OrderDirections.Desc)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantasy Fiction", "PageCount", OrderDirections.Desc)]
+        public async Task AddGetQuery_WithFilteringAndOrdering_ReturnsExpectedOrderedResults(string dbType,
             string genreFilter, string orderOperation, OrderDirections direction)
         {
             // Arrange
@@ -651,19 +651,19 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
 
-            var defaultOrdering = dbType == SupportedDatabases.SqlServer
+            var defaultOrdering = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrdering
                 : GeneratorTestConstants.Postgres.DefaultBookOrdering;
 
-            var orderMetadata = dbType == SupportedDatabases.SqlServer
+            var orderMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrderMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookOrderMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -710,7 +710,7 @@ namespace Dapper.Wrappers.Tests.Builders
                     break;
                 case "PageCount":
                     // This is necessary, since Postgres and SQL Server handle null values differently when ordering.
-                    var defaultPageCount = dbType == SupportedDatabases.SqlServer ? -10000 : 10000;
+                    var defaultPageCount = dbType == DatabaseFixture.SQL_SERVER_NAME ? -10000 : 10000;
                     orderedBooks = direction == OrderDirections.Asc
                         ? orderedBooks.OrderBy(b => b.PageCount ?? defaultPageCount).ToList()
                         : orderedBooks.OrderByDescending(b => b.PageCount ?? defaultPageCount).ToList();
@@ -726,62 +726,62 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "Name", OrderDirections.Asc, 0, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "Name", OrderDirections.Asc, 1, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "Name", OrderDirections.Asc, 2, 4)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "Name", OrderDirections.Asc, 10, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "Name", OrderDirections.Asc, 0, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "Name", OrderDirections.Asc, 1, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "Name", OrderDirections.Asc, 2, 4)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "Name", OrderDirections.Asc, 10, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "Name", OrderDirections.Asc, 0, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "Name", OrderDirections.Asc, 1, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "Name", OrderDirections.Asc, 2, 4)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "Name", OrderDirections.Asc, 10, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "Name", OrderDirections.Desc, 0, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "Name", OrderDirections.Desc, 1, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "Name", OrderDirections.Desc, 2, 4)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", "Name", OrderDirections.Desc, 10, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "Name", OrderDirections.Desc, 0, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "Name", OrderDirections.Desc, 1, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "Name", OrderDirections.Desc, 2, 4)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", "Name", OrderDirections.Desc, 10, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "Name", OrderDirections.Desc, 0, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "Name", OrderDirections.Desc, 1, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "Name", OrderDirections.Desc, 2, 4)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", "Name", OrderDirections.Desc, 10, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Asc, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Asc, 0, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Asc, 1, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Asc, 2, 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Asc, 10, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Asc, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Asc, 0, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Asc, 1, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Asc, 2, 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Asc, 10, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Asc, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Asc, 0, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Asc, 1, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Asc, 2, 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Asc, 10, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Desc, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Desc, 0, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Desc, 1, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Desc, 2, 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", "Name", OrderDirections.Desc, 10, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Desc, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Desc, 0, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Desc, 1, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Desc, 2, 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", "Name", OrderDirections.Desc, 10, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Desc, 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Desc, 0, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Desc, 1, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Desc, 2, 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", "Name", OrderDirections.Desc, 10, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "Name", OrderDirections.Asc, 0, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "Name", OrderDirections.Asc, 1, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "Name", OrderDirections.Asc, 2, 4)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "Name", OrderDirections.Asc, 10, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "Name", OrderDirections.Asc, 0, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "Name", OrderDirections.Asc, 1, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "Name", OrderDirections.Asc, 2, 4)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "Name", OrderDirections.Asc, 10, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "Name", OrderDirections.Asc, 0, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "Name", OrderDirections.Asc, 1, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "Name", OrderDirections.Asc, 2, 4)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "Name", OrderDirections.Asc, 10, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "Name", OrderDirections.Desc, 0, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "Name", OrderDirections.Desc, 1, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "Name", OrderDirections.Desc, 2, 4)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", "Name", OrderDirections.Desc, 10, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "Name", OrderDirections.Desc, 0, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "Name", OrderDirections.Desc, 1, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "Name", OrderDirections.Desc, 2, 4)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", "Name", OrderDirections.Desc, 10, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "Name", OrderDirections.Desc, 0, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "Name", OrderDirections.Desc, 1, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "Name", OrderDirections.Desc, 2, 4)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", "Name", OrderDirections.Desc, 10, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Asc, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Asc, 0, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Asc, 1, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Asc, 2, 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Asc, 10, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Asc, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Asc, 0, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Asc, 1, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Asc, 2, 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Asc, 10, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Asc, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Asc, 0, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Asc, 1, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Asc, 2, 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Asc, 10, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Desc, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Desc, 0, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Desc, 1, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Desc, 2, 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", "Name", OrderDirections.Desc, 10, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Desc, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Desc, 0, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Desc, 1, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Desc, 2, 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", "Name", OrderDirections.Desc, 10, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Desc, 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Desc, 0, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Desc, 1, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Desc, 2, 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", "Name", OrderDirections.Desc, 10, 3)]
         public async Task AddGetQuery_WithFilterOrderAndPagination_ReturnsExpectedCorrectlyOrderedResults(
-            SupportedDatabases dbType, string genreFilter, string orderOperation, OrderDirections direction, int skip,
+            string dbType, string genreFilter, string orderOperation, OrderDirections direction, int skip,
             int take)
         {
             // Arrange
@@ -799,19 +799,19 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
 
-            var defaultOrdering = dbType == SupportedDatabases.SqlServer
+            var defaultOrdering = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrdering
                 : GeneratorTestConstants.Postgres.DefaultBookOrdering;
 
-            var orderMetadata = dbType == SupportedDatabases.SqlServer
+            var orderMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrderMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookOrderMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 
@@ -863,7 +863,7 @@ namespace Dapper.Wrappers.Tests.Builders
                     break;
                 case "PageCount":
                     // This is necessary, since Postgres and SQL Server handle null values differently when ordering.
-                    var defaultPageCount = dbType == SupportedDatabases.SqlServer ? -10000 : 10000;
+                    var defaultPageCount = dbType == DatabaseFixture.SQL_SERVER_NAME ? -10000 : 10000;
                     orderedBooks = direction == OrderDirections.Asc
                         ? orderedBooks.OrderBy(b => b.PageCount ?? defaultPageCount).ToList()
                         : orderedBooks.OrderByDescending(b => b.PageCount ?? defaultPageCount).ToList();
@@ -881,35 +881,35 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", 0, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", 1, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", 2, 4)]
-        [InlineData(SupportedDatabases.SqlServer, "Novel", 10, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", 0, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", 1, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", 2, 4)]
-        [InlineData(SupportedDatabases.SqlServer, "Fantastic", 10, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", 0, 5)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", 1, 3)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", 2, 4)]
-        [InlineData(SupportedDatabases.SqlServer, "Children's Literature", 10, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", 0, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", 1, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", 2, 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Novel", 10, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", 0, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", 1, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", 2, 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Fantastic", 10, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", 0, 0)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", 0, 5)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", 1, 3)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", 2, 4)]
-        [InlineData(SupportedDatabases.PostgreSQL, "Children's Literature", 10, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", 0, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", 1, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", 2, 4)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Novel", 10, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", 0, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", 1, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", 2, 4)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Fantastic", 10, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", 0, 5)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", 1, 3)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", 2, 4)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "Children's Literature", 10, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", 0, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", 1, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", 2, 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Novel", 10, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", 0, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", 1, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", 2, 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Fantastic", 10, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", 0, 0)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", 0, 5)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", 1, 3)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", 2, 4)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "Children's Literature", 10, 3)]
         public async Task AddGetQuery_WithFilteringAndPagination_AppliesDefaultOrderingToQuery(
-            SupportedDatabases dbType, string genreFilter, int skip, int take)
+            string dbType, string genreFilter, int skip, int take)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -926,19 +926,19 @@ namespace Dapper.Wrappers.Tests.Builders
             await _databaseFixture.AddBooks(connection, dbType, testId, books);
             await _databaseFixture.AddBookGenres(connection, dbType, testId, testData.BookGenres);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Books.SelectQuery;
 
-            var defaultOrdering = dbType == SupportedDatabases.SqlServer
+            var defaultOrdering = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrdering
                 : GeneratorTestConstants.Postgres.DefaultBookOrdering;
 
-            var orderMetadata = dbType == SupportedDatabases.SqlServer
+            var orderMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookOrderMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookOrderMetadata;
 
-            var filterMetadata = dbType == SupportedDatabases.SqlServer
+            var filterMetadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookFilterMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookFilterMetadata;
 

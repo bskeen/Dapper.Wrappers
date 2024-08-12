@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.OperationFormatters;
+using Dapper.Wrappers.Postgres;
 using Dapper.Wrappers.QueryFormatters;
 using FluentAssertions;
 using Moq;
@@ -16,9 +17,9 @@ namespace Dapper.Wrappers.Tests.QueryFormatters
 {
     public class FilterFormatterTests
     {
-        private static FilterFormatter GetDefaultTestInstance(SupportedDatabases dbType)
+        private static FilterFormatter GetDefaultTestInstance(string dbType)
         {
-            IQueryOperationFormatter formatter = dbType == SupportedDatabases.SqlServer
+            IQueryOperationFormatter formatter = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? (IQueryOperationFormatter)(new SqlServerQueryOperationFormatter())
                 : new PostgresQueryOperationFormatter();
             
@@ -44,11 +45,11 @@ namespace Dapper.Wrappers.Tests.QueryFormatters
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, true)]
-        [InlineData(SupportedDatabases.SqlServer, false)]
-        [InlineData(SupportedDatabases.PostgreSQL, true)]
-        [InlineData(SupportedDatabases.PostgreSQL, false)]
-        public void FormatFilterOperations_WithEmptyInputs_ShouldReturnAnEmptyString(SupportedDatabases dbType,
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, true)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, false)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, true)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, false)]
+        public void FormatFilterOperations_WithEmptyInputs_ShouldReturnAnEmptyString(string dbType,
             bool isEmptyInput)
         {
             // Arrange
@@ -71,9 +72,9 @@ namespace Dapper.Wrappers.Tests.QueryFormatters
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public void FormatFilterOperations_WithInputs_ShouldReturnExpectedString(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public void FormatFilterOperations_WithInputs_ShouldReturnExpectedString(string dbType)
         {
             // Arrange
             var metadata = new Dictionary<string, QueryOperationMetadata>

@@ -8,6 +8,7 @@ using System.Data;
 using System.Linq;
 using Dapper.Wrappers.DependencyInjection;
 using Dapper.Wrappers.OperationFormatters;
+using Dapper.Wrappers.Postgres;
 using Dapper.Wrappers.QueryFormatters;
 using FluentAssertions;
 using Moq;
@@ -22,8 +23,8 @@ namespace Dapper.Wrappers.Tests.QueryFormatters
             return new TestQueryFormatter();
         }
 
-        private static IQueryOperationFormatter GetQueryOperationFormatter(SupportedDatabases dbType) =>
-            dbType == SupportedDatabases.SqlServer
+        private static IQueryOperationFormatter GetQueryOperationFormatter(string dbType) =>
+            dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? (IQueryOperationFormatter) (new SqlServerQueryOperationFormatter())
                 : new PostgresQueryOperationFormatter();
 
@@ -106,10 +107,10 @@ namespace Dapper.Wrappers.Tests.QueryFormatters
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
         public void FormatOperations_WithOperationInputs_ShouldCallTheOperationActionForEachValidOperation(
-            SupportedDatabases dbType)
+            string dbType)
         {
             // Arrange
             var queryFormatter = GetDefaultTestInstance();
@@ -173,10 +174,10 @@ namespace Dapper.Wrappers.Tests.QueryFormatters
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
         public void FormatOperations_WithMissingParametersWithDefault_ShouldStillReturnResults(
-            SupportedDatabases dbType)
+            string dbType)
         {
 
             // Arrange
@@ -223,9 +224,9 @@ namespace Dapper.Wrappers.Tests.QueryFormatters
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public void FormatOperations_WithMissingParameters_ShouldThrowError(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public void FormatOperations_WithMissingParameters_ShouldThrowError(string dbType)
         {
 
             // Arrange
@@ -270,10 +271,10 @@ namespace Dapper.Wrappers.Tests.QueryFormatters
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
         public void FormatOperations_WithOrderByParameter_ShouldParseAndPassItToFormattingFunction(
-            SupportedDatabases dbType)
+            string dbType)
         {
 
             // Arrange

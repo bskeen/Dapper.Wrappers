@@ -30,16 +30,16 @@ namespace Dapper.Wrappers.Tests
             _postgresConnection = dbConnections.FirstOrDefault(c => c is NpgsqlConnection);
         }
 
-        private IDbConnection GetConnection(SupportedDatabases dbType) =>
-            dbType == SupportedDatabases.SqlServer ? _sqlConnection : _postgresConnection;
+        private IDbConnection GetConnection(string dbType) =>
+            dbType == DatabaseFixture.SQL_SERVER_NAME ? _sqlConnection : _postgresConnection;
 
-        private IQueryContext GetDefaultQueryContext(SupportedDatabases dbType) =>
+        private IQueryContext GetDefaultQueryContext(string dbType) =>
             new QueryContext(GetConnection(dbType));
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public void Constructor_WithExistingParameters_ShouldCreateContext(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public void Constructor_WithExistingParameters_ShouldCreateContext(string dbType)
         {
             // Arrange
             // Nothing to do here...
@@ -52,9 +52,9 @@ namespace Dapper.Wrappers.Tests
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public async Task ExecuteNextQuery_WithNoQuery_ShouldThrowException(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public async Task ExecuteNextQuery_WithNoQuery_ShouldThrowException(string dbType)
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
@@ -68,9 +68,9 @@ namespace Dapper.Wrappers.Tests
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public async Task ExecuteCommands_WithNoQuery_ShouldThrowException(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public async Task ExecuteCommands_WithNoQuery_ShouldThrowException(string dbType)
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
@@ -84,9 +84,9 @@ namespace Dapper.Wrappers.Tests
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public async Task AddQuery_WithStringInput_ShouldCombineQueriesInsideContext(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public async Task AddQuery_WithStringInput_ShouldCombineQueriesInsideContext(string dbType)
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
@@ -123,7 +123,7 @@ namespace Dapper.Wrappers.Tests
                 $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
-            var insertFormat = dbType == SupportedDatabases.SqlServer
+            var insertFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Genres.InsertQuery;
 
@@ -152,9 +152,9 @@ namespace Dapper.Wrappers.Tests
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public async Task AddQuery_AfterExecutingOneBatch_ShouldRunAnotherBatch(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public async Task AddQuery_AfterExecutingOneBatch_ShouldRunAnotherBatch(string dbType)
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
@@ -183,7 +183,7 @@ namespace Dapper.Wrappers.Tests
                 $"@{context.AddVariable("testid", testId, DbType.Guid)}"
             };
 
-            var insertFormat = dbType == SupportedDatabases.SqlServer
+            var insertFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Genres.InsertQuery;
 
@@ -219,9 +219,9 @@ namespace Dapper.Wrappers.Tests
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public async Task ExecuteCommands_AfterExecutingOneBatch_ShouldErrorIfCalledBeforeAdd(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public async Task ExecuteCommands_AfterExecutingOneBatch_ShouldErrorIfCalledBeforeAdd(string dbType)
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
@@ -234,7 +234,7 @@ namespace Dapper.Wrappers.Tests
 
             };
 
-            var insertFormat = dbType == SupportedDatabases.SqlServer
+            var insertFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Genres.InsertQuery;
 
@@ -261,9 +261,9 @@ namespace Dapper.Wrappers.Tests
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public async Task ExecuteNextQuery_WithNormalInputs_ShouldReturnResults(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public async Task ExecuteNextQuery_WithNormalInputs_ShouldReturnResults(string dbType)
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
@@ -287,11 +287,11 @@ namespace Dapper.Wrappers.Tests
 
             await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
-            var selectGenreFormat = dbType == SupportedDatabases.SqlServer
+            var selectGenreFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
-            var selectAuthorFormat = dbType == SupportedDatabases.SqlServer
+            var selectAuthorFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 
@@ -327,9 +327,9 @@ namespace Dapper.Wrappers.Tests
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public async Task ExecuteNextQuery_CalledAfterAllQueriesRun_ShouldThrowException(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public async Task ExecuteNextQuery_CalledAfterAllQueriesRun_ShouldThrowException(string dbType)
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
@@ -353,11 +353,11 @@ namespace Dapper.Wrappers.Tests
 
             await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
-            var selectGenreFormat = dbType == SupportedDatabases.SqlServer
+            var selectGenreFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
-            var selectAuthorFormat = dbType == SupportedDatabases.SqlServer
+            var selectAuthorFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 
@@ -389,9 +389,9 @@ namespace Dapper.Wrappers.Tests
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public async Task ExecuteCommands_AfterExecuteNextQuery_ShouldRunRemainingQueries(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public async Task ExecuteCommands_AfterExecuteNextQuery_ShouldRunRemainingQueries(string dbType)
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
@@ -415,11 +415,11 @@ namespace Dapper.Wrappers.Tests
 
             await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
-            var selectGenreFormat = dbType == SupportedDatabases.SqlServer
+            var selectGenreFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
-            var selectAuthorFormat = dbType == SupportedDatabases.SqlServer
+            var selectAuthorFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 
@@ -455,10 +455,10 @@ namespace Dapper.Wrappers.Tests
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
         public async Task ExecuteCommands_WithPendingQueries_ShouldExecutePendingAndNewQueries(
-            SupportedDatabases dbType)
+            string dbType)
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
@@ -490,15 +490,15 @@ namespace Dapper.Wrappers.Tests
 
             await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
-            var insertGenreFormat = dbType == SupportedDatabases.SqlServer
+            var insertGenreFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Genres.InsertQuery;
 
-            var selectGenreFormat = dbType == SupportedDatabases.SqlServer
+            var selectGenreFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
-            var selectAuthorFormat = dbType == SupportedDatabases.SqlServer
+            var selectAuthorFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 
@@ -550,9 +550,9 @@ namespace Dapper.Wrappers.Tests
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public async Task ExecuteNextQuery_WithAddQueryCallInMiddle_ShouldRetrieveAllResults(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public async Task ExecuteNextQuery_WithAddQueryCallInMiddle_ShouldRetrieveAllResults(string dbType)
         {
             // Arrange
             var context = GetDefaultQueryContext(dbType);
@@ -576,11 +576,11 @@ namespace Dapper.Wrappers.Tests
 
             await _dbFixture.AddAuthors(connection, dbType, testId, new[] {testAuthor});
 
-            var selectGenreFormat = dbType == SupportedDatabases.SqlServer
+            var selectGenreFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Genres.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Genres.SelectQuery;
 
-            var selectAuthorFormat = dbType == SupportedDatabases.SqlServer
+            var selectAuthorFormat = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Authors.SelectQuery
                 : SqlQueryFormatConstants.Postgres.Authors.SelectQuery;
 

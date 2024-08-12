@@ -1,8 +1,8 @@
-﻿// © 2021 by Benjamin Skeen
+﻿// © 2022 by Benjamin Skeen
 // Licensed to be used under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Dapper.Wrappers.OperationFormatters;
+using Dapper.Wrappers.Postgres;
 using FluentAssertions;
 using Xunit;
 

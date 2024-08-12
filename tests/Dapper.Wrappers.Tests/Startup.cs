@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using FluentMigrator.Runner;
+using Dapper.Wrappers.Postgres;
 
 namespace Dapper.Wrappers.Tests
 {
@@ -34,7 +35,7 @@ namespace Dapper.Wrappers.Tests
                 services.AddTransient<IDbConnection, NpgsqlConnection>(_ => new NpgsqlConnection(postgresConnectionString));
                 services.AddSingleton<IQueryOperationFormatter, PostgresQueryOperationFormatter>();
 
-                MigrateDatabase(SupportedDatabases.PostgreSQL, postgresConnectionString);
+                MigrateDatabase(DatabaseFixture.POSTGRES_NAME, postgresConnectionString);
             }
 
             var sqlConnectionString = config.GetConnectionString("SqlServer");
@@ -44,20 +45,20 @@ namespace Dapper.Wrappers.Tests
                 services.AddTransient<IDbConnection, SqlConnection>(_ => new SqlConnection(sqlConnectionString));
                 services.AddSingleton<IQueryOperationFormatter, SqlServerQueryOperationFormatter>();
 
-                MigrateDatabase(SupportedDatabases.SqlServer, sqlConnectionString);
+                MigrateDatabase(DatabaseFixture.SQL_SERVER_NAME, sqlConnectionString);
             }
 
             services.AddSingleton<IMetadataGenerator, MetadataGenerator>();
         }
 
-        private void MigrateDatabase(SupportedDatabases dbType, string connectionString)
+        private void MigrateDatabase(string dbType, string connectionString)
         {
             var migrateServiceProvider = new ServiceCollection()
                 .AddFluentMigratorCore()
                 .ConfigureRunner(rb =>
                 {
                     IMigrationRunnerBuilder builder;
-                    if (dbType == SupportedDatabases.SqlServer)
+                    if (dbType == DatabaseFixture.SQL_SERVER_NAME)
                     {
                         builder = rb.AddSqlServer();
                     }

@@ -35,7 +35,7 @@ namespace Dapper.Wrappers.Tests.Builders
             _metadataGenerator = metadataGenerator;
         }
 
-        private TestInsertQueryBuilder GetTestInstance(SupportedDatabases dbType, string query,
+        private TestInsertQueryBuilder GetTestInstance(string dbType, string query,
             IDictionary<string, MergeOperationMetadata> metadata,
             IDictionary<string, QueryOperation> defaultOperations)
         {
@@ -46,10 +46,10 @@ namespace Dapper.Wrappers.Tests.Builders
                 defaultOperations);
         }
 
-        private IDbConnection GetConnection(SupportedDatabases dbType) =>
-            dbType == SupportedDatabases.SqlServer ? _sqlConnection : _postgresConnection;
+        private IDbConnection GetConnection(string dbType) =>
+            dbType == DatabaseFixture.SQL_SERVER_NAME ? _sqlConnection : _postgresConnection;
 
-        private IQueryContext GetQueryContext(SupportedDatabases dbType)
+        private IQueryContext GetQueryContext(string dbType)
         {
             var connection = GetConnection(dbType);
 
@@ -57,20 +57,20 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public void AddInsertQuery_WithNullOperations_ThrowsException(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public void AddInsertQuery_WithNullOperations_ThrowsException(string dbType)
         {
             // Arrange
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var defaultOperations = dbType == SupportedDatabases.SqlServer
+            var defaultOperations = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
@@ -85,20 +85,20 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public void AddInsertQuery_WithEmptyOperations_ThrowsException(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public void AddInsertQuery_WithEmptyOperations_ThrowsException(string dbType)
         {
             // Arrange
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var defaultOperations = dbType == SupportedDatabases.SqlServer
+            var defaultOperations = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
@@ -116,20 +116,20 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public void AddInsertQuery_WithBogusOperations_ThrowsException(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public void AddInsertQuery_WithBogusOperations_ThrowsException(string dbType)
         {
             // Arrange
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var defaultOperations = dbType == SupportedDatabases.SqlServer
+            var defaultOperations = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
@@ -151,22 +151,22 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public void AddInsertQuery_WithMissingRequiredOperationWithoutDefault_ThrowsException(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public void AddInsertQuery_WithMissingRequiredOperationWithoutDefault_ThrowsException(string dbType)
         {
             // Arrange
             var testId = Guid.NewGuid();
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
 
-            var defaultOperations = dbType == SupportedDatabases.SqlServer
+            var defaultOperations = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
@@ -189,22 +189,22 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer)]
-        [InlineData(SupportedDatabases.PostgreSQL)]
-        public void AddInsertQuery_WithDuplicateOperations_ShouldThrowException(SupportedDatabases dbType)
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME)]
+        public void AddInsertQuery_WithDuplicateOperations_ShouldThrowException(string dbType)
         {
             // Arrange
             var testId = Guid.NewGuid();
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var defaultOperations = dbType == SupportedDatabases.SqlServer
+            var defaultOperations = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
@@ -228,14 +228,14 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, "The Way of Kings", 1007)]
-        [InlineData(SupportedDatabases.SqlServer, "The Sign of the Four", 122)]
-        [InlineData(SupportedDatabases.SqlServer, "One Fish Two Fish Red Fish Blue Fish", null)]
-        [InlineData(SupportedDatabases.PostgreSQL, "The Way of Kings", 1007)]
-        [InlineData(SupportedDatabases.PostgreSQL, "The Sign of the Four", 122)]
-        [InlineData(SupportedDatabases.PostgreSQL, "One Fish Two Fish Red Fish Blue Fish", null)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "The Way of Kings", 1007)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "The Sign of the Four", 122)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, "One Fish Two Fish Red Fish Blue Fish", null)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "The Way of Kings", 1007)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "The Sign of the Four", 122)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, "One Fish Two Fish Red Fish Blue Fish", null)]
         public async Task AddInsertQuery_WithAllColumnsSpecified_ShouldInsertRecordIntoDatabase(
-            SupportedDatabases dbType, string name, int? pageCount)
+            string dbType, string name, int? pageCount)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -246,15 +246,15 @@ namespace Dapper.Wrappers.Tests.Builders
 
             await _databaseFixture.AddAuthors(connection, dbType, testId, authors);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var defaultOperations = dbType == SupportedDatabases.SqlServer
+            var defaultOperations = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
@@ -292,14 +292,14 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, 1007)]
-        [InlineData(SupportedDatabases.SqlServer, 122)]
-        [InlineData(SupportedDatabases.SqlServer, null)]
-        [InlineData(SupportedDatabases.PostgreSQL, 1007)]
-        [InlineData(SupportedDatabases.PostgreSQL, 122)]
-        [InlineData(SupportedDatabases.PostgreSQL, null)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 1007)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, 122)]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, null)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 1007)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, 122)]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, null)]
         public async Task AddInsertQuery_WithMissingRequiredColumnWithDefault_ShouldInsertWithDefaultValue(
-            SupportedDatabases dbType, int? pageCount)
+            string dbType, int? pageCount)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -310,15 +310,15 @@ namespace Dapper.Wrappers.Tests.Builders
 
             await _databaseFixture.AddAuthors(connection, dbType, testId, authors);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
 
-            var defaultOperations = dbType == SupportedDatabases.SqlServer
+            var defaultOperations = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
@@ -355,14 +355,14 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, new [] {"The Way of Kings", "Arcanum Unbounded"}, new [] {1007, 672})]
-        [InlineData(SupportedDatabases.SqlServer, new [] {"The Sign of the Four", "The Return of Sherlock Holmes"}, new [] {122, 403})]
-        [InlineData(SupportedDatabases.SqlServer, new [] {"One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham"}, new [] {62, 62})]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new [] {"The Way of Kings", "Arcanum Unbounded"}, new [] {1007, 672})]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new [] {"The Sign of the Four", "The Return of Sherlock Holmes"}, new [] {122, 403})]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new [] {"One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham"}, new [] {62, 62})]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
         public async Task AddMultipleInsertQuery_WithMultipleInserts_ShouldInsertRecordsIntoDatabase(
-            SupportedDatabases dbType, string[] names, int[] pageCounts)
+            string dbType, string[] names, int[] pageCounts)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -373,15 +373,15 @@ namespace Dapper.Wrappers.Tests.Builders
 
             await _databaseFixture.AddAuthors(connection, dbType, testId, authors);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var defaultOperations = dbType == SupportedDatabases.SqlServer
+            var defaultOperations = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
@@ -448,14 +448,14 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
-        [InlineData(SupportedDatabases.SqlServer, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
-        [InlineData(SupportedDatabases.SqlServer, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
         public async Task AddMultipleInsertQuery_WithInsertOperationsInDifferentOrders_ShouldInsertRecordsIntoDatabase(
-            SupportedDatabases dbType, string[] names, int[] pageCounts)
+            string dbType, string[] names, int[] pageCounts)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -466,15 +466,15 @@ namespace Dapper.Wrappers.Tests.Builders
 
             await _databaseFixture.AddAuthors(connection, dbType, testId, authors);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var defaultOperations = dbType == SupportedDatabases.SqlServer
+            var defaultOperations = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
@@ -541,14 +541,14 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
-        [InlineData(SupportedDatabases.SqlServer, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
-        [InlineData(SupportedDatabases.SqlServer, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
         public async Task AddMultipleInsertQuery_WithMissingOperations_ShouldInsertRecordsIntoDatabase(
-            SupportedDatabases dbType, string[] names, int[] pageCounts)
+            string dbType, string[] names, int[] pageCounts)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -559,15 +559,15 @@ namespace Dapper.Wrappers.Tests.Builders
 
             await _databaseFixture.AddAuthors(connection, dbType, testId, authors);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultBookInsertMetadata;
 
-            var defaultOperations = dbType == SupportedDatabases.SqlServer
+            var defaultOperations = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 
@@ -653,14 +653,14 @@ namespace Dapper.Wrappers.Tests.Builders
         }
 
         [Theory]
-        [InlineData(SupportedDatabases.SqlServer, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
-        [InlineData(SupportedDatabases.SqlServer, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
-        [InlineData(SupportedDatabases.SqlServer, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
-        [InlineData(SupportedDatabases.PostgreSQL, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(DatabaseFixture.SQL_SERVER_NAME, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "The Way of Kings", "Arcanum Unbounded" }, new[] { 1007, 672 })]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "The Sign of the Four", "The Return of Sherlock Holmes" }, new[] { 122, 403 })]
+        [InlineData(DatabaseFixture.POSTGRES_NAME, new[] { "One Fish Two Fish Red Fish Blue Fish", "Green Eggs and Ham" }, new[] { 62, 62 })]
         public async Task AddMultipleInsertQuery_WithMissingNonDefaultOperation_ShouldThrowException(
-            SupportedDatabases dbType, string[] names, int[] pageCounts)
+            string dbType, string[] names, int[] pageCounts)
         {
             // Arrange
             var testId = Guid.NewGuid();
@@ -671,15 +671,15 @@ namespace Dapper.Wrappers.Tests.Builders
 
             await _databaseFixture.AddAuthors(connection, dbType, testId, authors);
 
-            var query = dbType == SupportedDatabases.SqlServer
+            var query = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? SqlQueryFormatConstants.SqlServer.Books.InsertQuery
                 : SqlQueryFormatConstants.Postgres.Books.InsertQuery;
 
-            var metadata = dbType == SupportedDatabases.SqlServer
+            var metadata = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultRequiredBookInsertMetadata
                 : GeneratorTestConstants.Postgres.DefaultRequiredBookInsertMetadata;
 
-            var defaultOperations = dbType == SupportedDatabases.SqlServer
+            var defaultOperations = dbType == DatabaseFixture.SQL_SERVER_NAME
                 ? GeneratorTestConstants.SqlServer.DefaultBookInsertOperations
                 : GeneratorTestConstants.Postgres.DefaultBookInsertOperations;
 

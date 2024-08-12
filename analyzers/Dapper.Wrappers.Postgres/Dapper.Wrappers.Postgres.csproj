@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\analyzers\Dapper.Wrappers.Analyzers.Common\Dapper.Wrappers.Analyzers.Common.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\Dapper.Wrappers.Generation\Dapper.Wrappers.Generation.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\Dapper.Wrappers.Postgres.Core\Dapper.Wrappers.Postgres.Core.csproj" />
+    <ProjectReference Include="..\..\src\Dapper.Wrappers\Dapper.Wrappers.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" />
+		<None Include="$(OutputPath)\Dapper.Wrappers.Generation.dll" Pack="true" PackagePath="lib\netstandard2.0" Visible="true" />
+		<None Include="$(OutputPath)\Dapper.Wrappers.Generation.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" />
+		<None Include="$(OutputPath)\Dapper.Wrappers.dll" Pack="true" PackagePath="lib\netstandard2.0" Visible="true" />
+		<None Include="$(OutputPath)\Dapper.Wrappers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" />
+		<None Include="$(OutputPath)\Dapper.Wrappers.Postgres.Core.dll" Pack="true" PackagePath="lib\netstandard2.0" Visible="true" />
+		<None Include="$(OutputPath)\Dapper.Wrappers.Postgres.Core..dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" />
+		<None Include="$(OutputPath)\Dapper.Wrappers.Analyzers.Common.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" />
+	</ItemGroup>
+
+</Project>

@@ -15,14 +15,8 @@ namespace Dapper.Wrappers.DependencyInjection
     {
         public DapperWrappersOptions()
         {
-            DatabaseEngine = SupportedDatabases.SqlServer;
             QueryContextType = typeof(QueryContext);
         }
-
-        /// <summary>
-        /// Configures which database engine should be assumed by the query building classes.
-        /// </summary>
-        public SupportedDatabases DatabaseEngine { get; set; }
 
         /// <summary>
         /// Configures which type to inject as an IQueryContext.

@@ -21,15 +21,6 @@ namespace Dapper.Wrappers.DependencyInjection
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// A map of supported databases to the type that should be used with that database.
-        /// </summary>
-        private static readonly IDictionary<SupportedDatabases, Type> QueryOperationFormatterTypes = new Dictionary<SupportedDatabases, Type>
-        {
-            { SupportedDatabases.SqlServer, typeof(SqlServerQueryOperationFormatter) },
-            { SupportedDatabases.PostgreSQL, typeof(PostgresQueryOperationFormatter) }
-        };
-
-        /// <summary>
         /// Adds the default types to the provided IServiceCollection.
         /// </summary>
         /// <param name="services">The IServiceCollection that will be updated with the default types.</param>
@@ -65,10 +56,10 @@ namespace Dapper.Wrappers.DependencyInjection
         /// <param name="options">The options configuring how the IServiceCollection will be updated.</param>
         private static void SetupDependencyInjection(IServiceCollection services, DapperWrappersOptions options)
         {
-            if (QueryOperationFormatterTypes.ContainsKey(options.DatabaseEngine))
-            {
-                services.TryAddSingleton(typeof(IQueryOperationFormatter), QueryOperationFormatterTypes[options.DatabaseEngine]);
-            }
+            //if (QueryOperationFormatterTypes.ContainsKey(options.DatabaseEngine))
+            //{
+            //    services.TryAddSingleton(typeof(IQueryOperationFormatter), QueryOperationFormatterTypes[options.DatabaseEngine]);
+            //}
 
             services.TryAddScoped(typeof(IQueryContext), options.QueryContextType);
             services.TryAddSingleton<IMetadataGenerator, MetadataGenerator>();
